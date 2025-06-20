@@ -90,7 +90,7 @@ dev = [
     "types-PyYAML",
     "types-requests",
     "types-setuptools",
-    "torch-stubs",
+    # "torch-stubs", # Removed as it caused installation issues
 ]
 
 # Visualization dependencies
