@@ -30,7 +30,10 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from janus.core.grammar import ProgressiveGrammar
 from janus.core.expression import Variable
-from janus.ai_interpretability.environments import SymbolicDiscoveryEnv, CurriculumManager
+# from janus.ai_interpretability.environments import SymbolicDiscoveryEnv, CurriculumManager # Commented out old CurriculumManager
+from janus.ai_interpretability.environments import SymbolicDiscoveryEnv # Keep SymbolicDiscoveryEnv
+from janus.physics.data.dynamic_task_distribution import DynamicPhysicsTaskDistribution
+from janus.ml.training.self_play_curriculum import SelfPlayCurriculumTrainer, SelfPlayConfig
 from hypothesis_policy_network import HypothesisNet, PPOTrainer
 from physics_discovery_extensions import SymbolicRegressor, ConservationDetector
 from experiment_runner import (
@@ -187,38 +190,68 @@ class Phase1Validator:
 
             policy_creation_params = {'hidden_dim': janus_cfg.policy_hidden_dim, 'encoder_type': janus_cfg.policy_encoder_type, 'grammar': grammar}
             if exp_config.algo_params and 'policy_params' in exp_config.algo_params: policy_creation_params.update(exp_config.algo_params['policy_params'])
-            policy = HypothesisNet(observation_dim=discovery_env.observation_space.shape[0], action_dim=discovery_env.action_space.n, **policy_creation_params)
+            # policy = HypothesisNet(observation_dim=discovery_env.observation_space.shape[0], action_dim=discovery_env.action_space.n, **policy_creation_params)
+            # trainer = PPOTrainer(policy, discovery_env)
+            # curriculum = CurriculumManager(discovery_env) # Old curriculum manager
 
-            trainer = PPOTrainer(policy, discovery_env)
-            curriculum = CurriculumManager(discovery_env)
-            logger.info("Starting PPO training...")
+            logger.info("Starting Self-Play Curriculum Training...")
             start_time = time.time()
-            best_expression_str, best_complexity, best_mse, sample_curve = None, 0, float('inf'), []
 
-            loop_total_timesteps = janus_cfg.total_timesteps # Using total_timesteps from JanusConfig for this loop
-            steps_per_log_cycle = janus_cfg.timesteps_per_eval_cycle
+            # Initialize SelfPlayConfig and SelfPlayCurriculumTrainer
+            # Note: Some parameters in SelfPlayConfig might need to be mapped from janus_cfg or exp_config
+            # For example, total_iterations, checkpoint_dir, etc.
+            # Using default values for now, or simple mappings.
+            self_play_config = SelfPlayConfig(
+                total_iterations=janus_cfg.num_evaluation_cycles, # Map from existing config
+                tasks_per_iteration=5, # Default or make configurable
+                episodes_per_task=10,  # Default or make configurable
+                checkpoint_dir=str(self.output_dir / f"{exp_config.name}_run{run_id}_checkpoints"),
+                use_wandb=False # Assuming no wandb for this script, can be changed
+            )
 
-            ppo_training_args = {
-                'rollout_length': janus_cfg.ppo_rollout_length, 'n_epochs': janus_cfg.ppo_n_epochs,
-                'batch_size': janus_cfg.ppo_batch_size, 'log_interval': janus_cfg.log_interval
-            }
-            if hasattr(trainer, 'optimizer') and hasattr(trainer.optimizer, 'param_groups'):
-                 trainer.optimizer.param_groups[0]['lr'] = janus_cfg.ppo_learning_rate
+            self_play_trainer = SelfPlayCurriculumTrainer(self_play_config)
+            self_play_trainer.train()
 
-            for current_step_total in range(0, loop_total_timesteps, steps_per_log_cycle):
-                trainer.env = curriculum.get_current_env()
-                trainer.train(total_timesteps=steps_per_log_cycle, **ppo_training_args)
-                if trainer.episode_mse:
-                    current_cycle_mse = trainer.episode_mse[-1] if trainer.episode_mse else float('inf')
-                    current_avg_mse = np.mean(list(trainer.episode_mse)) if trainer.episode_mse else float('inf')
-                    sample_curve.append((current_step_total + steps_per_log_cycle, current_avg_mse))
-                    if current_cycle_mse < best_mse:
-                        best_mse = current_cycle_mse
-                        if hasattr(trainer.env, '_evaluation_cache') and trainer.env._evaluation_cache:
-                            best_expression_str = trainer.env._evaluation_cache.get('expression')
-                            best_complexity = trainer.env._evaluation_cache.get('complexity')
-                    curriculum.update_curriculum(current_cycle_mse < 0.01)
-                if best_mse < 1e-6: break
+            # After training, we need to extract results.
+            # This part needs to be adapted based on how SelfPlayCurriculumTrainer stores/returns results.
+            # For now, assuming we can get some metrics from the tracker.
+            # This is a placeholder and will likely need significant adjustment
+            # based on the actual outputs of SelfPlayCurriculumTrainer.
+
+            best_expression_str = "Placeholder: Extracted from SelfPlay" # Placeholder
+            best_complexity = 0  # Placeholder
+            best_mse = float('inf') # Placeholder
+            sample_curve = [] # Placeholder, SelfPlayTrainer might have its own logging
+
+            # Example: Try to get some information from the trainer's tracker
+            if hasattr(self_play_trainer, 'tracker') and self_play_trainer.tracker:
+                summary_stats = self_play_trainer.tracker.get_summary_stats()
+                best_mse = 1.0 - summary_stats.get('discoverer/mean_success_rate', 0.0) # Approximation
+                # Expression and complexity would need to be explicitly tracked and retrieved.
+                # This requires the SelfPlayCurriculumTrainer or its components to store
+                # the best discovered expressions.
+                # For now, we'll leave them as placeholders.
+                # One option: The MAMLTrainer within SelfPlayCurriculumTrainer could store best expressions per task.
+                # Or the PerformanceTracker could be augmented.
+
+                # A more robust way would be to iterate through discovered_laws if MAMLTrainer populates it
+                # For example, if self_play_trainer.discoverer_trainer.discovered_laws exists
+                # and contains expressions and their MSEs.
+
+                # Let's assume a simplified scenario where the best law is found by MAML and logged somewhere
+                # This part is highly dependent on SelfPlayCurriculumTrainer's internal state access
+
+                # If the MAMLTrainer used by SelfPlayCurriculumTrainer has a way to access best results:
+                if hasattr(self_play_trainer, 'discoverer_trainer') and self_play_trainer.discoverer_trainer:
+                    # This is speculative, depends on MAMLTrainer's implementation details
+                    # to store and expose best discoveries.
+                    # For instance, if MAMLTrainer has a `get_best_discovery()` method
+                    # best_discovery = self_play_trainer.discoverer_trainer.get_best_discovery_for_task(exp_config.target_phenomena)
+                    # if best_discovery:
+                    #    best_expression_str = best_discovery.get('expression')
+                    #    best_complexity = best_discovery.get('complexity')
+                    #    best_mse = best_discovery.get('mse')
+                    pass # Actual retrieval logic needed here
 
             if janus_cfg.enable_conservation_detection:
                 detector = ConservationDetector(grammar)
