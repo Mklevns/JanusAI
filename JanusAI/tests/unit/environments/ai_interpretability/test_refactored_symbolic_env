@@ -1,0 +1,237 @@
+# JanusAI/ai_interpretability/test_refactored_symbolic_env.py
+"""
+Test examples demonstrating the refactored SymbolicDiscoveryEnv
+with separated X_data and y_data.
+"""
+
+import numpy as np
+import unittest
+from typing import List
+
+# Mock implementations for testing
+class MockGrammar:
+    """Simple mock grammar for testing."""
+    def __init__(self):
+        self.primitives = {
+            'constants': {'1.0': 1.0, '2.0': 2.0},
+            'binary_ops': {'+', '*'},
+            'unary_ops': {'sin', 'exp'},
+        }
+
+
+class MockVariable:
+    """Simple mock variable for testing."""
+    def __init__(self, name: str, index: int):
+        self.name = name
+        self.index = index
+        self.properties = {}
+    
+    def __str__(self):
+        return self.name
+
+
+class TestRefactoredEnvironment(unittest.TestCase):
+    """Test cases for the refactored SymbolicDiscoveryEnv."""
+    
+    def setUp(self):
+        """Set up test data."""
+        # Create simple test data: y = 2*x1 + 3*x2 + 1
+        np.random.seed(42)
+        n_samples = 100
+        
+        self.X_data = np.random.randn(n_samples, 2)
+        self.y_data = 2 * self.X_data[:, 0] + 3 * self.X_data[:, 1] + 1
+        
+        # Add some noise
+        self.y_data += 0.1 * np.random.randn(n_samples)
+        
+        # Create variables
+        self.variables = [
+            MockVariable('x1', 0),
+            MockVariable('x2', 1)
+        ]
+        
+        # Create grammar
+        self.grammar = MockGrammar()
+    
+    def test_basic_initialization(self):
+        """Test basic environment initialization with separated data."""
+        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        
+        env = SymbolicDiscoveryEnv(
+            grammar=self.grammar,
+            X_data=self.X_data,
+            y_data=self.y_data,
+            variables=self.variables,
+            max_depth=5,
+            max_complexity=20
+        )
+        
+        # Check that data is stored correctly
+        np.testing.assert_array_equal(env.X_data, self.X_data)
+        np.testing.assert_array_equal(env.y_data, self.y_data.reshape(-1, 1))
+        self.assertEqual(len(env.variables), 2)
+        
+    def test_multi_output(self):
+        """Test handling of multi-output targets."""
+        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        
+        # Create multi-output data
+        y_multi = np.column_stack([
+            self.y_data,
+            self.X_data[:, 0] ** 2,  # Second output: x1^2
+            np.sin(self.X_data[:, 1])  # Third output: sin(x2)
+        ])
+        
+        env = SymbolicDiscoveryEnv(
+            grammar=self.grammar,
+            X_data=self.X_data,
+            y_data=y_multi,
+            variables=self.variables
+        )
+        
+        # Check shape is preserved
+        self.assertEqual(env.y_data.shape, (100, 3))
+        
+    def test_validation_errors(self):
+        """Test input validation."""
+        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        
+        # Test mismatched sample counts
+        with self.assertRaises(ValueError) as context:
+            env = SymbolicDiscoveryEnv(
+                grammar=self.grammar,
+                X_data=self.X_data[:-10],  # 90 samples
+                y_data=self.y_data,         # 100 samples
+                variables=self.variables
+            )
+        self.assertIn("same number of samples", str(context.exception))
+        
+        # Test mismatched variables
+        with self.assertRaises(ValueError) as context:
+            env = SymbolicDiscoveryEnv(
+                grammar=self.grammar,
+                X_data=self.X_data,
+                y_data=self.y_data,
+                variables=[MockVariable('x1', 0)]  # Only 1 variable for 2 features
+            )
+        self.assertIn("Number of variables", str(context.exception))
+        
+    def test_physics_example(self):
+        """Test with physics-like data."""
+        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        
+        # Create physics data: F = m*a (Newton's second law)
+        mass = np.random.uniform(0.1, 10, 50)
+        acceleration = np.random.uniform(-5, 5, 50)
+        force = mass * acceleration
+        
+        X_physics = np.column_stack([mass, acceleration])
+        y_physics = force
+        
+        variables_physics = [
+            MockVariable('m', 0),
+            MockVariable('a', 1)
+        ]
+        
+        env = SymbolicDiscoveryEnv(
+            grammar=self.grammar,
+            X_data=X_physics,
+            y_data=y_physics,
+            variables=variables_physics,
+            reward_config={
+                'mse_weight': -1.0,
+                'complexity_penalty': -0.01
+            }
+        )
+        
+        # Test reset
+        obs, info = env.reset()
+        self.assertEqual(obs.shape, (5,))  # Basic observation features
+        
+    def test_ai_interpretability_example(self):
+        """Test with AI model interpretation data."""
+        # Simulate neural network behavior
+        # Output = sigmoid(0.5*input1 + 0.3*input2)
+        inputs = np.random.randn(200, 2)
+        logits = 0.5 * inputs[:, 0] + 0.3 * inputs[:, 1]
+        outputs = 1 / (1 + np.exp(-logits))
+        
+        # Create behavior data
+        from janus.environments.ai_interpretability.neural_net_env import (
+            AIBehaviorData, AIInterpretabilityEnv
+        )
+        
+        behavior_data = AIBehaviorData(
+            inputs=inputs,
+            outputs=outputs
+        )
+        
+        # Mock AI model
+        class MockModel:
+            pass
+        
+        # Would use the refactored AIInterpretabilityEnv
+        # which now cleanly separates X and y internally
+
+
+def compare_old_vs_new():
+    """
+    Demonstration comparing old vs new API.
+    """
+    print("=== Comparing Old vs New API ===\n")
+    
+    # Generate sample data
+    np.random.seed(42)
+    X = np.random.randn(50, 3)
+    y = X[:, 0] + 2 * X[:, 1] - X[:, 2] + 0.1 * np.random.randn(50)
+    
+    print("Old API (combined data):")
+    print("-" * 40)
+    
+    # Old way - combine into single array
+    target_data_old = np.column_stack([X, y])
+    print(f"target_data shape: {target_data_old.shape}")
+    print(f"Need to track target_variable_index = {X.shape[1]}")
+    print("Inside environment: split target_data to get X and y")
+    print()
+    
+    print("New API (separated data):")
+    print("-" * 40)
+    
+    # New way - keep separate
+    print(f"X_data shape: {X.shape}")
+    print(f"y_data shape: {y.shape}")
+    print("No index tracking needed!")
+    print("Direct access to X and y throughout the code")
+    print()
+    
+    # Show the clarity improvement
+    print("Example method implementation:")
+    print("-" * 40)
+    print("\nOld way:")
+    print("""
+def _evaluate_expression(self):
+    # Extract X and y from combined data
+    X = np.delete(self.target_data, self.target_variable_index, axis=1)
+    y = self.target_data[:, self.target_variable_index]
+    # ... rest of evaluation
+    """)
+    
+    print("\nNew way:")
+    print("""
+def _evaluate_expression(self):
+    # Direct access - much cleaner!
+    X = self.X_data
+    y = self.y_data[:, 0]  # or handle multi-output
+    # ... rest of evaluation
+    """)
+
+
+if __name__ == '__main__':
+    # Run comparison
+    compare_old_vs_new()
+    
+    # Run tests
+    print("\n=== Running Tests ===")
+    unittest.main(verbosity=2)

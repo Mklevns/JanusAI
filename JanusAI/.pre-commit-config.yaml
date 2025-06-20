@@ -1,0 +1,180 @@
+# .pre-commit-config.yaml
+# Pre-commit hooks for the Janus project
+# Run `pre-commit install` to set up the git hooks
+# Run `pre-commit run --all-files` to run all hooks on all files
+
+default_language_version:
+  python: python3.8
+
+repos:
+  # General file fixes
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-docstring-first
+      - id: debug-statements
+      - id: detect-private-key
+      - id: fix-byte-order-marker
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: name-tests-test
+        args: [--pytest-test-first]
+        exclude: ^(tests/fixtures/|tests/utils/)
+      
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--config=pyproject.toml]
+      - id: black-jupyter
+        language_version: python3
+        args: [--config=pyproject.toml]
+        
+  # Python linting with Ruff (fast and comprehensive)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.11
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes]
+        
+  # Import sorting (handled by Ruff, but keeping isort for compatibility)
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--settings-path=pyproject.toml]
+        
+  # Security checks
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: [-c, pyproject.toml, -ll]
+        exclude: ^tests/
+        
+  # Type checking with MyPy (optional, can be slow)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        args: [--config-file=pyproject.toml]
+        additional_dependencies:
+          - pydantic>=2.0.0
+          - numpy>=1.21.0
+          - types-PyYAML
+          - types-requests
+          - types-setuptools
+        exclude: ^(tests/|docs/|examples/)
+        
+  # Markdown formatting
+  - repo: https://github.com/executablebooks/mdformat
+    rev: 0.7.17
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-frontmatter
+          - mdformat-footnote
+        args: [--wrap=80]
+        exclude: ^(CHANGELOG.md|docs/)
+        
+  # YAML formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types_or: [yaml, json]
+        exclude: ^(.*\.ipynb|package-lock\.json)
+        
+  # Jupyter notebook cleaning
+  - repo: https://github.com/kynan/nbstripout
+    rev: 0.6.1
+    hooks:
+      - id: nbstripout
+        args: [--extra-keys=metadata.kernelspec]
+        
+  # Poetry lock file check (if using Poetry)
+  # - repo: https://github.com/python-poetry/poetry
+  #   rev: 1.7.0
+  #   hooks:
+  #     - id: poetry-check
+  #     - id: poetry-lock
+  #       args: [--no-update]
+        
+  # Custom local hooks
+  - repo: local
+    hooks:
+      # Check for print statements (except in specific files)
+      - id: no-print-statements
+        name: Check for print statements
+        entry: '(?<!\.format\()print\('
+        language: pygrep
+        types: [python]
+        exclude: ^(scripts/|examples/|janus/cli/|JanusAI/cli/)
+        
+      # Ensure no direct torch.save usage (use checkpoint_manager instead)
+      - id: no-direct-torch-save
+        name: Check for direct torch.save usage
+        entry: 'torch\.save\('
+        language: pygrep
+        types: [python]
+        exclude: ^(janus/utils/io/checkpoint_manager\.py|tests/)
+        
+      # Check for TODO comments
+      - id: check-todos
+        name: Check TODO comments
+        entry: '(TODO|FIXME|XXX):'
+        language: pygrep
+        types: [text]
+        pass_filenames: true
+        
+      # Validate experiment configs
+      - id: validate-configs
+        name: Validate experiment configs
+        entry: python scripts/validate_configs.py
+        language: system
+        files: '^(configs/|experiments/configs/).*\.(yaml|yml)$'
+        pass_filenames: true
+        
+# Configuration for specific file patterns
+files: |
+  (?x)^(
+    janus/.*\.py|
+    JanusAI/.*\.py|
+    tests/.*\.py|
+    scripts/.*\.py|
+    .*\.(yaml|yml|toml|json|md)|
+    Dockerfile.*|
+    \.github/.*
+  )$
+
+exclude: |
+  (?x)^(
+    \.git/|
+    \.mypy_cache/|
+    \.pytest_cache/|
+    \.ruff_cache/|
+    \.tox/|
+    \.venv/|
+    __pycache__/|
+    build/|
+    dist/|
+    htmlcov/|
+    node_modules/|
+    venv/|
+    .*\.egg-info/|
+    docs/_build/|
+    \.eggs/
+  )$
