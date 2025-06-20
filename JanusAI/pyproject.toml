@@ -36,14 +36,14 @@ classifiers = [
 # Core dependencies
 dependencies = [
     # Core scientific computing
-    "numpy>=1.21.0,<2.0.0",
-    "scipy>=1.7.0",
-    "sympy>=1.9",
-    "pandas>=1.3.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "sympy>=1.12",
+    "pandas>=2.0.0",
     
     # Machine learning
     "torch>=2.0.0",
-    "gym>=0.26.0",
+    "gymnasium>=0.28.0", # Replaces gym
     "stable-baselines3>=2.0.0",
     
     # Configuration and data validation
@@ -60,6 +60,12 @@ dependencies = [
     # Logging and monitoring
     "structlog>=23.1.0",
     "python-json-logger>=2.0.0",
+
+    # From r2.txt
+    "huggingface-hub>=0.16.0",
+    "openai>=1.0.0",  # For GPT models
+    "anthropic>=0.3.0",  # For Claude
+    "llama-cpp-python>=0.2.0", # OR for local models
 ]
 
 [project.optional-dependencies]
@@ -90,12 +96,22 @@ dev = [
     "types-PyYAML",
     "types-requests",
     "types-setuptools",
-    "torch-stubs",
+    "torch-stubs", # Already present
+
+    # Security
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+
+    # Jupyter support
+    "jupyter>=1.0.0",
+    "notebook>=7.0.0",
+    "ipykernel>=6.25.0",
+    "nbstripout>=0.6.0",
 ]
 
 # Visualization dependencies
 viz = [
-    "matplotlib>=3.5.0",
+    "matplotlib>=3.7.0", # Updated from r2.txt
     "seaborn>=0.12.0",
     "plotly>=5.14.0",
     "networkx>=3.0",
@@ -104,7 +120,7 @@ viz = [
 
 # AI/ML extras
 ml = [
-    "transformers>=4.30.0",
+    "transformers>=4.30.0", # From r2.txt (already present, version confirmed)
     "datasets>=2.13.0",
     "accelerate>=0.20.0",
     "einops>=0.6.0",
@@ -117,14 +133,14 @@ distributed = [
     "ray[tune]>=2.5.0",
     "ray[rllib]>=2.5.0",
     "dask[complete]>=2023.6.0",
-    "joblib>=1.3.0",
+    "joblib>=1.3.0", # From r2.txt (already present, version confirmed)
 ]
 
 # Experiment tracking
 tracking = [
-    "wandb>=0.15.0",
+    "wandb>=0.15.0", # From r2.txt (already present, version confirmed)
     "mlflow>=2.4.0",
-    "tensorboard>=2.13.0",
+    "tensorboard>=2.13.0", # From r2.txt
     "neptune-client>=1.3.0",
 ]
 

@@ -159,7 +159,34 @@ Developing intelligent AI agents: Creating agents capable of performing complex 
 🏁 Getting Started
 To get started with Janus, follow these steps:
 
-(Placeholder: Detailed instructions on installation, setting up environments, and running your first discovery or interpretability experiment. This section will include commands for cloning the repository, installing dependencies, and running example scripts.)
+To install JanusAI and its core dependencies, navigate to the root directory of the project and run:
+```bash
+pip install .
+```
+
+For development, which includes tools for testing, linting, and documentation, install the `dev` extras:
+```bash
+pip install .[dev]
+```
+
+You can also install other optional dependencies as needed:
+- `viz`: For visualization tools.
+- `ml`: For additional machine learning libraries.
+- `distributed`: For distributed computing support.
+- `tracking`: For experiment tracking integrations.
+- `gpu`: For GPU monitoring utilities.
+
+For example, to install with development and visualization tools:
+```bash
+pip install .[dev,viz]
+```
+
+To install all optional dependencies:
+```bash
+pip install .[all]
+```
+
+(Further details on setting up environments and running experiments will be added here.)
 
 🤝 Contributing
 We welcome contributions to the Janus project!
