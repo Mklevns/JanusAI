@@ -1,68 +1,66 @@
+# janus/ml/training/ppo_trainer.py
 """
-PPOTrainer
-==========
+Refactored PPO Trainer with Decoupled Training Loop
+===================================================
 
-Implements the Proximal Policy Optimization (PPO) algorithm for training
-HypothesisNet policies in symbolic discovery environments.
+This module contains a refactored PPO trainer that separates data collection
+and learning phases for better modularity and flexibility.
 """
 
+import os
+import time
 import numpy as np
 import torch
-import torch.nn.functional as F
+import torch.nn as nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.distributions import Categorical
+from typing import Dict, List, Optional, Tuple, Deque, Any
 from collections import deque
-from typing import Dict, List, Tuple, Optional, Any, Deque
-import os # For checkpoint_dir path management
-import time # For timing training
+from dataclasses import dataclass, field
 
-# Internal project imports based on new structure
-from janus.ml.networks.hypothesis_net import HypothesisNet # The policy definition
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv # The environment type
-from janus.environments.base.symbolic_env import safe_env_reset # Utility for env reset
-
-# CheckpointManager will be in src/janus/utils/io/checkpoint_manager.py
-# Assuming a CheckpointManager class is available from this path
-try:
-    from janus.utils.io.checkpoint_manager import CheckpointManager
-except ImportError:
-    print("Warning: CheckpointManager not found. Checkpointing will be disabled.")
-    CheckpointManager = None
+# Import necessary modules (adjust paths as needed)
+from janus.ml.networks.hypothesis_net import HypothesisNet
+from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus.utils.io.checkpoint_manager import CheckpointManager
+from janus.utils.general_utils import safe_env_reset
 
 
+@dataclass
 class RolloutBuffer:
     """
-    Stores experiences (observations, actions, rewards, etc.) collected during agent rollouts.
-    Provides methods to compute returns and advantages.
+    Storage for rollout data collected during environment interaction.
+    
+    This buffer stores trajectories and computes advantages using GAE.
     """
-    def __init__(self):
-        self.reset()
-
+    observations: List[np.ndarray] = field(default_factory=list)
+    actions: List[int] = field(default_factory=list)
+    rewards: List[float] = field(default_factory=list)
+    values: List[float] = field(default_factory=list)
+    log_probs: List[float] = field(default_factory=list)
+    dones: List[bool] = field(default_factory=list)
+    advantages: List[float] = field(default_factory=list)
+    returns: List[float] = field(default_factory=list)
+    action_masks: List[np.ndarray] = field(default_factory=list)
+    tree_structures: List[Optional[Dict]] = field(default_factory=list)
+    
     def reset(self):
-        """Clears the buffer."""
-        self.observations: List[np.ndarray] = []
-        self.actions: List[int] = []
-        self.rewards: List[float] = []
-        self.values: List[float] = []
-        self.log_probs: List[float] = []
-        self.dones: List[bool] = []
-        self.action_masks: List[np.ndarray] = []
-        # Store tree structures if TreeEncoder is used and env provides them
-        self.tree_structures: List[Optional[Dict[int, List[int]]]] = []
-        
-        self.advantages: Optional[np.ndarray] = None
-        self.returns: Optional[np.ndarray] = None
-
-    def add(self, 
-            obs: np.ndarray, 
-            action: int, 
-            reward: float, 
-            value: float, 
-            log_prob: float, 
-            done: bool, 
-            action_mask: np.ndarray, 
-            tree_structure: Optional[Dict[int, List[int]]]):
-        """Adds a single step's experience to the buffer."""
+        """Clear all stored data."""
+        self.observations.clear()
+        self.actions.clear()
+        self.rewards.clear()
+        self.values.clear()
+        self.log_probs.clear()
+        self.dones.clear()
+        self.advantages.clear()
+        self.returns.clear()
+        self.action_masks.clear()
+        self.tree_structures.clear()
+    
+    def add(self, obs: np.ndarray, action: int, reward: float, value: float,
+            log_prob: float, done: bool, action_mask: np.ndarray,
+            tree_structure: Optional[Dict] = None):
+        """Add a single transition to the buffer."""
         self.observations.append(obs)
         self.actions.append(action)
         self.rewards.append(reward)
@@ -71,85 +69,53 @@ class RolloutBuffer:
         self.dones.append(done)
         self.action_masks.append(action_mask)
         self.tree_structures.append(tree_structure)
-
-    def compute_returns_and_advantages(self, 
-                                       policy: HypothesisNet, 
-                                       gamma: float, 
-                                       gae_lambda: float,
-                                       task_trajectories: Optional[torch.Tensor] = None):
-        """
-        Computes Generalized Advantage Estimation (GAE) advantages and discounted returns.
+    
+    def compute_returns_and_advantages(self, policy: nn.Module, gamma: float,
+                                      gae_lambda: float,
+                                      task_trajectories: Optional[torch.Tensor] = None):
+        """Compute returns and advantages using GAE."""
+        # Get final value estimate
+        if len(self.observations) > 0:
+            with torch.no_grad():
+                last_obs = torch.FloatTensor(self.observations[-1]).unsqueeze(0)
+                last_action_mask = torch.BoolTensor(self.action_masks[-1]).unsqueeze(0)
+                outputs = policy(last_obs, last_action_mask, task_trajectories)
+                last_value = outputs['value'].item()
+        else:
+            last_value = 0.0
         
-        Args:
-            policy: The current policy network to get the value of the last observation.
-            gamma: Discount factor.
-            gae_lambda: GAE lambda parameter.
-            task_trajectories: Optional task-specific trajectories for meta-learning context.
-        """
-        # Convert lists to numpy arrays for efficient computation
-        rewards = np.array(self.rewards, dtype=np.float32)
-        values = np.array(self.values, dtype=np.float32)
-        dones = np.array(self.dones, dtype=np.float32) # 1.0 if terminal, 0.0 otherwise
-
-        # Get value estimate for the last observed state to bootstrap returns/advantages
-        # If the last state in the buffer is a terminal state, its next value is 0.
-        # Otherwise, query the policy for its value.
-        with torch.no_grad():
-            last_obs_np = self.observations[-1]
-            last_obs = torch.FloatTensor(last_obs_np).unsqueeze(0) # Ensure (1, obs_dim)
-            
-            last_action_mask_np = self.action_masks[-1]
-            last_action_mask = torch.BoolTensor(last_action_mask_np).unsqueeze(0) # Ensure (1, action_dim)
-            
-            last_tree_structure = self.tree_structures[-1] # Can be None
-
-            # Get the value from the policy's forward pass
-            policy_outputs = policy(
-                obs=last_obs, 
-                action_mask=last_action_mask, 
-                task_trajectories=task_trajectories, 
-                tree_structure=last_tree_structure
-            )
-            last_value = policy_outputs['value'].squeeze().item()
-
-        # Compute advantages using GAE
-        advantages = np.zeros_like(rewards)
-        last_gae_lam = 0 # Initialize last GAE-Lambda value
-        for t in reversed(range(len(rewards))):
-            # next_non_terminal is 0 if `dones[t]` is True (terminal state), 1 otherwise
-            next_non_terminal = 1.0 - dones[t] 
-            
-            # The value of the next state (V(S_t+1))
-            # If it's the very last step in the rollout, use `last_value` (bootstrapped value)
-            # Otherwise, use the value stored for the next state from the buffer
-            if t == len(rewards) - 1:
+        # Compute GAE
+        advantages = []
+        returns = []
+        gae = 0.0
+        
+        for t in reversed(range(len(self.rewards))):
+            if t == len(self.rewards) - 1:
                 next_value = last_value
+                next_done = False
             else:
-                next_value = values[t+1]
-
-            # TD-error (delta_t)
-            delta = rewards[t] + gamma * next_value * next_non_terminal - values[t]
-            # GAE formula (cumulative sum of weighted deltas)
-            advantages[t] = last_gae_lam = delta + gamma * gae_lambda * next_non_terminal * last_gae_lam
-
-        # Compute discounted returns (targets for the value function)
-        self.returns = advantages + values
+                next_value = self.values[t + 1]
+                next_done = self.dones[t + 1]
+            
+            delta = self.rewards[t] + gamma * next_value * (1 - next_done) - self.values[t]
+            gae = delta + gamma * gae_lambda * (1 - next_done) * gae
+            
+            advantages.insert(0, gae)
+            returns.insert(0, gae + self.values[t])
         
-        # Normalize advantages for more stable training
-        self.advantages = (advantages - np.mean(advantages)) / (np.std(advantages) + 1e-8)
-
+        self.advantages = advantages
+        self.returns = returns
+        
+        # Normalize advantages
+        adv_array = np.array(self.advantages)
+        self.advantages = ((adv_array - adv_array.mean()) / 
+                          (adv_array.std() + 1e-8)).tolist()
+    
     def get(self) -> Dict[str, Any]:
-        """
-        Retrieves all collected data as PyTorch tensors.
-
-        Returns:
-            A dictionary containing tensors for observations, actions, rewards, values,
-            log probabilities, advantages, returns, action masks, and tree structures.
-        """
-        # Convert observations and action masks to tensors (observations can be complex, use np.array then FloatTensor)
+        """Get all data as tensors."""
         obs_tensor = torch.FloatTensor(np.array(self.observations))
         action_masks_tensor = torch.BoolTensor(np.array(self.action_masks))
-
+        
         return {
             'observations': obs_tensor,
             'actions': torch.LongTensor(self.actions),
@@ -159,501 +125,534 @@ class RolloutBuffer:
             'advantages': torch.FloatTensor(self.advantages),
             'returns': torch.FloatTensor(self.returns),
             'action_masks': action_masks_tensor,
-            'tree_structures': self.tree_structures # Keep as list of dicts/None for now
+            'tree_structures': self.tree_structures
         }
+    
+    def __len__(self) -> int:
+        """Return the number of transitions stored."""
+        return len(self.observations)
 
 
 class PPOTrainer:
     """
-    Proximal Policy Optimization (PPO) trainer.
-
-    Manages the training loop for a HypothesisNet policy using collected rollouts.
+    Refactored Proximal Policy Optimization (PPO) trainer.
+    
+    This version separates data collection and learning phases for better
+    modularity and follows modern RL library patterns.
     """
+    
     def __init__(
         self,
         policy: HypothesisNet,
         env: SymbolicDiscoveryEnv,
         learning_rate: float = 3e-4,
-        n_epochs: int = 10, # Number of PPO epochs to run on collected data per update
+        n_epochs: int = 10,
         gamma: float = 0.99,
         gae_lambda: float = 0.95,
-        clip_range: float = 0.2, # PPO clipping parameter (epsilon)
-        value_coef: float = 0.5, # Coefficient for the value loss in the total loss
-        entropy_coef: float = 0.01, # Coefficient for the entropy bonus in the total loss
-        max_grad_norm: float = 0.5, # Maximum gradient norm for clipping
-        checkpoint_dir: Optional[str] = None
-    ) -> None:
+        clip_range: float = 0.2,
+        value_coef: float = 0.5,
+        entropy_coef: float = 0.01,
+        max_grad_norm: float = 0.5,
+        batch_size: int = 64,
+        checkpoint_dir: Optional[str] = None,
+        device: Optional[torch.device] = None
+    ):
+        """
+        Initialize PPO trainer.
+        
+        Args:
+            policy: The policy network (HypothesisNet)
+            env: The environment for training
+            learning_rate: Learning rate for optimizer
+            n_epochs: Number of epochs to train on each rollout
+            gamma: Discount factor
+            gae_lambda: GAE lambda parameter
+            clip_range: PPO clipping parameter
+            value_coef: Value loss coefficient
+            entropy_coef: Entropy bonus coefficient
+            max_grad_norm: Maximum gradient norm for clipping
+            batch_size: Mini-batch size for training
+            checkpoint_dir: Directory for saving checkpoints
+            device: Device to run training on
+        """
         self.policy = policy
         self.env = env
+        self.device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Move policy to device
+        self.policy = self.policy.to(self.device)
+        
+        # Optimizer
         self.optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
         
+        # PPO hyperparameters
+        self.n_epochs = n_epochs
         self.gamma = gamma
         self.gae_lambda = gae_lambda
         self.clip_epsilon = clip_range
         self.value_coef = value_coef
         self.entropy_coef = entropy_coef
         self.max_grad_norm = max_grad_norm
-
-        self.n_epochs = n_epochs # Stored for use in the train method
+        self.batch_size = batch_size
         
+        # Rollout buffer
         self.rollout_buffer = RolloutBuffer()
-        self.episode_rewards: Deque[float] = deque(maxlen=100) # Tracks recent episode rewards
-
+        
+        # Tracking
+        self.episode_rewards: Deque[float] = deque(maxlen=100)
+        self.total_timesteps = 0
+        self.n_updates = 0
+        
+        # Checkpoint manager
         self.checkpoint_manager: Optional[CheckpointManager] = None
         if checkpoint_dir and CheckpointManager:
-            # Ensure checkpoint directory exists
             os.makedirs(checkpoint_dir, exist_ok=True)
             self.checkpoint_manager = CheckpointManager(checkpoint_dir)
-        elif checkpoint_dir:
-            print(f"Checkpoint directory specified ({checkpoint_dir}), but CheckpointManager is not available.")
-
-    def collect_rollouts(self, 
-                         n_steps: int, 
-                         task_trajectories: Optional[torch.Tensor] = None,
-                         ai_model_representation: Optional[torch.Tensor] = None, # New
-                         ai_model_type_idx: Optional[torch.Tensor] = None # New
-                        ) -> Dict[str, torch.Tensor]:
+    
+    def collect_rollouts(
+        self,
+        n_steps: int,
+        task_trajectories: Optional[torch.Tensor] = None,
+        ai_model_representation: Optional[torch.Tensor] = None,
+        ai_model_type_idx: Optional[torch.Tensor] = None
+    ) -> Dict[str, torch.Tensor]:
         """
-        Collects experience rollouts from the environment using the current policy.
-
+        Collect experience from the environment for n_steps.
+        
+        This method handles environment interaction and fills the rollout buffer.
+        
         Args:
-            n_steps: Number of steps to collect for the rollout.
-            task_trajectories: Optional meta-learning context for the policy.
-            ai_model_representation: Optional AI model representation for AIHypothesisNet.
-            ai_model_type_idx: Optional AI model type index for AIHypothesisNet.
-
+            n_steps: Number of environment steps to collect
+            task_trajectories: Optional task trajectories for meta-learning
+            ai_model_representation: Optional AI model representation
+            ai_model_type_idx: Optional AI model type index
+            
         Returns:
-            A dictionary containing the collected rollout data as tensors.
+            Dictionary containing collected rollout data
         """
+        # Reset buffer
         self.rollout_buffer.reset()
         
-        # Reset environment and get initial observation and info
-        obs, info = safe_env_reset(self.env)
-        # Extract tree structure if provided by the environment for TreeEncoder
-        tree_structure = info.get('tree_structure') if isinstance(info, dict) else None
-
-        for _ in range(n_steps):
-            # Prepare observation for the policy (unsqueeze for batch dimension)
-            obs_tensor = torch.FloatTensor(np.array(obs)).unsqueeze(0) # (1, obs_dim)
+        # Get initial observation if needed
+        if not hasattr(self, '_current_obs'):
+            self._current_obs, self._current_info = safe_env_reset(self.env)
+            self._episode_reward = 0.0
+        
+        # Collect rollouts
+        for step in range(n_steps):
+            obs_tensor = torch.FloatTensor(self._current_obs).unsqueeze(0).to(self.device)
             
-            # Get action mask from the environment
-            action_mask_np = self.env.get_action_mask() # (action_dim,)
-            action_mask_tensor = torch.BoolTensor(action_mask_np).unsqueeze(0) # (1, action_dim)
-
+            # Get action mask
+            if hasattr(self.env, 'get_action_mask'):
+                action_mask = self.env.get_action_mask()
+            else:
+                action_mask = np.ones(self.env.action_space.n, dtype=bool)
+            action_mask_tensor = torch.BoolTensor(action_mask).unsqueeze(0).to(self.device)
+            
+            # Get tree structure if available
+            tree_structure = self._current_info.get('tree_structure') if isinstance(self._current_info, dict) else None
+            
+            # Get action from policy
             with torch.no_grad():
-                # Get action, log_prob, and value from the policy
-                # Pass all relevant arguments to policy.get_action, including new AI-specific ones
-                action_val, log_prob_val, value_val = self.policy.get_action(
-                    obs=obs_tensor, 
-                    action_mask=action_mask_tensor, 
+                outputs = self.policy(
+                    obs=obs_tensor,
+                    action_mask=action_mask_tensor,
                     task_trajectories=task_trajectories,
-                    tree_structure=tree_structure
+                    tree_structure=tree_structure,
+                    ai_model_representation=ai_model_representation,
+                    ai_model_type_idx=ai_model_type_idx
                 )
-            
-            # Take a step in the environment
-            next_obs, reward, terminated, truncated, info = self.env.step(action_val)
-            done = terminated or truncated # Combined done flag
-            
-            # Get next tree structure if env supports it
-            next_tree_structure = info.get('tree_structure') if isinstance(info, dict) else None
-
-            # Add the experience to the rollout buffer
-            self.rollout_buffer.add(obs, action_val, reward, value_val, log_prob_val, done, action_mask_np, tree_structure)
-            
-            obs, tree_structure = next_obs, next_tree_structure
-
-            # If an episode terminates, reset the environment
-            if done:
-                ep_rew = info.get('episode_reward', reward) # Get full episode reward if available in info
-                self.episode_rewards.append(ep_rew) # Store episode reward
                 
-                # Reset env for the next episode in the rollout
-                obs, info = safe_env_reset(self.env)
-                tree_structure = info.get('tree_structure') if isinstance(info, dict) else None
-
-        # After collecting all steps, compute returns and advantages
-        self.rollout_buffer.compute_returns_and_advantages(self.policy, self.gamma, self.gae_lambda, task_trajectories)
+                # Sample action
+                if 'action_logits' in outputs:
+                    dist = Categorical(logits=outputs['action_logits'])
+                    action = dist.sample()
+                    log_prob = dist.log_prob(action).item()
+                else:
+                    # Fallback for policies that return actions directly
+                    action = outputs.get('action', 0)
+                    log_prob = 0.0
+                
+                value = outputs['value'].item()
+                action = action.item()
+            
+            # Step environment
+            next_obs, reward, terminated, truncated, info = self.env.step(action)
+            done = terminated or truncated
+            self._episode_reward += reward
+            
+            # Store transition
+            self.rollout_buffer.add(
+                obs=self._current_obs,
+                action=action,
+                reward=reward,
+                value=value,
+                log_prob=log_prob,
+                done=done,
+                action_mask=action_mask,
+                tree_structure=tree_structure
+            )
+            
+            # Update current state
+            self._current_obs = next_obs
+            self._current_info = info
+            self.total_timesteps += 1
+            
+            # Handle episode end
+            if done:
+                self.episode_rewards.append(self._episode_reward)
+                self._current_obs, self._current_info = safe_env_reset(self.env)
+                self._episode_reward = 0.0
+        
+        # Compute returns and advantages
+        self.rollout_buffer.compute_returns_and_advantages(
+            self.policy, self.gamma, self.gae_lambda, task_trajectories
+        )
+        
         return self.rollout_buffer.get()
-
-    def train_step(self, 
-                   batch: Dict[str, torch.Tensor], 
-                   task_trajectories_batch: Optional[torch.Tensor] = None,
-                   ai_model_representation_batch: Optional[torch.Tensor] = None, # New
-                   ai_model_type_idx_batch: Optional[torch.Tensor] = None # New
-                  ) -> Dict[str, float]:
+    
+    def learn(
+        self,
+        rollout_data: Dict[str, torch.Tensor],
+        task_trajectories: Optional[torch.Tensor] = None,
+        ai_model_representation: Optional[torch.Tensor] = None,
+        ai_model_type_idx: Optional[torch.Tensor] = None
+    ) -> Dict[str, float]:
         """
-        Performs a single PPO training step using a mini-batch of collected data.
-
+        Train the policy on collected rollout data.
+        
+        This method handles the learning phase with multiple epochs and mini-batches.
+        
         Args:
-            batch: A dictionary containing mini-batch data (observations, actions, etc.).
-            task_trajectories_batch: Task-specific trajectories for meta-learning context.
-            ai_model_representation_batch: AI model representation for AIHypothesisNet.
-            ai_model_type_idx_batch: AI model type index for AIHypothesisNet.
-
+            rollout_data: Dictionary containing rollout data from collect_rollouts
+            task_trajectories: Optional task trajectories for meta-learning
+            ai_model_representation: Optional AI model representation  
+            ai_model_type_idx: Optional AI model type index
+            
         Returns:
-            A dictionary of training metrics (loss, policy_loss, value_loss, entropy).
+            Dictionary of training metrics averaged over all epochs and batches
         """
-        # Unpack batch data
+        # Move data to device
+        for key, value in rollout_data.items():
+            if isinstance(value, torch.Tensor):
+                rollout_data[key] = value.to(self.device)
+        
+        # Get number of samples
+        n_samples = len(rollout_data['observations'])
+        if n_samples == 0:
+            return {'loss': 0.0, 'policy_loss': 0.0, 'value_loss': 0.0, 'entropy': 0.0}
+        
+        # Training metrics
+        epoch_losses = []
+        epoch_policy_losses = []
+        epoch_value_losses = []
+        epoch_entropies = []
+        
+        # Prepare indices for shuffling
+        indices = np.arange(n_samples)
+        
+        # Train for n_epochs
+        for epoch in range(self.n_epochs):
+            # Shuffle data
+            np.random.shuffle(indices)
+            
+            # Mini-batch training
+            for start_idx in range(0, n_samples, self.batch_size):
+                batch_indices = indices[start_idx:start_idx + self.batch_size]
+                
+                if len(batch_indices) == 0:
+                    continue
+                
+                # Create mini-batch
+                batch = self._create_minibatch(rollout_data, batch_indices)
+                
+                # Prepare additional inputs if provided
+                batch_task_traj = None
+                batch_ai_repr = None
+                batch_ai_type = None
+                
+                if task_trajectories is not None:
+                    batch_task_traj = task_trajectories.expand(len(batch_indices), -1, -1, -1)
+                if ai_model_representation is not None:
+                    batch_ai_repr = ai_model_representation.expand(len(batch_indices), -1)
+                if ai_model_type_idx is not None:
+                    batch_ai_type = ai_model_type_idx.expand(len(batch_indices))
+                
+                # Perform training step
+                metrics = self._train_step(
+                    batch,
+                    batch_task_traj,
+                    batch_ai_repr,
+                    batch_ai_type
+                )
+                
+                # Accumulate metrics
+                epoch_losses.append(metrics['loss'])
+                epoch_policy_losses.append(metrics['policy_loss'])
+                epoch_value_losses.append(metrics['value_loss'])
+                epoch_entropies.append(metrics['entropy'])
+        
+        # Update counter
+        self.n_updates += 1
+        
+        # Return averaged metrics
+        return {
+            'loss': np.mean(epoch_losses),
+            'policy_loss': np.mean(epoch_policy_losses),
+            'value_loss': np.mean(epoch_value_losses),
+            'entropy': np.mean(epoch_entropies),
+            'n_updates': self.n_updates
+        }
+    
+    def _create_minibatch(
+        self,
+        rollout_data: Dict[str, Any],
+        indices: np.ndarray
+    ) -> Dict[str, Any]:
+        """Create a mini-batch from rollout data."""
+        batch = {}
+        
+        for key, value in rollout_data.items():
+            if key == 'tree_structures':
+                # Handle list of tree structures
+                batch[key] = [value[i] for i in indices.tolist()]
+            elif isinstance(value, torch.Tensor):
+                batch[key] = value[indices]
+            else:
+                # Try to handle other types
+                try:
+                    batch[key] = value[indices]
+                except (TypeError, IndexError):
+                    batch[key] = [value[i] for i in indices.tolist()]
+        
+        return batch
+    
+    def _train_step(
+        self,
+        batch: Dict[str, torch.Tensor],
+        task_trajectories_batch: Optional[torch.Tensor] = None,
+        ai_model_representation_batch: Optional[torch.Tensor] = None,
+        ai_model_type_idx_batch: Optional[torch.Tensor] = None
+    ) -> Dict[str, float]:
+        """
+        Perform a single PPO training step on a mini-batch.
+        
+        Args:
+            batch: Mini-batch data
+            task_trajectories_batch: Optional task trajectories
+            ai_model_representation_batch: Optional AI model representations
+            ai_model_type_idx_batch: Optional AI model type indices
+            
+        Returns:
+            Dictionary of training metrics
+        """
+        # Unpack batch
         observations = batch['observations']
         actions = batch['actions']
         old_log_probs = batch['log_probs']
         advantages = batch['advantages']
         returns = batch['returns']
         action_masks = batch['action_masks']
-        tree_structures_batch = batch.get('tree_structures') # Get tree structures if available
-
-        # Perform forward pass through the policy
-        # Pass all relevant inputs to the policy's forward method
-        outputs = self.policy.forward(
-            obs=observations, 
-            action_mask=action_masks, 
-            task_trajectories=task_trajectories_batch, 
-            tree_structure=None # Assuming batching tree_structures for TreeEncoder is handled internally or passed as None
+        tree_structures = batch.get('tree_structures')
+        
+        # Forward pass
+        outputs = self.policy(
+            obs=observations,
+            action_mask=action_masks,
+            task_trajectories=task_trajectories_batch,
+            tree_structure=None,  # Tree structures handled internally if needed
+            ai_model_representation=ai_model_representation_batch,
+            ai_model_type_idx=ai_model_type_idx_batch
         )
-
-        # Calculate new log probabilities and value predictions
+        
+        # Calculate losses
         dist = Categorical(logits=outputs['action_logits'])
         log_probs = dist.log_prob(actions)
-        value_pred = outputs['value'].squeeze(-1) # Ensure value_pred is 1D
-
-        # PPO Policy Loss (Clipped Surrogate Objective)
+        values = outputs['value'].squeeze(-1)
+        
+        # PPO policy loss
         ratio = torch.exp(log_probs - old_log_probs)
         surr1 = ratio * advantages
         surr2 = torch.clamp(ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon) * advantages
         policy_loss = -torch.min(surr1, surr2).mean()
-
-        # Value Loss (Mean Squared Error)
-        value_loss = F.mse_loss(value_pred, returns)
-
-        # Entropy Bonus (for exploration)
+        
+        # Value loss
+        value_loss = F.mse_loss(values, returns)
+        
+        # Entropy bonus
         entropy = dist.entropy().mean()
-
-        # Total PPO Loss
+        
+        # Total loss
         loss = policy_loss + self.value_coef * value_loss - self.entropy_coef * entropy
-
-        # Optimize the policy
+        
+        # Optimize
         self.optimizer.zero_grad()
         loss.backward()
-        # Clip gradients to prevent exploding gradients
         torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
         self.optimizer.step()
-
+        
         return {
-            'loss': loss.item(), 
-            'policy_loss': policy_loss.item(), 
-            'value_loss': value_loss.item(), 
+            'loss': loss.item(),
+            'policy_loss': policy_loss.item(),
+            'value_loss': value_loss.item(),
             'entropy': entropy.item()
         }
-
-    def train(self, 
-              total_timesteps: int, 
-              rollout_length: int = 2048, 
-              batch_size: int = 64, 
-              log_interval: int = 10,
-              # task_trajectories_for_training and ai_model_info_for_training
-              # are for if these are fixed across all rollouts/epochs,
-              # otherwise they need to be generated/sampled within collect_rollouts or train_step.
-              # For now, keeping them as Optional[None] and assuming they are handled by env or policy.
-              task_trajectories_for_training: Optional[torch.Tensor] = None,
-              ai_model_representation_for_training: Optional[torch.Tensor] = None,
-              ai_model_type_idx_for_training: Optional[torch.Tensor] = None
-             ):
+    
+    def train(
+        self,
+        total_timesteps: int,
+        rollout_length: int = 2048,
+        log_interval: int = 10,
+        save_interval: int = 100,
+        task_trajectories: Optional[torch.Tensor] = None,
+        ai_model_representation: Optional[torch.Tensor] = None,
+        ai_model_type_idx: Optional[torch.Tensor] = None,
+        callback: Optional[callable] = None
+    ) -> Dict[str, List[float]]:
         """
-        Main PPO training loop.
-
-        Args:
-            total_timesteps: Total number of environment steps to train for.
-            rollout_length: Number of steps to collect in each rollout phase.
-            batch_size: Mini-batch size for PPO updates.
-            log_interval: How often (in updates) to print progress.
-            task_trajectories_for_training: Optional task trajectories if fixed for all training.
-            ai_model_representation_for_training: Optional fixed AI model representation.
-            ai_model_type_idx_for_training: Optional fixed AI model type index.
-        """
-        n_updates = total_timesteps // rollout_length
-        current_timesteps = 0
+        Main training loop orchestrating collection and learning.
         
-        # Attempt to load from checkpoint if a manager is configured
-        if self.checkpoint_manager:
-            loaded_timesteps = self.load_from_checkpoint()
-            if loaded_timesteps > 0:
-                current_timesteps = loaded_timesteps
-                print(f"Resumed training from timestep {current_timesteps}")
-
-        print(f"Starting PPO training for {total_timesteps} timesteps ({n_updates} updates)")
-        print(f"Rollout length: {rollout_length}, Batch size: {batch_size}, Epochs per update: {self.n_epochs}")
-        print("-" * 50)
-
-        for update in range(1, n_updates + 1):
-            start_time = time.time()
-
-            # Collect rollouts
-            # Pass AI-specific and meta-learning context to rollout collection
-            rollout_data = self.collect_rollouts(
-                rollout_length, 
-                task_trajectories=task_trajectories_for_training,
-                ai_model_representation=ai_model_representation_for_training,
-                ai_model_type_idx=ai_model_type_idx_for_training
-            )
-
-            num_samples_in_rollout = len(rollout_data['observations'])
-            if num_samples_in_rollout == 0:
-                print(f"Update {update}/{n_updates}: No samples in rollout. Skipping training for this update.")
-                continue # Skip to next update if no samples collected
-
-            # Convert rollout data to tensors for batching
-            # Ensure all tensors are on the correct device if using GPU
-            for k, v in rollout_data.items():
-                if isinstance(v, torch.Tensor):
-                    rollout_data[k] = v.to(self.policy.parameters().__next__().device) # Move to policy's device
+        This is the high-level training method that alternates between
+        collecting rollouts and learning from them.
+        
+        Args:
+            total_timesteps: Total number of environment steps to train for
+            rollout_length: Number of steps per rollout collection phase
+            log_interval: Frequency of logging (in updates)
+            save_interval: Frequency of checkpointing (in updates)
+            task_trajectories: Optional fixed task trajectories
+            ai_model_representation: Optional fixed AI model representation
+            ai_model_type_idx: Optional fixed AI model type index
+            callback: Optional callback function called after each update
             
-            data_indices = np.arange(num_samples_in_rollout)
-            last_loss = 0.0 # Initialize for checkpointing metrics
-
-            # Perform PPO epochs on the collected rollout data
-            for epoch_num in range(self.n_epochs):
-                np.random.shuffle(data_indices) # Shuffle indices for mini-batching
-
-                for start_idx in range(0, num_samples_in_rollout, batch_size):
-                    mini_batch_indices_np = data_indices[start_idx : start_idx + batch_size]
-
-                    if len(mini_batch_indices_np) == 0:
-                        continue
-
-                    # Create mini-batch
-                    mini_batch = {}
-                    for key, value_from_rollout in rollout_data.items():
-                        if key == 'tree_structures':
-                            # tree_structures cannot be directly indexed by np array if it's a list of dicts.
-                            # It needs to be handled as a list of individual elements.
-                            mini_batch[key] = [value_from_rollout[i] for i in mini_batch_indices_np.tolist()]
-                        elif isinstance(value_from_rollout, torch.Tensor):
-                            mini_batch[key] = value_from_rollout[mini_batch_indices_np]
-                        else:
-                            try:
-                                mini_batch[key] = value_from_rollout[mini_batch_indices_np]
-                            except (TypeError, IndexError):
-                                mini_batch[key] = [value_from_rollout[i] for i in mini_batch_indices_np.tolist()]
-                            except Exception as e_inner:
-                                print(f"Warning: Could not create batch for key '{key}' (type: {type(value_from_rollout)}). Error: {e_inner}. Skipping this key for the batch.")
-
-                    if 'observations' in mini_batch and len(mini_batch['observations']) > 0:
-                        # Perform a single training step on the mini-batch
-                        metrics = self.train_step(
-                            mini_batch, 
-                            task_trajectories_batch=task_trajectories_for_training, # If fixed per training run
-                            ai_model_representation_batch=ai_model_representation_for_training,
-                            ai_model_type_idx_batch=ai_model_type_idx_for_training
-                        )
-                        last_loss = metrics.get('loss', 0.0) # Store last loss for checkpointing
-                    else:
-                        print(f"Skipping train_step due to empty or invalid mini-batch for update {update}, epoch {epoch_num}, start_idx {start_idx}")
-
-            current_timesteps += num_samples_in_rollout
-            step_time = time.time() - start_time
-
-            # Logging progress
-            if update % log_interval == 0:
-                avg_reward = np.mean(list(self.episode_rewards)) if self.episode_rewards else float('nan')
-                print(f"Update {update}/{n_updates}, Timesteps: {current_timesteps}/{total_timesteps}, Avg Reward: {avg_reward:.3f}, Loss: {last_loss:.4f}, Step Time: {step_time:.2f}s")
+        Returns:
+            Dictionary of training history
+        """
+        # Training history
+        history = {
+            'timesteps': [],
+            'mean_reward': [],
+            'loss': [],
+            'policy_loss': [],
+            'value_loss': [],
+            'entropy': []
+        }
+        
+        # Calculate number of updates
+        n_updates = total_timesteps // rollout_length
+        
+        # Load from checkpoint if available
+        start_timestep = 0
+        if self.checkpoint_manager:
+            loaded_state = self.load_from_checkpoint()
+            if loaded_state:
+                start_timestep = loaded_state.get('total_timesteps', 0)
+                print(f"Resumed training from timestep {start_timestep}")
+        
+        print(f"Starting PPO training for {total_timesteps} timesteps")
+        print(f"Rollout length: {rollout_length}, Batch size: {self.batch_size}")
+        print(f"Number of epochs: {self.n_epochs}, Number of updates: {n_updates}")
+        print("-" * 50)
+        
+        # Training loop
+        start_time = time.time()
+        
+        while self.total_timesteps < total_timesteps:
+            # Collect rollouts
+            rollout_data = self.collect_rollouts(
+                n_steps=rollout_length,
+                task_trajectories=task_trajectories,
+                ai_model_representation=ai_model_representation,
+                ai_model_type_idx=ai_model_type_idx
+            )
+            
+            # Learn from rollouts
+            metrics = self.learn(
+                rollout_data=rollout_data,
+                task_trajectories=task_trajectories,
+                ai_model_representation=ai_model_representation,
+                ai_model_type_idx=ai_model_type_idx
+            )
+            
+            # Update history
+            history['timesteps'].append(self.total_timesteps)
+            history['mean_reward'].append(np.mean(self.episode_rewards) if self.episode_rewards else 0.0)
+            history['loss'].append(metrics['loss'])
+            history['policy_loss'].append(metrics['policy_loss'])
+            history['value_loss'].append(metrics['value_loss'])
+            history['entropy'].append(metrics['entropy'])
+            
+            # Logging
+            if self.n_updates % log_interval == 0:
+                elapsed_time = time.time() - start_time
+                fps = (self.total_timesteps - start_timestep) / elapsed_time
+                
+                print(f"\nUpdate {self.n_updates}/{n_updates}")
+                print(f"Timesteps: {self.total_timesteps}/{total_timesteps}")
+                print(f"FPS: {fps:.1f}")
+                print(f"Mean reward: {history['mean_reward'][-1]:.4f}")
+                print(f"Loss: {metrics['loss']:.4f}")
+                print(f"Policy loss: {metrics['policy_loss']:.4f}")
+                print(f"Value loss: {metrics['value_loss']:.4f}")
+                print(f"Entropy: {metrics['entropy']:.4f}")
+                print("-" * 50)
             
             # Checkpointing
-            # Checkpoint at intervals or at the very end of training
-            if self.checkpoint_manager and current_timesteps > 0 and (update % (10000 // rollout_length) == 0 or update == n_updates):
-                # Optionally save environment state if it has a `get_state` method
-                env_state = self.env.get_state() if hasattr(self.env, 'get_state') else None
-
-                state_to_save = {
-                    'policy_state_dict': self.policy.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'timesteps': current_timesteps,
-                    'env_state': env_state,
-                    'episode_rewards_deque': list(self.episode_rewards) # Save deque as a list
-                }
-                metrics_to_save = {
-                    'mean_reward': np.mean(list(self.episode_rewards)) if self.episode_rewards else 0.0,
-                    'loss': last_loss
-                }
-                self.checkpoint_manager.save_checkpoint(state_to_save, current_timesteps, metrics_to_save)
-                print(f"Saved checkpoint at timestep {current_timesteps}")
-
-        print("\nPPO Training complete!")
-        if self.checkpoint_manager:
-            # Save final checkpoint explicitly
-            self.checkpoint_manager.save_checkpoint(
-                {
-                    'policy_state_dict': self.policy.state_dict(),
-                    'optimizer_state_dict': self.optimizer.state_dict(),
-                    'timesteps': current_timesteps,
-                    'env_state': self.env.get_state() if hasattr(self.env, 'get_state') else None,
-                    'episode_rewards_deque': list(self.episode_rewards)
-                },
-                current_timesteps,
-                {
-                    'mean_reward': np.mean(list(self.episode_rewards)) if self.episode_rewards else 0.0,
-                    'loss': last_loss
-                },
-                is_final=True # Indicate this is the final checkpoint
-            )
-            print("Final checkpoint saved.")
-
-
-    def load_from_checkpoint(self, checkpoint_path: Optional[str] = None) -> int:
-        """
-        Loads the trainer's state (policy, optimizer, episode rewards, environment state)
-        from a checkpoint.
-
-        Args:
-            checkpoint_path: Path to a specific checkpoint file. If None, loads the latest.
-
-        Returns:
-            The timestep from which training is resumed, or 0 if no checkpoint was loaded.
-        """
+            if self.checkpoint_manager and self.n_updates % save_interval == 0:
+                self.save_checkpoint()
+            
+            # Callback
+            if callback is not None:
+                callback(self, metrics)
+        
+        print(f"\nTraining completed in {time.time() - start_time:.1f} seconds")
+        
+        return history
+    
+    def save_checkpoint(self) -> bool:
+        """Save training checkpoint."""
         if not self.checkpoint_manager:
-            print("Checkpoint manager not configured. Cannot load checkpoint.")
-            return 0
-
-        checkpoint_data = None
-        if checkpoint_path:
-            checkpoint_data = self.checkpoint_manager.load_checkpoint(checkpoint_path)
-        else:
-            checkpoint_data = self.checkpoint_manager.load_latest_checkpoint()
-
+            return False
+        
+        checkpoint_data = {
+            'policy_state_dict': self.policy.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'total_timesteps': self.total_timesteps,
+            'n_updates': self.n_updates,
+            'episode_rewards': list(self.episode_rewards),
+            'hyperparameters': {
+                'n_epochs': self.n_epochs,
+                'gamma': self.gamma,
+                'gae_lambda': self.gae_lambda,
+                'clip_epsilon': self.clip_epsilon,
+                'value_coef': self.value_coef,
+                'entropy_coef': self.entropy_coef,
+                'max_grad_norm': self.max_grad_norm,
+                'batch_size': self.batch_size
+            }
+        }
+        
+        return self.checkpoint_manager.save_checkpoint(
+            checkpoint_data,
+            self.total_timesteps,
+            {'mean_reward': np.mean(self.episode_rewards) if self.episode_rewards else 0.0}
+        )
+    
+    def load_from_checkpoint(self) -> Optional[Dict]:
+        """Load from checkpoint."""
+        if not self.checkpoint_manager:
+            return None
+        
+        checkpoint_data = self.checkpoint_manager.load_latest_checkpoint()
         if checkpoint_data:
-            try:
-                # Load policy and optimizer states
-                self.policy.load_state_dict(checkpoint_data['state']['policy_state_dict'])
-                self.optimizer.load_state_dict(checkpoint_data['state']['optimizer_state_dict'])
-
-                # Restore episode_rewards deque
-                if 'episode_rewards_deque' in checkpoint_data['state']:
-                    self.episode_rewards = deque(checkpoint_data['state']['episode_rewards_deque'], maxlen=self.episode_rewards.maxlen)
-
-                # Restore environment state if available and the environment supports it
-                if 'env_state' in checkpoint_data['state'] and checkpoint_data['state']['env_state'] is not None:
-                    if hasattr(self.env, 'set_state'):
-                        self.env.set_state(checkpoint_data['state']['env_state'])
-                    else:
-                        print("Warning: Environment has no set_state method. Cannot restore env_state from checkpoint.")
-
-                print(f"Successfully loaded checkpoint from step {checkpoint_data.get('timestep', 0)}")
-                return checkpoint_data['state'].get('timesteps', 0)
-            except Exception as e:
-                print(f"Error loading state from checkpoint: {e}. Starting training from scratch.")
-                return 0
-        else:
-            print("No checkpoint found to load.")
-            return 0
-
-
-if __name__ == "__main__":
-    # This __main__ block is for testing the PPOTrainer specifically.
-    # It requires a mock environment and a HypothesisNet policy.
-
-    # --- Dummy Environment and Policy Setup for Testing ---
-    # Assume SymbolicDiscoveryEnv, ProgressiveGrammar, Variable are importable from their new paths
-    # (as defined in the imports at the top of this file)
-    from janus.core.grammar.base_grammar import ProgressiveGrammar
-    from janus.core.expressions.expression import Variable
-
-    print("Setting up dummy environment and policy for PPOTrainer test...")
-    # Initialize a simple grammar and variables
-    grammar = ProgressiveGrammar()
-    variables = [Variable(), Variable()]
-    
-    # Create some dummy data for the environment
-    dummy_data = np.column_stack([np.random.rand(100), np.random.rand(100) * 2, np.random.rand(100) + 1])
-
-    # Instantiate a SymbolicDiscoveryEnv. Ensure it has `get_action_mask` and optionally `get_state`/`set_state`
-    # and provides `tree_structure` in its info dict if TreeEncoder is used.
-    # For testing, we might need to mock or ensure the env has these methods.
-    # Here, assuming SymbolicDiscoveryEnv from janus.environments.base.symbolic_env provides them.
-    try:
-        env = SymbolicDiscoveryEnv(
-            grammar=grammar, 
-            target_data=dummy_data, 
-            variables=variables, 
-            max_depth=5, 
-            max_complexity=10, 
-            reward_config={'mse_weight': -1.0},
-            provide_tree_structure=True # Hypothetical flag to ensure info contains tree_structure
-        )
-    except TypeError: # Fallback if provide_tree_structure is not an arg
-        env = SymbolicDiscoveryEnv(
-            grammar=grammar, 
-            target_data=dummy_data, 
-            variables=variables, 
-            max_depth=5, 
-            max_complexity=10, 
-            reward_config={'mse_weight': -1.0}
-        )
-        print("Warning: SymbolicDiscoveryEnv does not support 'provide_tree_structure'. TreeEncoder might not function as expected.")
-
-
-    obs_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.n
-    
-    # Instantiate HypothesisNet (or AIHypothesisNet) as the policy
-    # Using 'transformer' encoder for simplicity in testing as it doesn't strictly need `tree_structure`
-    policy = HypothesisNet(
-        obs_dim=obs_dim, 
-        act_dim=action_dim, 
-        hidden_dim=128, # Smaller hidden_dim for faster testing
-        encoder_type='transformer',
-        grammar=grammar,
-        use_meta_learning=True # Enable meta-learning path for testing
-    )
-    
-    print(f"Policy has {sum(p.numel() for p in policy.parameters())} parameters.")
-
-    # --- PPO Trainer Initialization and Training ---
-    print("\n--- Testing PPOTrainer with HypothesisNet ---")
-    
-    # Define a temporary checkpoint directory for testing
-    test_checkpoint_dir = "./ppo_test_checkpoints"
-    # Clean up previous test checkpoints if any
-    if os.path.exists(test_checkpoint_dir):
-        import shutil
-        shutil.rmtree(test_checkpoint_dir)
-    os.makedirs(test_checkpoint_dir, exist_ok=True)
-
-    ppo_trainer = PPOTrainer(
-        policy=policy,
-        env=env,
-        learning_rate=1e-4,
-        n_epochs=2, # Small number of epochs for quick test
-        checkpoint_dir=test_checkpoint_dir # Pass the checkpoint directory
-    )
-
-    # Dummy task trajectories for policy's meta-learning component if needed
-    # Make sure this matches the expected input shape for policy's task_encoder
-    # (batch_size, num_trajectories, trajectory_length, obs_feature_dim)
-    dummy_task_trajectories = torch.randn(
-        1, # Batch size for single-task training
-        3, # Number of dummy trajectories
-        10, # Length of each trajectory
-        policy.node_feature_dim # Feature dimension of each step in trajectory
-    )
-
-    # Run a short training loop
-    try:
-        ppo_trainer.train(
-            total_timesteps=100, # Very short total timesteps for quick test
-            rollout_length=32, 
-            batch_size=16, 
-            log_interval=1,
-            task_trajectories_for_training=dummy_task_trajectories.to(policy.parameters().__next__().device) # Pass to device
-        )
-    except Exception as e:
-        print(f"\nError during PPO training test: {e}")
-        import traceback
-        traceback.print_exc()
-
-    print("\nPPOTrainer test finished.")
-    
-    # Optional: Clean up test checkpoint directory
-    if os.path.exists(test_checkpoint_dir):
-        import shutil
-        print(f"Cleaning up test checkpoint directory: {test_checkpoint_dir}")
-        shutil.rmtree(test_checkpoint_dir)
-
+            self.policy.load_state_dict(checkpoint_data['policy_state_dict'])
+            self.optimizer.load_state_dict(checkpoint_data['optimizer_state_dict'])
+            self.total_timesteps = checkpoint_data.get('total_timesteps', 0)
+            self.n_updates = checkpoint_data.get('n_updates', 0)
+            
+            if 'episode_rewards' in checkpoint_data:
+                self.episode_rewards = deque(checkpoint_data['episode_rewards'], maxlen=100)
+            
+            return checkpoint_data
+        
+        return None
