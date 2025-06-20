@@ -296,10 +296,41 @@ class TaskEnvironmentBuilder:
         if task.symmetries and "none" not in task.symmetries:
             reward_config['symmetry_bonus'] = 0.2
         
+        # Determine X_data and y_data from the combined 'data'
+        # Assuming the last column of 'data' is the target (y_data)
+        # and the rest are features (X_data).
+        # This might need to be made more flexible or configurable per task.
+        if data.shape[1] < 2:
+            raise ValueError(f"Data for task {task.name} has fewer than 2 columns. Cannot split into X and y.")
+
+        X_data = data[:, :-1]
+        y_data = data[:, -1]
+
+        # Ensure variables list matches the number of features in X_data
+        # The original variables list was created based on task.variables[:-1],
+        # which assumes the last variable in task.variables corresponds to the target.
+        # If X_data is data[:, :-1], then the number of features is data.shape[1] - 1.
+        # The number of variables in `task.variables` should be data.shape[1].
+
+        # Adjust 'variables' list to only include those corresponding to X_data.
+        # The original 'variables' list was created based on task.variables[:-1],
+        # which should align if task.variables includes the target variable name.
+        if len(variables) != X_data.shape[1]:
+            # This case implies a mismatch between task.variables definition and data splitting.
+            # For now, we'll try to proceed if task.variables[:-1] was intended for X.
+            # A more robust solution might involve explicit feature/target mapping in PhysicsTask.
+            print(f"Warning: Mismatch in TaskEnvironmentBuilder for task {task.name}. "
+                  f"Number of X_data columns ({X_data.shape[1]}) "
+                  f"does not match derived variables count ({len(variables)}). "
+                  f"Original task.variables: {task.variables}. Data columns: {data.shape[1]}")
+            # If task.variables was meant to list all columns including target,
+            # and variables was created from task.variables[:-1], this should be fine.
+
         env = SymbolicDiscoveryEnv(
             grammar=grammar,
-            target_data=data,
-            variables=variables,
+            X_data=X_data,
+            y_data=y_data,
+            variables=variables, # This list should correspond to columns of X_data
             max_depth=self.config.max_tree_depth,
             max_complexity=self.config.max_complexity,
             reward_config=reward_config,
