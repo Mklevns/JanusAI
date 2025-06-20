@@ -13,17 +13,17 @@ import time
 from typing import Any, Dict, List, Optional, Tuple, Type, Callable
 
 # Import core components
-from janus.core.grammar.base_grammar import ProgressiveGrammar
-from janus.core.expressions.expression import Variable, Expression
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.expressions.expression import Variable, Expression
 
 # Import environment and policy (assuming specific types like SymbolicDiscoveryEnv and HypothesisNet)
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.ml.networks.hypothesis_net import HypothesisNet
-from janus.ml.training.ppo_trainer import PPOTrainer # Assuming PPOTrainer is the default trainer
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from JanusAI.ml.networks.hypothesis_net import HypothesisNet
+from JanusAI.ml.training.ppo_trainer import PPOTrainer # Assuming PPOTrainer is the default trainer
 
 # Import logging utilities
-from janus.utils.logging.experiment_logger import TrainingLogger
-from janus.utils.io.checkpoint_manager import CheckpointManager # For saving/loading models
+from JanusAI.utils.logging.experiment_logger import TrainingLogger
+from JanusAI.utils.io.checkpoint_manager import CheckpointManager # For saving/loading models
 
 # Forward declaration for type hinting if needed (though Python 3.7+ usually handles this with strings)
 # from janus.config.models import ExperimentConfig # If ExperimentConfig is available

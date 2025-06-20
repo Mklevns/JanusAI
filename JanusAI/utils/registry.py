@@ -16,9 +16,9 @@ from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 import yaml
 
-from janus.experiments.base import BaseExperiment
-from janus.config.models import ExperimentConfig
-from janus.utils.exceptions import ExperimentNotFoundError, InvalidExperimentError
+from JanusAI.experiments.base import BaseExperiment
+from JanusAI.config.models import ExperimentConfig
+from JanusAI.utils.exceptions import ExperimentNotFoundError, InvalidExperimentError
 
 logger = logging.getLogger(__name__)
 

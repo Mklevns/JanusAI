@@ -16,9 +16,9 @@ import yaml
 import torch
 import psutil
 from typing import Dict, Any, Optional # Added Optional for save_checkpoint
-from janus.ai_interpretability.utils.math_utils import validate_inputs, safe_import
-from janus.config.models import JanusConfig # For type hinting
-from janus.config.loader import ConfigLoader # Added ConfigLoader
+from JanusAI.utils.math.operations import validate_inputs, safe_import
+from JanusAI.config.models import JanusConfig # For type hinting
+from JanusAI.config.loader import ConfigLoader # Added ConfigLoader
 
 # Optional imports with fallbacks using safe_import
 ray = safe_import("ray", "ray")

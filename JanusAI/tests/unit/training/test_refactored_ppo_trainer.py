@@ -12,9 +12,9 @@ import torch
 from unittest.mock import Mock, MagicMock, patch
 from typing import Dict
 
-from janus.ml.training.ppo_trainer import PPOTrainer, RolloutBuffer
-from janus.ml.networks.hypothesis_net import HypothesisNet
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from JanusAI.ml.training.ppo_trainer import PPOTrainer, RolloutBuffer
+from JanusAI.ml.networks.hypothesis_net import HypothesisNet
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
 
 
 class TestRolloutBuffer(unittest.TestCase):

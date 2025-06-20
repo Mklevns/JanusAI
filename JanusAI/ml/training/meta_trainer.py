@@ -14,12 +14,12 @@ import sympy as sp
 from pathlib import Path
 
 # Updated imports based on the new structure
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.ml.networks.hypothesis_net import HypothesisNet
-from janus.core.grammar.base_grammar import ProgressiveGrammar
-from janus.core.expressions.expression import Variable
-from janus.utils.math.operations import calculate_symbolic_accuracy
-from janus.environments.base.symbolic_env import safe_env_reset
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from JanusAI.ml.networks.hypothesis_net import HypothesisNet
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.expressions.expression import Variable
+from JanusAI.utils.math.operations import calculate_symbolic_accuracy
+from JanusAI.environments.base.symbolic_env import safe_env_reset
 
 # Conditional imports based on the original file's structure and the new one
 try:
@@ -35,7 +35,7 @@ except ImportError:
     print("Warning: feedback_integration module not found, intrinsic rewards disabled")
     add_intrinsic_rewards_to_env = None
 
-from janus.physics.data.generators import PhysicsTaskDistribution, PhysicsTask
+from JanusAI.physics.data.generators import PhysicsTaskDistribution, PhysicsTask
 
 
 @dataclass

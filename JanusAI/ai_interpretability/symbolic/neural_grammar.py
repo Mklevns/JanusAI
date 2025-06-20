@@ -16,7 +16,8 @@
 
 import sympy as sp
 from typing import List, Dict, Any, Optional
-from janus.core.grammar.base_grammar import ProgressiveGrammar, Expression, Variable
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.expressions.expression import Expression, Variable
 
 class AIGrammar(ProgressiveGrammar):
     """

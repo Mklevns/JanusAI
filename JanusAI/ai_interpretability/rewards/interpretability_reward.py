@@ -2,7 +2,7 @@ from typing import Any, Dict
 import numpy as np
 import torch
 
-from janus.ai_interpretability.evaluation.fidelity import FidelityCalculator
+from JanusAI.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
 
 class InterpretabilityReward:
     # existing class content...
@@ -13,14 +13,19 @@ class InterpretabilityReward:
                             test_data: Any) -> float:
         """
         Calculate how well the symbolic expression reproduces the AI model's attention behavior.
-        Delegates to FidelityCalculator for robust, normalized fidelity scoring.
+        Delegates to ModelFidelityEvaluator for robust, normalized fidelity scoring.
         """
         try:
             # Initialize calculator once
+            # TODO: ModelFidelityEvaluator requires ai_model, data_samples, variables at init.
+            # This initialization needs to be refactored.
             if not hasattr(self, '_fidelity_calculator') or self._fidelity_calculator is None:
-                self._fidelity_calculator = FidelityCalculator()
+                # Placeholder initialization, will likely need adjustment by user/further refactoring
+                # as ModelFidelityEvaluator has a different constructor.
+                self._fidelity_calculator = ModelFidelityEvaluator(ai_model=ai_model, data_samples=test_data, variables=getattr(self, 'variables', []))
 
-            # Normalize test_data into dict format expected by FidelityCalculator
+
+            # Normalize test_data into dict format expected by ModelFidelityEvaluator
             if hasattr(test_data, 'inputs') and hasattr(test_data, 'attention_weights'):
                 data_dict = {
                     'input_ids': np.array(test_data.inputs),

@@ -17,10 +17,10 @@ from typing import Dict, List, Tuple, Optional, Any, Union, TypedDict
 from dataclasses import dataclass
 
 # Internal project imports based on new structure
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv, safe_env_reset
-from janus.core.grammar.base_grammar import ProgressiveGrammar
-from janus.core.expressions.expression import Variable
-from janus.utils.general_utils import safe_import # Assuming this new utility file will be created
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv, safe_env_reset
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.expressions.expression import Variable
+from JanusAI.utils.general_utils import safe_import # Assuming this new utility file will be created
 
 
 # Use safe_import for wandb. It's conditionally imported here but not directly used within the classes themselves.

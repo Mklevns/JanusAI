@@ -9,9 +9,8 @@ import sympy as sp
 from unittest.mock import MagicMock, patch, PropertyMock
 from sklearn.decomposition import FastICA
 
-from janus.core.grammar.base_grammar import BaseGrammar, ProgressiveGrammar
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.processor.noisy_observation_processor import NoisyObservationProcessor
+from JanusAI.core.grammar.base_grammar import BaseGrammar, ProgressiveGrammar, NoisyObservationProcessor
+from JanusAI.core.expressions.expression import Expression, Variable
 
 
 class TestBaseGrammar:
@@ -93,7 +92,7 @@ class TestProgressiveGrammar:
             'z': Variable("z", 2, {"type": "energy"})
         }
     
-    @patch('janus.core.grammar.base_grammar.FastICA')
+    @patch('JanusAI.core.grammar.base_grammar.FastICA')
     @patch.object(NoisyObservationProcessor, 'denoise')
     def test_discover_variables_basic(self, mock_denoise, mock_fastica, grammar):
         """Test basic variable discovery from observations."""

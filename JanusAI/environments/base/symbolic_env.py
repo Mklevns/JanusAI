@@ -15,10 +15,10 @@ import warnings
 from enum import Enum, auto
 
 # Import necessary modules (adjust paths as needed)
-from janus.core.grammar.base_grammar import ProgressiveGrammar
-from janus.core.expressions.expression import Expression, Variable
-from janus.utils.math.operations import calculate_expression_complexity
-from janus.core.expressions.symbolic_math import evaluate_expression_on_data
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.utils.math.operations import calculate_expression_complexity
+from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
 
 
 class NodeType(Enum):

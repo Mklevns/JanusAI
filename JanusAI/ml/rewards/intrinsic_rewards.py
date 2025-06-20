@@ -14,15 +14,15 @@ from collections import deque
 import types # Needed for types.MethodType in add_intrinsic_rewards_to_env (if used externally)
 
 # Import BaseReward
-from janus.ml.rewards.base_reward import BaseReward
+from JanusAI.ml.rewards.base_reward import BaseReward
 
 # Import utilities from new structure
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
-from janus.utils.math.operations import calculate_symbolic_accuracy, calculate_expression_complexity
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
+from JanusAI.utils.math.operations import calculate_symbolic_accuracy, calculate_expression_complexity
 
 # Import the ConservationDetector from physics laws
-from janus.physics.laws.conservation import ConservationDetector
+from JanusAI.physics.laws.conservation import ConservationDetector
 
 
 class NoveltyReward(BaseReward):

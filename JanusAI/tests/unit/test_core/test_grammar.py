@@ -33,8 +33,8 @@ if 'sklearn' not in sys.modules:
     sys.modules['sklearn.preprocessing'] = sklearn_preproc_stub
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from janus.core.grammar import ProgressiveGrammar
-from janus.core.expression import Variable, Expression
+from JanusAI.core.grammar import ProgressiveGrammar
+from JanusAI.core.expressions.expression import Variable, Expression
 import sympy as sp
 import numpy as np
 
@@ -712,8 +712,8 @@ def test_generate_variable_name(grammar_and_vars):
 
 # Patching 'sklearn.decomposition.FastICA' as it's imported like `from sklearn.decomposition import FastICA`
 # Patching denoiser at the class level janus.core.grammar.NoisyObservationProcessor
-@patch('janus.core.grammar.FastICA')
-@patch('janus.core.grammar.NoisyObservationProcessor.denoise')
+@patch('JanusAI.core.grammar.FastICA')
+@patch('JanusAI.core.grammar.NoisyObservationProcessor.denoise')
 def test_discover_variables_simple_run(mock_denoise, MockFastICA, grammar_and_vars):
     grammar, _, _, _, _, _ = grammar_and_vars
     grammar.variables = {}
@@ -764,9 +764,9 @@ def test_discover_variables_simple_run(mock_denoise, MockFastICA, grammar_and_va
         assert grammar.variables[var.name] == var
 
 
-@patch('janus.core.grammar.FastICA')
+@patch('JanusAI.core.grammar.FastICA')
 @patch.object(ProgressiveGrammar, '_analyze_component')
-@patch('janus.core.grammar.NoisyObservationProcessor')
+@patch('JanusAI.core.grammar.NoisyObservationProcessor')
 def test_discover_variables_controlled(MockNoisyObservationProcessor, mock_analyze_component, MockFastICA):
     # Create ProgressiveGrammar instance *after* mocks are in place
     grammar = ProgressiveGrammar()
@@ -1094,7 +1094,7 @@ def test_mine_abstractions(mock_add_learned_function, grammar_and_vars):
 
 
 # --- Tests for NoisyObservationProcessor ---
-from janus.core.grammar import NoisyObservationProcessor
+from JanusAI.core.grammar import NoisyObservationProcessor
 from unittest.mock import PropertyMock
 
 def test_simple_denoise():
@@ -1126,10 +1126,10 @@ def test_simple_denoise():
     assert np.array_equal(denoised_small_15, obs_small_15_rows)
 
 
-@patch('janus.core.grammar.StandardScaler')
-@patch('janus.core.grammar.torch.FloatTensor')
-@patch('janus.core.grammar.torch.optim.Adam')
-@patch('janus.core.grammar.torch.nn.MSELoss')
+@patch('JanusAI.core.grammar.StandardScaler')
+@patch('JanusAI.core.grammar.torch.FloatTensor')
+@patch('JanusAI.core.grammar.torch.optim.Adam')
+@patch('JanusAI.core.grammar.torch.nn.MSELoss')
 @patch.object(NoisyObservationProcessor, 'build_autoencoder')
 def test_denoise_structure(mock_build_autoencoder, mock_loss, mock_adam, mock_float_tensor, MockStandardScaler):
     processor = NoisyObservationProcessor()

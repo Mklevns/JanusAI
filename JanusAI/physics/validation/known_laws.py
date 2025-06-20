@@ -11,8 +11,8 @@ from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
 
 # Import Expression and Variable for comparison with discovered laws
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.expressions.symbolic_math import get_variables_from_expression, are_expressions_equivalent_sympy
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.core.expressions.symbolic_math import get_variables_from_expression, are_expressions_equivalent_sympy
 
 
 @dataclass

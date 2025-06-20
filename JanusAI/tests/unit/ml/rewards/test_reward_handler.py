@@ -12,9 +12,9 @@ from unittest.mock import Mock, patch
 import tempfile
 import json
 
-from janus.ml.rewards.reward_handler import RewardHandler, AdaptiveRewardHandler, RewardInfo
-from janus.ml.rewards.base_reward import BaseReward
-from janus.ml.rewards.reward_registry import (
+from JanusAI.ml.rewards.reward_handler import RewardHandler, AdaptiveRewardHandler, RewardInfo
+from JanusAI.ml.rewards.base_reward import BaseReward
+from JanusAI.ml.rewards.reward_registry import (
     register_reward,
     create_reward_component,
     create_handler_from_preset,

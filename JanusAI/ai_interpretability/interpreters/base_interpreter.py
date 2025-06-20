@@ -15,15 +15,15 @@ from typing import Dict, List, Tuple, Optional, Any
 
 # TEMPORARY: Using direct/potentially adjusted imports.
 # These will be fixed in the "Adjust Imports" step.
-from janus.core.grammar.base_grammar import Expression
-from ..grammars.neural_grammar import NeuralGrammar
-from ..environments.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
+from JanusAI.core.grammar.base_grammar import Expression
+from JanusAI.ai_interpretability.grammars.neural_grammar import NeuralGrammar
+from JanusAI.environments.ai_interpretability.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
 
 # The following imports are for components that might not be part of this specific refactoring's scope
 # but were present in the original file. Their final location will determine the correct import path.
 # If they are not found, these lines will cause errors later, highlighting unresolved dependencies.
 try:
-    from janus.ml.networks.hypothesis_net import HypothesisNet, PPOTrainer
+    from JanusAI.ml.networks.hypothesis_net import HypothesisNet, PPOTrainer
 except ImportError:
     # Provide dummy classes if not found, to allow rest of the file to be processed.
     # This is a temporary measure for the refactoring step.
