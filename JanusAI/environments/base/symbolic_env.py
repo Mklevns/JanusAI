@@ -15,7 +15,7 @@ import warnings
 from enum import Enum, auto
 
 # Import necessary modules (adjust paths as needed)
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar, AIGrammar
 from JanusAI.core.expressions.expression import Expression, Variable
 from JanusAI.utils.math.operations import calculate_expression_complexity
 from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
@@ -120,7 +120,8 @@ class SymbolicDiscoveryEnv(gym.Env):
         reward_config: Optional[Dict[str, float]] = None,
         max_nodes: int = 50,
         action_space_size: Optional[int] = None,
-        provide_tree_structure: bool = False
+        provide_tree_structure: bool = False,
+        task_type: str = 'symbolic_regression' # Added task_type argument
     ):
         """
         Initialize the symbolic discovery environment.
@@ -136,6 +137,7 @@ class SymbolicDiscoveryEnv(gym.Env):
             max_nodes: Maximum nodes in observation representation
             action_space_size: Size of discrete action space
             provide_tree_structure: Whether to include tree structure in observations
+            task_type: Specifies the primary task for the environment.
         """
         super().__init__()
         
@@ -153,6 +155,7 @@ class SymbolicDiscoveryEnv(gym.Env):
         self.max_complexity = max_complexity
         self.max_nodes = max_nodes
         self.provide_tree_structure = provide_tree_structure
+        self.task_type = task_type # Store task_type
         
         # Reward configuration with defaults
         self.reward_config = reward_config or {}
@@ -172,6 +175,11 @@ class SymbolicDiscoveryEnv(gym.Env):
         self.current_state: Optional[TreeState] = None
         self.episode_steps = 0
         self.max_episode_steps = max_depth * 3  # Heuristic
+
+        # Curriculum learning attributes
+        self.attention_type: str = 'diagonal'  # Default value
+        self.sequence_length: int = 16  # Default value
+        self.noise_level: float = 0.0  # Default value
         
     def _validate_inputs(self):
         """Validate input data consistency."""
@@ -521,3 +529,44 @@ class SymbolicDiscoveryEnv(gym.Env):
             else:
                 print("No tree state")
         return None
+
+    def set_curriculum_config(self, config: Dict[str, Any]):
+        """Configure environment for curriculum learning."""
+        self.attention_type = config.get('attention_type', self.attention_type)
+        self.sequence_length = config.get('sequence_length', self.sequence_length)
+        self.noise_level = config.get('noise_level', self.noise_level)
+
+        allowed_primitives_config = config.get('allowed_primitives')
+
+        if allowed_primitives_config == 'full_ai_grammar':
+            self.grammar = AIGrammar()
+        elif isinstance(allowed_primitives_config, list):
+            # Limited grammar for early curriculum stages
+            self.grammar = ProgressiveGrammar(load_defaults=False)
+            # Ensure primitive categories exist
+            if 'constants' not in self.grammar.primitives: self.grammar.primitives['constants'] = {}
+            if 'unary_ops' not in self.grammar.primitives: self.grammar.primitives['unary_ops'] = set()
+            if 'binary_ops' not in self.grammar.primitives: self.grammar.primitives['binary_ops'] = set()
+            if 'calculus_ops' not in self.grammar.primitives: self.grammar.primitives['calculus_ops'] = set()
+
+            self.grammar.add_operators(allowed_primitives_config)
+            # TODO: Consider how constants are managed if they are part of allowed_primitives
+            # For now, ProgressiveGrammar's add_operators only handles operators.
+            # If constants need to be configurable, that logic would be added here.
+            # Example: self.grammar.primitives['constants']['my_const'] = 0.5
+        elif allowed_primitives_config is None:
+            # No change to grammar if 'allowed_primitives' is not in config
+            pass
+        else:
+            warnings.warn(
+                f"Unknown 'allowed_primitives' configuration: {allowed_primitives_config}. "
+                "Grammar will not be changed."
+            )
+
+        # After changing grammar, action space size might change
+        # We might need to re-initialize or update action space related attributes
+        # For now, assume the trainer or a subsequent call handles this.
+        # self.action_space_size = self._calculate_action_space_size()
+        # self.action_space = gym.spaces.Discrete(self.action_space_size)
+        # This could be problematic if called mid-training without proper handling by the agent/trainer.
+        # Typically, curriculum changes affecting action space are done between training phases.
