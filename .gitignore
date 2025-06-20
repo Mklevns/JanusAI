@@ -196,3 +196,5 @@ cython_debug/
 
 # VSCode user settings
 .vscode/
+# Windows Zone.Identifier sidecars
+*:Zone.Identifier
