@@ -5,10 +5,10 @@ from unittest.mock import patch, MagicMock
 import math # For math.ceil
 
 # Assuming these can be imported from the project structure
-from janus.ml.networks.hypothesis_net import PPOTrainer, HypothesisNet
-from janus.environments.base import SymbolicDiscoveryEnv
-from janus.core.grammar import ProgressiveGrammar
-from janus.core.expression import Variable
+from JanusAI.ml.networks.hypothesis_net import PPOTrainer, HypothesisNet
+from JanusAI.environments.base import SymbolicDiscoveryEnv
+from JanusAI.core.grammar import ProgressiveGrammar
+from JanusAI.core.expression import Variable
 
 @pytest.fixture(scope="module")
 def dummy_grammar_and_vars():

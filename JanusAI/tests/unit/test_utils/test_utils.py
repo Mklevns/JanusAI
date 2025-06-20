@@ -4,7 +4,7 @@ import sympy as sp
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from janus.utils.math.operations import _count_operations, calculate_symbolic_accuracy
+from JanusAI.utils.math.operations import _count_operations, calculate_symbolic_accuracy
 
 class TestUtils(unittest.TestCase):
     def test_count_operations(self):
@@ -103,7 +103,7 @@ class TestUtils(unittest.TestCase):
         self.assertAlmostEqual(calculate_symbolic_accuracy(str(a*b), gt_laws2), 2/3)
 
 # --- New tests for validate_inputs ---
-from janus.ai_interpretability.utils.math_utils import validate_inputs
+from JanusAI.utils.math.operations import validate_inputs
 from typing import List, Dict, Tuple, Any # For type hints in test functions
 
 # Define a dummy InvalidConfigError as it was mentioned in requirements,
@@ -231,7 +231,7 @@ if __name__ == '__main__':
     unittest.main()
 
 # --- New tests for safe_import ---
-from janus.ai_interpretability.utils.math_utils import safe_import # safe_import is already in math_utils
+from JanusAI.utils.math.operations import safe_import # safe_import is already in math_utils
 from unittest.mock import patch
 import io
 import math # For testing existing module import

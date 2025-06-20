@@ -14,11 +14,11 @@ import torch.nn as nn # For type hinting target_model as nn.Module
 from typing import Any, Dict, List, Optional, Union
 
 # Import BaseReward for inheritance
-from janus.ml.rewards.base_reward import BaseReward
+from JanusAI.ml.rewards.base_reward import BaseReward
 
 # Import the new evaluation utilities
-from janus.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
-from janus.ai_interpretability.evaluation.consistency import InterpretabilityEvaluator
+from JanusAI.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
+from JanusAI.ai_interpretability.evaluation.consistency import InterpretabilityEvaluator
 
 # Placeholder for AI model classes
 try:

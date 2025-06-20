@@ -12,9 +12,9 @@ from typing import Dict, List, Tuple, Optional, Any, Callable
 from dataclasses import dataclass
 import sympy as sp
 
-from janus.core.expressions.expression import Expression, Variable
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.ai_interpretability.grammars.neural_grammar import NeuralGrammar
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from JanusAI.ai_interpretability.grammars.neural_grammar import NeuralGrammar
 
 
 @dataclass
@@ -232,7 +232,7 @@ class AIInterpretabilityEnv(SymbolicDiscoveryEnv):
     
     def _evaluate_expression_on_data(self, expression: Expression) -> np.ndarray:
         """Evaluate expression on the environment's data."""
-        from janus.core.expressions.symbolic_math import evaluate_expression_on_data
+        from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
         
         return evaluate_expression_on_data(
             str(expression),
