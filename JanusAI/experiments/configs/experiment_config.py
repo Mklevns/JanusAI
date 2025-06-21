@@ -6,7 +6,8 @@ Defines data models for structuring and validating experiment configurations.
 This ensures consistency and ease of use for setting up various symbolic
 discovery experiments.
 """
-
+import torch
+import json
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
 
@@ -93,7 +94,7 @@ class ExperimentConfig:
         if not torch.cuda.is_available() and self.device == "cuda":
             self.device = "cpu"
             print("Warning: CUDA not available, switching device to 'cpu'.")
-        
+
         # Ensure log/checkpoint intervals are sensible
         if self.log_interval <= 0: self.log_interval = 1
         if self.eval_interval <= 0: self.eval_interval = self.log_interval
@@ -188,4 +189,3 @@ if __name__ == "__main__":
     assert loaded_config.trainer_config["learning_rate"] == 0.0001 # Trainer config should merge/overwrite defaults
 
     print("\nAll ExperimentConfig tests completed.")
-

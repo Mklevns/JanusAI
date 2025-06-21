@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 from collections import defaultdict, deque
 from typing import Any, Dict, List, Optional, Union, Deque
+import numpy as np # Added import
 
 
 class TrainingLogger:
@@ -177,4 +178,3 @@ if __name__ == "__main__":
     print("\nCleaned up test logs directory.")
 
     print("\nAll TrainingLogger tests completed.")
-
