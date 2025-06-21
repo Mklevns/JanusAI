@@ -18,7 +18,7 @@ from pydantic import ValidationError
 
 # Try to import Janus config models
 try:
-    from janus.config.models import JanusConfig, ExperimentConfig
+    from janus_ai.config.models import JanusConfig, ExperimentConfig
     MODELS_AVAILABLE = True
 except ImportError:
     MODELS_AVAILABLE = False

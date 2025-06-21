@@ -23,14 +23,14 @@ from janus_ai.environments.base.symbolic_env import safe_env_reset
 
 # Conditional imports based on the original file's structure and the new one
 try:
-    from janus.environments.enhanced.feedback_env import IntrinsicRewardCalculator, EnhancedObservationEncoder
+    from janus_ai.environments.enhanced.feedback_env import IntrinsicRewardCalculator, EnhancedObservationEncoder
 except ImportError:
     print("Warning: enhanced_feedback components not found, using basic feedback placeholders")
     IntrinsicRewardCalculator = None
     EnhancedObservationEncoder = None
 
 try:
-    from janus.environments.enhanced.adaptive_env import add_intrinsic_rewards_to_env
+    from janus_ai.environments.enhanced.adaptive_env import add_intrinsic_rewards_to_env
 except ImportError:
     print("Warning: feedback_integration module not found, intrinsic rewards disabled")
     add_intrinsic_rewards_to_env = None

@@ -42,8 +42,8 @@ from integration.improved_learned_comm import (
     CompositionalEmbeddings,
     plot_communication_analysis
 )
-from JanusAI.integration.schemas import AgentRole, Discovery
-from JanusAI.integration.knowledge import SharedKnowledgeBase, MessageBus
+from janus_ai.integration.schemas import AgentRole, Discovery
+from janus_ai.integration.knowledge import SharedKnowledgeBase, MessageBus
 
 logger = logging.getLogger(__name__)
 

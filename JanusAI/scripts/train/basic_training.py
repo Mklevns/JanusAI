@@ -307,7 +307,7 @@ def run_distributed_sweep(config_path: str, n_trials: int = 20):
     print(f"\nRunning distributed sweep with {n_trials} trials...")
     
     from integrated_pipeline import distributed_hyperparameter_search
-    from janus.core.grammar import ProgressiveGrammar
+    from janus_ai.core.grammar import ProgressiveGrammar
     
     janus_config_obj = validate_config(config_path) # Now returns JanusConfig object
     setup_environment(janus_config_obj) # Expects JanusConfig object

@@ -37,10 +37,12 @@ def fix_imports_in_project():
         print("   Please ensure you are running this script from the correct location relative to the 'JanusAI' directory.")
         return
         
-    old_prefix_from = "from janus_ai"
-    new_prefix_from = "from janus_ai"
-    old_prefix_import = "import janus_ai"
-    new_prefix_import = "import janus_ai"
+    prefixes_to_replace = {
+        "from janus_ai.": "from janus_ai.",
+        "import janus_ai.": "import janus_ai.",
+        "from janus_ai.": "from janus_ai.",
+        "import janus_ai.": "import janus_ai."
+    }
     
     files_modified = 0
     total_replacements = 0
@@ -62,17 +64,11 @@ def fix_imports_in_project():
                     
                     new_content = content
                     
-                    # Fix 'from janus_ai...' statements
-                    if old_prefix_from in new_content:
-                        count = new_content.count(old_prefix_from)
-                        new_content = new_content.replace(old_prefix_from, new_prefix_from)
-                        replacements_in_file += count
-
-                    # Fix 'import janus_ai...' statements
-                    if old_prefix_import in new_content:
-                        count = new_content.count(old_prefix_import)
-                        new_content = new_content.replace(old_prefix_import, new_prefix_import)
-                        replacements_in_file += count
+                    for old_prefix, new_prefix in prefixes_to_replace.items():
+                        if old_prefix in new_content:
+                            count = new_content.count(old_prefix)
+                            new_content = new_content.replace(old_prefix, new_prefix)
+                            replacements_in_file += count
                         
                     if replacements_in_file > 0:
                         with open(file_path, 'w', encoding='utf-8') as f:

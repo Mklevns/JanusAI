@@ -205,7 +205,7 @@ class SelfPlayCurriculumTrainer:
         print(f"Environment dimensions - Obs: {obs_dim}, Actions: {action_dim}")
         
         # Initialize MAML trainer for discoverer
-        from janus.ml.training.meta_trainer import MetaLearningPolicy
+        from janus_ai.ml.training.meta_trainer import MetaLearningPolicy
         
         self.discoverer_policy = MetaLearningPolicy(
             observation_dim=obs_dim,

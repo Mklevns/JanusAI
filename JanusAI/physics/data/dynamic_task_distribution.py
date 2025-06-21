@@ -11,7 +11,7 @@ from collections import defaultdict
 import hashlib
 import json
 
-from janus.physics.data.task_distribution import PhysicsTask, PhysicsTaskDistribution
+from janus_ai.physics.data.task_distribution import PhysicsTask, PhysicsTaskDistribution
 
 
 @dataclass
