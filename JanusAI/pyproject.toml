@@ -61,10 +61,10 @@ dependencies = [
     "tqdm>=4.65.0",
     "rich>=13.0.0",
     "click>=8.1.0",
+    "transformers",  # Added for LLM integration
     "GitPython",
     "requests",
     "setuptools",
-    
     # Logging and monitoring
     "structlog>=23.1.0",
 ]
