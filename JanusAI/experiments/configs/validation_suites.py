@@ -100,10 +100,14 @@ class ValidationSuiteLibrary:
         """Returns a string summary of the validation suites in the library."""
         summary = [f"Validation Suite Library ({len(self._suites)} suites):"]
         for suite in self._suites:
-            summary.append(f"- {suite.name}: {suite.description}")
-            summary.append(f"  Tasks: {', '.join(suite.evaluation_tasks) if suite.evaluation_tasks else 'N/A'}")
-            summary.append(f"  Metrics: {', '.join(suite.metrics_to_report)}")
-            summary.append(f"  Criteria: {suite.success_criteria}")
+            summary.extend(
+                (
+                    f"- {suite.name}: {suite.description}",
+                    f"  Tasks: {', '.join(suite.evaluation_tasks) if suite.evaluation_tasks else 'N/A'}",
+                    f"  Metrics: {', '.join(suite.metrics_to_report)}",
+                    f"  Criteria: {suite.success_criteria}",
+                )
+            )
         return "\n".join(summary)
 
 
