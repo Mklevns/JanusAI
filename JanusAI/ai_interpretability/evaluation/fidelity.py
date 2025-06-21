@@ -1,7 +1,6 @@
-# janus/ai_interpretability/evaluation/fidelity.py
+# JanusAI/ai_interpretability/evaluation/fidelity.py
 """
-Complete implementation of the _calculate_fidelity method for AI interpretability.
-
+Complete implementation of the FidelityCalculator for AI interpretability.
 This is the core function that measures how well our symbolic expressions
 capture the behavior of attention heads in transformers.
 """
@@ -9,10 +8,11 @@ capture the behavior of attention heads in transformers.
 import numpy as np
 import torch
 import sympy as sp
-from typing import Any, Dict, Optional, Union, Tuple
+from typing import Any, Dict, Optional, Union, Tuple, List
 from sklearn.metrics import mean_squared_error, r2_score
 from scipy.stats import pearsonr, spearmanr
 import warnings
+
 
 class FidelityCalculator:
     """
@@ -72,215 +72,186 @@ class FidelityCalculator:
         """Extract the actual behavior we want to approximate."""
         
         if target_behavior == 'attention':
-            # For attention heads, extract attention weights
-            return self._extract_attention_patterns(ai_model, test_data)
-        elif target_behavior == 'output':
-            # For output prediction
-            return self._extract_output_logits(ai_model, test_data)
+            # For pre-computed attention weights
+            if 'attention_weights' in test_data:
+                layer = test_data.get('target_layer', 0)
+                head = test_data.get('target_head', None)
+                
+                attn_weights = test_data['attention_weights']
+                if isinstance(attn_weights, torch.Tensor):
+                    attn_weights = attn_weights.cpu().numpy()
+                
+                # Handle different attention weight formats
+                if len(attn_weights.shape) == 4:  # [batch, heads, seq, seq]
+                    if head is not None:
+                        return attn_weights[:, head, :, :]
+                    else:
+                        return attn_weights.mean(axis=1)  # Average over heads
+                elif len(attn_weights.shape) == 3:  # [batch, seq, seq]
+                    return attn_weights
+                else:
+                    return attn_weights.reshape(-1)
+            
+            # Otherwise, run forward pass to get attention
+            input_ids = test_data.get('input_ids')
+            if input_ids is None:
+                raise ValueError("No input_ids in test_data")
+            
+            with torch.no_grad():
+                if isinstance(input_ids, np.ndarray):
+                    input_ids = torch.tensor(input_ids, device=ai_model.device)
+                
+                outputs = ai_model(input_ids, output_attentions=True)
+                
+                # Extract specific layer/head attention
+                layer_idx = test_data.get('target_layer', 0)
+                head_idx = test_data.get('target_head', None)
+                
+                attention_weights = outputs.attentions[layer_idx]
+                
+                if head_idx is not None:
+                    # Specific head
+                    attention_weights = attention_weights[:, head_idx, :, :]
+                else:
+                    # Average over all heads
+                    attention_weights = attention_weights.mean(dim=1)
+                
+                return attention_weights.cpu().numpy()
+        
         else:
-            raise ValueError(f"Unknown target behavior: {target_behavior}")
-    
-    def _extract_attention_patterns(self, 
-                                   ai_model: Any, 
-                                   test_data: Dict[str, np.ndarray]) -> np.ndarray:
-        """Extract attention patterns from the transformer model."""
-        
-        # Ensure model is in eval mode
-        ai_model.eval()
-        
-        attention_patterns = []
-        
-        with torch.no_grad():
-            # Get input tokens
-            input_ids = torch.tensor(test_data.get('input_ids', test_data.get('inputs')))
-            
-            # Create attention mask if needed
-            attention_mask = torch.ones_like(input_ids) if 'attention_mask' not in test_data else torch.tensor(test_data['attention_mask'])
-            
-            # Forward pass with attention outputs
-            outputs = ai_model(input_ids=input_ids, 
-                              attention_mask=attention_mask, 
-                              output_attentions=True)
-            
-            # Extract attention from specific layer/head (from test_data metadata)
-            layer_idx = test_data.get('target_layer', 0)
-            head_idx = test_data.get('target_head', None)
-            
-            layer_attention = outputs.attentions[layer_idx]  # (batch, heads, seq, seq)
-            
-            if head_idx is not None:
-                # Specific head
-                head_attention = layer_attention[:, head_idx, :, :]  # (batch, seq, seq)
-            else:
-                # Average across heads
-                head_attention = layer_attention.mean(dim=1)  # (batch, seq, seq)
-            
-            # Flatten attention matrices for correlation analysis
-            attention_patterns = head_attention.flatten().cpu().numpy()
-        
-        return attention_patterns
+            raise NotImplementedError(f"Target behavior '{target_behavior}' not implemented")
     
     def _evaluate_expression(self, 
                            expression: Any,
                            test_data: Dict[str, np.ndarray],
-                           variables: list) -> np.ndarray:
+                           variables: List[Any]) -> np.ndarray:
         """Evaluate symbolic expression on test data."""
         
-        if expression is None:
-            return np.zeros(1)
+        # Create variable substitutions based on test data
+        var_substitutions = self._create_variable_substitutions(test_data, variables)
         
-        try:
-            # Handle different expression types
-            if hasattr(expression, 'symbolic'):
-                symbolic_expr = expression.symbolic
-            elif isinstance(expression, sp.Expr):
-                symbolic_expr = expression
-            else:
-                # Try to convert string to sympy expression
-                symbolic_expr = sp.sympify(str(expression))
-            
-            # Create variable substitutions
-            var_subs = self._create_variable_substitutions(test_data, variables)
-            
-            # For attention patterns, create pairwise feature combinations
-            if 'attention' in str(symbolic_expr).lower():
-                return self._evaluate_attention_expression(symbolic_expr, test_data, var_subs)
-            else:
-                return self._evaluate_standard_expression(symbolic_expr, var_subs)
-                
-        except Exception as e:
-            print(f"Expression evaluation failed: {e}")
-            return np.zeros(1)
+        # Handle different expression types
+        if isinstance(expression, sp.Expr):
+            # SymPy expression
+            return self._evaluate_sympy_expression(expression, var_substitutions)
+        elif hasattr(expression, 'evaluate'):
+            # Custom Expression object
+            return expression.evaluate(var_substitutions)
+        else:
+            # Try to convert to SymPy
+            try:
+                sympy_expr = sp.sympify(str(expression))
+                return self._evaluate_sympy_expression(sympy_expr, var_substitutions)
+            except:
+                raise ValueError(f"Cannot evaluate expression of type {type(expression)}")
     
-    def _create_variable_substitutions(self, 
+    def _create_variable_substitutions(self,
                                      test_data: Dict[str, np.ndarray],
-                                     variables: list) -> Dict[sp.Symbol, np.ndarray]:
-        """Create substitutions for symbolic variables."""
+                                     variables: List[Any]) -> Dict[str, np.ndarray]:
+        """Create substitution dictionary for variables based on test data."""
         
-        var_subs = {}
+        substitutions = {}
+        seq_len = test_data.get('sequence_length', test_data['input_ids'].shape[-1])
+        batch_size = test_data['input_ids'].shape[0] if 'input_ids' in test_data else 1
         
         for var in variables:
-            var_symbol = sp.Symbol(var.name)
+            var_name = var.name if hasattr(var, 'name') else str(var)
             
-            if var.name == 'pos_diff':
-                # Position differences for attention
-                var_subs[var_symbol] = self._compute_position_differences(test_data)
-            elif var.name == 'pos_ratio':
-                # Position ratios
-                var_subs[var_symbol] = self._compute_position_ratios(test_data)
-            elif var.name == 'token_type_i' or var.name == 'token_type_j':
-                # Token type information
-                var_subs[var_symbol] = test_data.get('token_types', np.ones(100))
-            elif var.name == 'relative_pos':
-                # Relative position encoding
-                var_subs[var_symbol] = self._compute_relative_positions(test_data)
-            elif var.name in test_data:
-                # Direct data mapping
-                var_subs[var_symbol] = test_data[var.name]
+            # Position-based variables
+            if 'pos' in var_name or 'position' in var_name:
+                if 'diff' in var_name:
+                    # Position difference matrix
+                    pos_diff = np.zeros((seq_len, seq_len))
+                    for i in range(seq_len):
+                        for j in range(seq_len):
+                            pos_diff[i, j] = i - j
+                    substitutions[var_name] = pos_diff
+                elif 'ratio' in var_name:
+                    # Position ratio matrix
+                    pos_ratio = np.ones((seq_len, seq_len))
+                    for i in range(seq_len):
+                        for j in range(seq_len):
+                            pos_ratio[i, j] = (i + 1) / (j + 1) if j < i else (j + 1) / (i + 1)
+                    substitutions[var_name] = pos_ratio
+                else:
+                    # Absolute positions
+                    substitutions[var_name] = np.arange(seq_len)
+            
+            # Token-based variables
+            elif 'token' in var_name:
+                if 'input_ids' in test_data:
+                    substitutions[var_name] = test_data['input_ids']
+                else:
+                    substitutions[var_name] = np.random.randint(0, 1000, (batch_size, seq_len))
+            
+            # Distance-based variables
+            elif 'dist' in var_name:
+                dist_matrix = np.zeros((seq_len, seq_len))
+                for i in range(seq_len):
+                    for j in range(seq_len):
+                        dist_matrix[i, j] = abs(i - j)
+                substitutions[var_name] = dist_matrix
+            
+            # Default: zeros
             else:
-                # Default to small random values
-                var_subs[var_symbol] = np.random.randn(100) * 0.1
+                substitutions[var_name] = np.zeros((seq_len, seq_len))
         
-        return var_subs
+        return substitutions
     
-    def _compute_position_differences(self, test_data: Dict[str, np.ndarray]) -> np.ndarray:
-        """Compute position differences for attention pattern analysis."""
+    def _evaluate_sympy_expression(self,
+                                 expr: sp.Expr,
+                                 var_subs: Dict[str, np.ndarray]) -> np.ndarray:
+        """Evaluate a SymPy expression with numpy arrays."""
         
-        seq_len = test_data.get('sequence_length', 32)
+        # Convert SymPy expression to a lambda function
+        symbols = list(expr.free_symbols)
+        symbol_names = [str(s) for s in symbols]
         
-        # Create all pairwise position differences
-        positions = np.arange(seq_len)
-        pos_i, pos_j = np.meshgrid(positions, positions, indexing='ij')
-        pos_diff = pos_i - pos_j  # (seq_len, seq_len)
-        
-        return pos_diff.flatten()
-    
-    def _compute_position_ratios(self, test_data: Dict[str, np.ndarray]) -> np.ndarray:
-        """Compute position ratios, handling division by zero."""
-        
-        seq_len = test_data.get('sequence_length', 32)
-        positions = np.arange(1, seq_len + 1)  # Start from 1 to avoid division by zero
-        
-        pos_i, pos_j = np.meshgrid(positions, positions, indexing='ij')
-        pos_ratio = np.divide(pos_i, pos_j, out=np.ones_like(pos_i, dtype=float), where=pos_j!=0)
-        
-        return pos_ratio.flatten()
-    
-    def _compute_relative_positions(self, test_data: Dict[str, np.ndarray]) -> np.ndarray:
-        """Compute relative position encodings (simplified)."""
-        
-        seq_len = test_data.get('sequence_length', 32)
-        positions = np.arange(seq_len)
-        
-        # Simple relative position encoding
-        pos_i, pos_j = np.meshgrid(positions, positions, indexing='ij')
-        rel_pos = np.abs(pos_i - pos_j) / seq_len  # Normalized relative distance
-        
-        return rel_pos.flatten()
-    
-    def _evaluate_attention_expression(self, 
-                                     symbolic_expr: sp.Expr,
-                                     test_data: Dict[str, np.ndarray],
-                                     var_subs: Dict[sp.Symbol, np.ndarray]) -> np.ndarray:
-        """Evaluate expressions specifically for attention patterns."""
-        
+        # Create lambdify function
         try:
-            # Convert to numerical function
-            symbols = list(var_subs.keys())
-            values = list(var_subs.values())
+            func = sp.lambdify(symbols, expr, modules=['numpy'])
             
-            # Ensure all arrays have the same length
-            min_length = min(len(v) for v in values)
-            values = [v[:min_length] for v in values]
+            # Get values in correct order
+            values = []
+            for sym_name in symbol_names:
+                if sym_name in var_subs:
+                    values.append(var_subs[sym_name])
+                else:
+                    # Default to zeros with appropriate shape
+                    if var_subs:
+                        shape = next(iter(var_subs.values())).shape
+                        values.append(np.zeros(shape))
+                    else:
+                        values.append(0)
             
-            # Use lambdify for fast numerical evaluation
-            func = sp.lambdify(symbols, symbolic_expr, modules=['numpy'])
+            # Evaluate
             result = func(*values)
-            
-            # Handle scalar results
-            if np.isscalar(result):
-                result = np.full(min_length, result)
-            elif hasattr(result, '__len__') and len(result) != min_length:
-                # Broadcast or truncate as needed
-                result = np.broadcast_to(result, min_length)
-            
-            return np.array(result).flatten()
+            return np.array(result)
             
         except Exception as e:
-            print(f"Attention expression evaluation failed: {e}")
-            return np.zeros(min_length if 'min_length' in locals() else 100)
+            print(f"Expression evaluation failed: {e}")
+            # Return zeros with appropriate shape
+            if var_subs:
+                shape = next(iter(var_subs.values())).shape
+                return np.zeros(shape)
+            return np.array([0.0])
     
-    def _evaluate_standard_expression(self, 
-                                    symbolic_expr: sp.Expr,
-                                    var_subs: Dict[sp.Symbol, np.ndarray]) -> np.ndarray:
-        """Evaluate standard symbolic expressions."""
-        
-        try:
-            # Substitute values and evaluate
-            result = symbolic_expr.subs(var_subs)
-            
-            if hasattr(result, 'evalf'):
-                result = float(result.evalf())
-                return np.array([result])
-            else:
-                return np.array([float(result)])
-                
-        except Exception as e:
-            print(f"Standard expression evaluation failed: {e}")
-            return np.zeros(1)
-    
-    def _compute_correlation_fidelity(self, 
+    def _compute_correlation_fidelity(self,
                                     ground_truth: np.ndarray,
                                     predicted: np.ndarray) -> float:
         """Compute correlation-based fidelity score."""
+        
+        # Flatten arrays for correlation computation
+        ground_truth = np.array(ground_truth).flatten()
+        predicted = np.array(predicted).flatten()
         
         # Handle shape mismatches
         min_length = min(len(ground_truth), len(predicted))
         if min_length == 0:
             return 0.0
         
-        gt_trimmed = ground_truth[:min_length].flatten()
-        pred_trimmed = predicted[:min_length].flatten()
+        gt_trimmed = ground_truth[:min_length]
+        pred_trimmed = predicted[:min_length]
         
         # Remove NaN and infinite values
         valid_mask = np.isfinite(gt_trimmed) & np.isfinite(pred_trimmed)
@@ -298,11 +269,11 @@ class FidelityCalculator:
         # Compute multiple correlation metrics
         try:
             # Pearson correlation (linear relationships)
-            pearson_r, pearson_p = pearsonr(gt_clean, pred_clean)
+            pearson_r, _ = pearsonr(gt_clean, pred_clean)
             pearson_score = abs(pearson_r) if not np.isnan(pearson_r) else 0.0
             
             # Spearman correlation (monotonic relationships)
-            spearman_r, spearman_p = spearmanr(gt_clean, pred_clean)
+            spearman_r, _ = spearmanr(gt_clean, pred_clean)
             spearman_score = abs(spearman_r) if not np.isnan(spearman_r) else 0.0
             
             # R² score (explained variance)
@@ -319,53 +290,71 @@ class FidelityCalculator:
             return 0.0
 
 
-# Integration function for InterpretabilityReward class
-def integrate_fidelity_calculator():
+# Integration for InterpretabilityReward class
+def integrate_fidelity_into_interpretability_reward():
     """
-    Function to integrate the FidelityCalculator into the existing 
-    InterpretabilityReward class.
+    Complete implementation of _calculate_fidelity for InterpretabilityReward.
+    This function should be called in the InterpretabilityReward.__init__ or
+    added as a method to the InterpretabilityReward class.
     """
     
-    def _calculate_fidelity(self, expression: Any, ai_model: Any, test_data: Any) -> float:
+    def _calculate_fidelity(self,
+                           expression: Any,
+                           ai_model: Any,
+                           test_data: Any) -> float:
         """
-        Updated _calculate_fidelity method for InterpretabilityReward class.
-        
-        This replaces the placeholder implementation with a robust fidelity calculator.
+        Calculate how well the symbolic expression reproduces the AI model's attention behavior.
+        Delegates to FidelityCalculator for robust, normalized fidelity scoring.
         """
-        
-        if not hasattr(self, '_fidelity_calculator'):
-            self._fidelity_calculator = FidelityCalculator()
-        
-        # Convert test_data to expected format
-        if hasattr(test_data, 'inputs') and hasattr(test_data, 'outputs'):
-            # AIBehaviorData format
-            data_dict = {
-                'input_ids': test_data.inputs,
-                'outputs': test_data.outputs,
-                'attention_weights': getattr(test_data, 'attention_weights', None),
-                'sequence_length': test_data.inputs.shape[-1] if hasattr(test_data.inputs, 'shape') else 32
-            }
-        else:
-            # Direct dictionary format
-            data_dict = test_data
-        
-        # Use variables from self if available
-        variables = getattr(self, 'variables', [])
-        
-        return self._fidelity_calculator.calculate_fidelity(
-            expression=expression,
-            ai_model=ai_model,
-            test_data=data_dict,
-            variables=variables,
-            target_behavior='attention'
-        )
+        try:
+            # Initialize calculator once
+            if not hasattr(self, '_fidelity_calculator') or self._fidelity_calculator is None:
+                self._fidelity_calculator = FidelityCalculator()
+
+            # Normalize test_data into dict format expected by FidelityCalculator
+            if hasattr(test_data, 'inputs') and hasattr(test_data, 'attention_weights'):
+                data_dict = {
+                    'input_ids': np.array(test_data.inputs),
+                    'attention_mask': np.array(getattr(test_data, 'attention_mask', 
+                                                     np.ones_like(test_data.inputs))),
+                    'attention_weights': test_data.attention_weights,
+                    'sequence_length': test_data.inputs.shape[-1],
+                    'target_layer': getattr(test_data, 'target_layer', 0),
+                    'target_head': getattr(test_data, 'target_head', None)
+                }
+            elif isinstance(test_data, dict):
+                data_dict = test_data
+            else:
+                raise ValueError(f"Unrecognized test_data format: {type(test_data)}")
+
+            # Use variables attribute if present
+            variables = getattr(self, 'variables', [])
+
+            return self._fidelity_calculator.calculate_fidelity(
+                expression=expression,
+                ai_model=ai_model,
+                test_data=data_dict,
+                variables=variables,
+                target_behavior='attention'
+            )
+        except Exception as e:
+            # Log error if logger available
+            if hasattr(self, 'logger'):
+                self.logger.error(f"Fidelity calculation error: {e}", exc_info=True)
+            else:
+                print(f"Error in _calculate_fidelity: {e}")
+            # Return worst-case fidelity
+            return 0.0
     
     return _calculate_fidelity
 
 
-# Example usage and testing
+# Example usage for testing
 if __name__ == "__main__":
-    # Test the fidelity calculator with dummy data
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    
+    # Test the FidelityCalculator
     calculator = FidelityCalculator()
     
     # Create dummy test data
@@ -373,35 +362,42 @@ if __name__ == "__main__":
         'input_ids': np.random.randint(0, 1000, (2, 16)),
         'sequence_length': 16,
         'target_layer': 0,
-        'target_head': 1
+        'target_head': 1,
+        'attention_weights': np.random.rand(2, 12, 16, 16)  # [batch, heads, seq, seq]
     }
     
     # Create dummy variables
     from dataclasses import dataclass
     
     @dataclass
-    class DummyVariable:
+    class Variable:
         name: str
         index: int
-        properties: dict
     
     variables = [
-        DummyVariable('pos_diff', 0, {}),
-        DummyVariable('pos_ratio', 1, {}),
+        Variable('pos_diff', 0),
+        Variable('pos_ratio', 1),
+        Variable('token_distance', 2)
     ]
     
-    # Test expression evaluation
+    # Test expression
+    import sympy as sp
     expr = sp.Symbol('pos_diff') * 0.1 + sp.Symbol('pos_ratio') * 0.05
     
-    try:
-        predicted = calculator._evaluate_expression(expr, test_data, variables)
-        print(f"✓ Expression evaluation successful: {predicted.shape}")
-    except Exception as e:
-        print(f"✗ Expression evaluation failed: {e}")
+    # Dummy model (not used in this test since we have pre-computed attention)
+    class DummyModel:
+        device = 'cpu'
     
-    # Test variable substitutions
+    dummy_model = DummyModel()
+    
     try:
-        var_subs = calculator._create_variable_substitutions(test_data, variables)
-        print(f"✓ Variable substitutions created: {list(var_subs.keys())}")
+        fidelity = calculator.calculate_fidelity(
+            expression=expr,
+            ai_model=dummy_model,
+            test_data=test_data,
+            variables=variables,
+            target_behavior='attention'
+        )
+        print(f"✓ Fidelity calculation successful: {fidelity:.4f}")
     except Exception as e:
-        print(f"✗ Variable substitution failed: {e}")
+        print(f"✗ Fidelity calculation failed: {e}")

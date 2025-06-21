@@ -159,7 +159,53 @@ Developing intelligent AI agents: Creating agents capable of performing complex 
 🏁 Getting Started
 To get started with Janus, follow these steps:
 
-(Placeholder: Detailed instructions on installation, setting up environments, and running your first discovery or interpretability experiment. This section will include commands for cloning the repository, installing dependencies, and running example scripts.)
+
+To get started with Janus, follow these steps:
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/yourusername/janus.git
+    cd janus
+    ```
+
+2.  **Set up your Python environment:**
+    We recommend using a virtual environment (e.g., venv, conda). Ensure you have Python 3.8+ installed.
+    ```bash
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+    ```
+
+3.  **Install dependencies:**
+    The project uses `pip-tools` to manage dependencies. The primary dependency files (`requirements.txt` and `requirements-dev.txt`) are generated from `requirements.in` and `requirements-dev.in`.
+
+    *Note: The generation of `requirements.txt` and `requirements-dev.txt` is currently pending resolution of an environment disk space issue. Once resolved, these files will be generated and should be used for installation.*
+
+    **Once `requirements.txt` and `requirements-dev.txt` are available:**
+    ```bash
+    # Install core dependencies
+    pip install -r requirements.txt
+
+    # Install development dependencies (for running tests, linting, etc.)
+    pip install -r requirements-dev.txt
+    ```
+
+    **To generate/update `requirements.txt` files (after resolving disk space issues):**
+    If you need to recompile the requirements files (e.g., after changing `requirements.in` files or when the initial generation is done):
+    ```bash
+    pip install pip-tools
+    pip-compile requirements.in --output-file requirements.txt
+    pip-compile requirements-dev.in --output-file requirements-dev.txt
+    ```
+
+4.  **Install pre-commit hooks (recommended for development):**
+    ```bash
+    pre-commit install
+    ```
+
+5.  **Run example scripts or tests:**
+    (Further instructions for running specific examples or tests will be provided here.)
+
+(Placeholder: Detailed instructions on running your first discovery or interpretability experiment.)
 
 🤝 Contributing
 We welcome contributions to the Janus project!
