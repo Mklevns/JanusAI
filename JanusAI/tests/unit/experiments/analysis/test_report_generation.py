@@ -7,7 +7,7 @@ import json
 import numpy as np
 from unittest.mock import patch, mock_open, MagicMock
 
-from JanusAI.experiments.analysis.report_generation import ReportGenerator
+from experiments.analysis.report_generation import ReportGenerator
 
 @pytest.fixture
 def report_generator(tmp_path):

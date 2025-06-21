@@ -8,7 +8,7 @@ import torch.nn as nn
 from unittest.mock import MagicMock, patch, call
 
 # Import the class to be tested
-from JanusAI.ai_interpretability.interpreters.base_interpreter import AILawDiscovery
+from ai_interpretability.interpreters.base_interpreter import AILawDiscovery
 
 # --- Mock Dependencies ---
 # These will be patched during test execution.
@@ -52,13 +52,13 @@ def mock_ai_model_nn():
     return model
 
 # Patch all dependencies for the duration of the tests in this class
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.Expression', MockExpression)
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.NeuralGrammar', MockNeuralGrammar)
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.AIBehaviorData', MockAIBehaviorData)
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.AIInterpretabilityEnv', MockAIInterpretabilityEnv)
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.LocalInterpretabilityEnv', MockLocalInterpretabilityEnv)
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.HypothesisNet', MockHypothesisNet)
-@patch('JanusAI.ai_interpretability.interpreters.base_interpreter.PPOTrainer', MockPPOTrainer)
+@patch('ai_interpretability.interpreters.base_interpreter.Expression', MockExpression)
+@patch('ai_interpretability.interpreters.base_interpreter.NeuralGrammar', MockNeuralGrammar)
+@patch('ai_interpretability.interpreters.base_interpreter.AIBehaviorData', MockAIBehaviorData)
+@patch('ai_interpretability.interpreters.base_interpreter.AIInterpretabilityEnv', MockAIInterpretabilityEnv)
+@patch('ai_interpretability.interpreters.base_interpreter.LocalInterpretabilityEnv', MockLocalInterpretabilityEnv)
+@patch('ai_interpretability.interpreters.base_interpreter.HypothesisNet', MockHypothesisNet)
+@patch('ai_interpretability.interpreters.base_interpreter.PPOTrainer', MockPPOTrainer)
 class TestAILawDiscovery:
 
     @pytest.fixture(autouse=True)

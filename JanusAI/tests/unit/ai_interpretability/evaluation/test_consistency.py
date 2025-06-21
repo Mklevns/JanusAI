@@ -129,9 +129,9 @@ class MockModelFidelityEvaluator:
 
 
 # Actual imports from the module to be tested
-from JanusAI.ai_interpretability.evaluation.consistency import InterpretabilityEvaluator
+from ai_interpretability.evaluation.consistency import InterpretabilityEvaluator
 # Patch the dependencies in the tested module
-from JanusAI.ai_interpretability.evaluation import consistency as consistency_module
+from ai_interpretability.evaluation import consistency as consistency_module
 consistency_module.Expression = MockExpression
 consistency_module.Variable = MockVariable
 consistency_module.HypothesisNet = MockAIModel

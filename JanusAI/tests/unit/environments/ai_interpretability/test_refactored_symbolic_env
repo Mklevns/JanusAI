@@ -56,7 +56,7 @@ class TestRefactoredEnvironment(unittest.TestCase):
     
     def test_basic_initialization(self):
         """Test basic environment initialization with separated data."""
-        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        from environments.base.symbolic_env import SymbolicDiscoveryEnv
         
         env = SymbolicDiscoveryEnv(
             grammar=self.grammar,
@@ -74,7 +74,7 @@ class TestRefactoredEnvironment(unittest.TestCase):
         
     def test_multi_output(self):
         """Test handling of multi-output targets."""
-        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        from environments.base.symbolic_env import SymbolicDiscoveryEnv
         
         # Create multi-output data
         y_multi = np.column_stack([
@@ -95,7 +95,7 @@ class TestRefactoredEnvironment(unittest.TestCase):
         
     def test_validation_errors(self):
         """Test input validation."""
-        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        from environments.base.symbolic_env import SymbolicDiscoveryEnv
         
         # Test mismatched sample counts
         with self.assertRaises(ValueError) as context:
@@ -119,7 +119,7 @@ class TestRefactoredEnvironment(unittest.TestCase):
         
     def test_physics_example(self):
         """Test with physics-like data."""
-        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+        from environments.base.symbolic_env import SymbolicDiscoveryEnv
         
         # Create physics data: F = m*a (Newton's second law)
         mass = np.random.uniform(0.1, 10, 50)
@@ -158,7 +158,7 @@ class TestRefactoredEnvironment(unittest.TestCase):
         outputs = 1 / (1 + np.exp(-logits))
         
         # Create behavior data
-        from janus.environments.ai_interpretability.neural_net_env import (
+        from environments.ai_interpretability.neural_net_env import (
             AIBehaviorData, AIInterpretabilityEnv
         )
         

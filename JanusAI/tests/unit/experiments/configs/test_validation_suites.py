@@ -2,7 +2,7 @@
 Tests for experiments/configs/validation_suites.py
 """
 import pytest
-from JanusAI.experiments.configs.validation_suites import ValidationSuite, ValidationSuiteLibrary
+from experiments.configs.validation_suites import ValidationSuite, ValidationSuiteLibrary
 
 # --- Tests for ValidationSuite ---
 class TestValidationSuite:
