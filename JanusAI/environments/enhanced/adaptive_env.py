@@ -101,12 +101,14 @@ class AdaptiveTrainingController:
             avg_discovery_rate = 0.0
 
 
+
         # Heuristic rules for phase detection
         if perf_trend > self.breakthrough_threshold and avg_discovery_rate > 0.5:
             return "breakthrough" # Significant improvement with high discovery
         elif perf_trend < -self.stagnation_threshold and avg_discovery_rate < 0.2:
             return "stagnation" # Performance declining, low discovery
         elif avg_discovery_rate > 0.6 and perf_trend >= 0:
+
             return "exploration" # High discovery rate, even if performance is stable/improving slowly
         elif perf_trend > 0 and avg_discovery_rate < 0.3:
             return "refinement" # Performance improving, but discovery is low (focus on current discoveries)
@@ -185,6 +187,7 @@ class AdaptiveTrainingController:
         return None # No specific intervention suggested
 
 
+
 if __name__ == "__main__":
     # This __main__ block demonstrates the usage of AdaptiveTrainingController.
 
@@ -209,6 +212,7 @@ if __name__ == "__main__":
         mock_metrics = {
             'mean_reward_episode': 0.1 + i * 0.01 + np.random.rand() * 0.005, # Slowly increasing
             'discovery_rate': 0.65 + np.random.rand() * 0.1, # High discovery for exploration
+
             'mean_complexity_episode': 5 + np.random.randint(0, 3)
         }
         controller.update_metrics(mock_metrics)
@@ -227,11 +231,13 @@ if __name__ == "__main__":
         mock_metrics = {
             'mean_reward_episode': 0.8 + np.random.rand() * 0.1, # High reward
             'discovery_rate': 0.8 + np.random.rand() * 0.1, # High discovery
+
             'mean_complexity_episode': 10 + np.random.randint(0, 5)
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
         print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}")
+
 
     print("Suggested intervention:", controller.suggest_intervention())
 
@@ -252,5 +258,6 @@ if __name__ == "__main__":
         print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}")
 
     print("Suggested intervention:", controller.suggest_intervention())
+
 
     print("\nAdaptiveTrainingController demonstration complete.")

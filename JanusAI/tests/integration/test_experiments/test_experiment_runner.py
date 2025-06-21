@@ -12,6 +12,7 @@ class Remapper:
         for new_var, orig_var in sorted_vars:
             # Use \b for word boundaries
             result = re.sub(r'\b' + re.escape(new_var) + r'\b', orig_var, result)
+
         return result
 
 def test_remap_expression_logic():

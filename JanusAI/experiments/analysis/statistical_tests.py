@@ -46,6 +46,7 @@ class StatisticalAnalyzer:
             raise ValueError("Both data sets must not be empty.")
 
         t_stat, p_val = stats.ttest_ind(data1, data2, equal_var=equal_var)
+
         return {"t_statistic": float(t_stat), "p_value": float(p_val)}
 
     def wilcoxon_signed_rank_test(self,
@@ -74,6 +75,7 @@ class StatisticalAnalyzer:
             raise ValueError("Data sets must not be empty.")
 
         statistic, p_val = stats.wilcoxon(data1, data2)
+
         return {"statistic": float(statistic), "p_value": float(p_val)}
 
     def kruskal_wallis_h_test(self, *data_groups: Union[List[float], np.ndarray]) -> Dict[str, float]:
@@ -98,6 +100,7 @@ class StatisticalAnalyzer:
                 raise ValueError("All data groups must not be empty.")
             processed_groups.append(group)
 
+
         h_stat, p_val = stats.kruskal(*processed_groups)
         return {"h_statistic": float(h_stat), "p_value": float(p_val)}
 
@@ -121,6 +124,7 @@ class StatisticalAnalyzer:
             if n1 < 2 or n2 < 2: # Denominator would be zero or sqrt of negative
                 return 0.0 # Or raise error, depending on desired handling
             # Pooled standard deviation
+
             pooled_std = np.sqrt(((n1 - 1) * std1**2 + (n2 - 1) * std2**2) / (n1 + n2 - 2))
             if pooled_std == 0: return 0.0 # Avoid division by zero
             cohens_d = (mean1 - mean2) / pooled_std
@@ -147,6 +151,7 @@ if __name__ == "__main__":
         assert isinstance(ttest_results['p_value'], float)
         # Expected p-value to be moderately low if means are different
         assert ttest_results['p_value'] < 0.23 # Adjusted for minor numerical variations
+
     except ValueError as e:
         print(f"Error during t-test: {e}")
 
@@ -194,6 +199,7 @@ if __name__ == "__main__":
         print(f"Kruskal-Wallis correctly raised ValueError for empty group: {e}")
 
 
+
     # --- Test Effect Size (Cohen's d) ---
     print("\n--- Effect Size (Cohen's d) ---")
     mean1, std1, n1 = 10, 2, 30
@@ -209,5 +215,6 @@ if __name__ == "__main__":
     cohens_d_n_less_than_2 = analyzer.calculate_effect_size(mean1, std1, n1, mean2, std2, n2)
     print(f"Cohen's d (n1=1): {cohens_d_n_less_than_2}")
     assert cohens_d_n_less_than_2 == 0.0
+
 
     print("\nAll StatisticalAnalyzer tests completed.")
