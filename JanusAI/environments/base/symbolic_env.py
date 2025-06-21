@@ -15,7 +15,7 @@ import warnings
 from enum import Enum, auto
 
 # Import necessary modules (adjust paths as needed)
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from JanusAI.core.expressions.expression import Expression, Variable
 from JanusAI.utils.math.operations import calculate_expression_complexity
 from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data

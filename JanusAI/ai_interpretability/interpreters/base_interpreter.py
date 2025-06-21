@@ -15,7 +15,7 @@ from typing import Dict, List, Tuple, Optional, Any
 
 # TEMPORARY: Using direct/potentially adjusted imports.
 # These will be fixed in the "Adjust Imports" step.
-from JanusAI.core.grammar.base_grammar import Expression
+from JanusAI.core.grammar.expression import Expression # Updated import
 from JanusAI.ai_interpretability.grammars.neural_grammar import NeuralGrammar
 from JanusAI.environments.ai_interpretability.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
 
