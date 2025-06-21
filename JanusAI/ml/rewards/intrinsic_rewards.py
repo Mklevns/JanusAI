@@ -14,15 +14,15 @@ from collections import deque
 import types # Needed for types.MethodType in add_intrinsic_rewards_to_env (if used externally)
 
 # Import BaseReward
-from JanusAI.ml.rewards.base_reward import BaseReward
+from janus_ai.ml.rewards.base_reward import BaseReward
 
 # Import utilities from new structure
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
-from JanusAI.utils.math.operations import calculate_symbolic_accuracy, calculate_expression_complexity
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
+from janus_ai.utils.math.operations import calculate_symbolic_accuracy, calculate_expression_complexity
 
 # Import the ConservationDetector from physics laws
-from JanusAI.physics.laws.conservation import ConservationDetector
+from janus_ai.physics.laws.conservation import ConservationDetector
 
 
 class NoveltyReward(BaseReward):
@@ -49,7 +49,7 @@ class NoveltyReward(BaseReward):
             return 0.0
 
         current_expr_str = info['expression']
-        
+
         # Frequency-based novelty: reward for seeing a new expression, decaying over time
         if current_expr_str not in self.expression_cache:
             self.expression_cache[current_expr_str] = 1
@@ -126,7 +126,7 @@ class ComplexityReward(BaseReward):
 
         try:
             complexity = calculate_expression_complexity(info['expression'])
-            
+
             reward = 0.0
             if abs(complexity - self.target_complexity) <= self.tolerance:
                 reward = 1.0 # Reward for being exactly in the target range
@@ -137,7 +137,7 @@ class ComplexityReward(BaseReward):
                 # Linearly scale penalty for being too complex
                 reward = -1.0 * ((complexity - self.target_complexity) / (self.target_complexity * 2)) # Heavier penalty
                 reward = max(-1.0, reward) # Cap penalty
-            
+
             return reward
 
         except (sp.SympifyError, ValueError):
@@ -150,16 +150,16 @@ class ConservationLawReward(BaseReward):
     conservation laws (e.g., conservation of energy, momentum).
     This class *uses* a ConservationDetector to perform the checks.
     """
-    def __init__(self, 
-                 weight: float = 1.0, 
-                 law_type: str = 'energy', 
-                 apply_entropy_penalty: bool = False, 
+    def __init__(self,
+                 weight: float = 1.0,
+                 law_type: str = 'energy',
+                 apply_entropy_penalty: bool = False,
                  entropy_penalty_weight: float = 0.1):
         super().__init__(weight)
         self.law_type = law_type.lower()
         if self.law_type not in ['energy', 'momentum', 'angular_momentum']:
             raise ValueError(f"Unsupported conservation law type: {law_type}")
-        
+
         # Instantiate the ConservationDetector to perform actual conservation checks
         self.detector = ConservationDetector()
         self.apply_entropy_penalty = apply_entropy_penalty
@@ -228,8 +228,8 @@ class IntrinsicRewardCalculator:
     in `enhanced_feedback.py`. It uses instances of `BaseReward` subclasses
     (like `NoveltyReward`, `ComplexityReward`, `ConservationLawReward`) internally.
     """
-    
-    def __init__(self, 
+
+    def __init__(self,
                  novelty_weight: float = 0.3,
                  diversity_weight: float = 0.2,
                  complexity_growth_weight: float = 0.1,
@@ -239,7 +239,7 @@ class IntrinsicRewardCalculator:
                  entropy_penalty_weight: float = 0.1,
                  history_size: int = 1000 # Max size for expression/embedding history
                 ):
-        
+
         self.novelty_weight = novelty_weight
         self.diversity_weight = diversity_weight
         self.complexity_growth_weight = complexity_growth_weight
@@ -247,12 +247,12 @@ class IntrinsicRewardCalculator:
 
         # Initialize internal reward components using BaseReward subclasses.
         self.novelty_reward_comp = NoveltyReward(weight=1.0, history_size=history_size) # Internal weight is 1, scaled by self.novelty_weight later
-        self.complexity_reward_comp = ComplexityReward(weight=1.0) 
-        
+        self.complexity_reward_comp = ComplexityReward(weight=1.0)
+
         # Default conservation types if not provided
         if conservation_types is None:
-            conservation_types = ['energy', 'momentum', 'mass'] 
-        
+            conservation_types = ['energy', 'momentum', 'mass']
+
         # Create a ConservationLawReward instance for each specified conservation type
         # Or, if only one type is expected, pass the first one. For simplicity,
         # the previous `ConservationBiasedReward` and `ConservationLawReward` were single-type focused.
@@ -267,12 +267,12 @@ class IntrinsicRewardCalculator:
         )
         # If multiple conservation types are needed, this would need to be a list of ConservationLawReward instances.
         # For now, it matches the original `conservation_calculator` which was a single instance.
-        
+
         # History tracking for diversity and complexity growth
         self.expression_history: Deque[str] = deque(maxlen=history_size)
         self.complexity_history: Deque[int] = deque(maxlen=history_size)
         self.discovery_embeddings: Deque[np.ndarray] = deque(maxlen=history_size)
-        
+
     def calculate_intrinsic_reward(self,
                                  expression: str,
                                  complexity: int,
@@ -305,7 +305,7 @@ class IntrinsicRewardCalculator:
             but scaled by the `self.<type>_weight` attributes of this calculator).
             This is meant to be added to the extrinsic reward.
         """
-        
+
         # Prepare a unified `info` dictionary to pass to individual BaseReward components
         reward_info = {
             'expression': expression,
@@ -315,17 +315,17 @@ class IntrinsicRewardCalculator:
             'predicted_forward_traj': predicted_forward_traj,
             'predicted_backward_traj': predicted_backward_traj
         }
-        
+
         # Calculate individual intrinsic reward components
         # Note: `calculate_reward` methods of BaseReward subclasses take many args,
         # but only use the ones relevant to them.
         novelty_rew = self.novelty_reward_comp.calculate_reward(None, None, None, extrinsic_reward, False, reward_info)
         complexity_rew = self.complexity_reward_comp.calculate_reward(None, None, None, extrinsic_reward, False, reward_info)
         conservation_rew = self.conservation_reward_comp.calculate_reward(None, None, None, extrinsic_reward, False, reward_info)
-        
+
         # Diversity reward (depends on internal history of this calculator)
         diversity_rew = self._calculate_diversity_reward(expression, embedding)
-        
+
         # Complexity growth reward (depends on internal history of this calculator)
         complexity_growth_rew = self._calculate_complexity_growth_reward(complexity)
 
@@ -336,49 +336,49 @@ class IntrinsicRewardCalculator:
             self.complexity_growth_weight * complexity_growth_rew +
             self.conservation_weight * conservation_rew
         )
-        
+
         # Update history for subsequent steps' calculations
         self.expression_history.append(expression)
         self.complexity_history.append(complexity)
         if embedding is not None:
             self.discovery_embeddings.append(embedding)
-        
+
         return intrinsic_total # Return only the intrinsic part to be added to extrinsic reward
 
-    def _calculate_diversity_reward(self, 
+    def _calculate_diversity_reward(self,
                                   expression: str, # Expression string for history tracking
                                   embedding: Optional[np.ndarray]) -> float:
         """Internal method to calculate diversity reward based on embeddings."""
         if embedding is None or len(self.discovery_embeddings) < 2:
             return 0.0
-        
+
         # Calculate distance to nearest neighbors from recent history
         distances = []
         # Consider only a subset of recent embeddings to keep computation fast
-        recent_embeddings_sample = list(self.discovery_embeddings)[-min(20, len(self.discovery_embeddings)):] 
+        recent_embeddings_sample = list(self.discovery_embeddings)[-min(20, len(self.discovery_embeddings)):]
         for past_embedding in recent_embeddings_sample:
             dist = np.linalg.norm(embedding - past_embedding) # Euclidean distance
             distances.append(dist)
-        
+
         if distances:
             min_dist = np.min(distances)
             mean_dist = np.mean(distances)
-            
+
             # Reward for being far from closest neighbors
             # Tanh squashes the value between 0 and 1, min_dist/mean_dist emphasizes uniqueness.
             diversity_score = np.tanh(min_dist / (mean_dist + 1e-6)) # Avoid division by zero
             return diversity_score
-        
+
         return 0.0
-    
+
     def _calculate_complexity_growth_reward(self, complexity: int) -> float:
         """Internal method to calculate reward for appropriate complexity growth."""
         if len(self.complexity_history) < 2:
             return 0.0
-        
+
         recent_complexities = list(self.complexity_history)[-min(10, len(self.complexity_history)):]
         mean_complexity = np.mean(recent_complexities)
-        
+
         if complexity > mean_complexity:
             growth_rate = (complexity - mean_complexity) / (mean_complexity + 1e-6)
             # Reward moderate growth, penalize excessive growth
@@ -391,18 +391,18 @@ class IntrinsicRewardCalculator:
             # Reward finding simpler expressions or maintaining reasonable complexity
             if complexity < mean_complexity * 0.9: # Significant reduction in complexity
                 return 0.3
-        
+
         return 0.0
-    
+
     def get_exploration_bonus(self) -> float:
         """Calculates an exploration bonus based on recent stagnation of discoveries."""
         if len(self.expression_history) < 50: # Need sufficient history to detect stagnation
             return 0.0
-        
+
         recent = list(self.expression_history)[-min(50, len(self.expression_history)):]
         unique_recent = len(set(recent))
         stagnation_ratio = unique_recent / len(recent) # Ratio of unique expressions to total in recent history
-        
+
         # Higher bonus when stagnating (low unique ratio)
         if stagnation_ratio < 0.3:
             return 0.5 # High stagnation
@@ -415,7 +415,7 @@ class IntrinsicRewardCalculator:
 if __name__ == "__main__":
     import types # Needed for types.MethodType for environment wrapping
     # Using mock environment and dependent classes for testing
-    
+
     class MockEnv(object): # Simplified mock env for testing intrinsic rewards
         def __init__(self, grammar_mock, target_data_mock, variables_mock, max_depth, max_complexity, reward_config=None):
             self.grammar = grammar_mock
@@ -425,7 +425,7 @@ if __name__ == "__main__":
             self.max_complexity = max_complexity
             self.current_expr = "x"
             self.episode_num = 0
-            self.action_space_n = 10 
+            self.action_space_n = 10
             self.observation_space = type('obs_space', (object,), {'shape': (5,)})()
             self.current_observation_state = np.zeros(self.observation_space.shape)
 
@@ -439,10 +439,10 @@ if __name__ == "__main__":
                 self.current_expr += " + 1"
             else:
                 self.current_expr += " * y"
-            
+
             next_obs = np.random.rand(self.observation_space.shape[0])
             self.current_observation_state = next_obs
-            
+
             info['expression'] = self.current_expr
             info['variables'] = self.variables
 
@@ -474,7 +474,7 @@ if __name__ == "__main__":
             return np.ones(self.action_space_n, dtype=bool)
 
     class MockGrammar: pass
-    
+
     # Mock for symbolic_math utilities (get_variables_from_expression, evaluate_expression_on_data)
     try:
         from janus.core.expressions.symbolic_math import (
@@ -511,7 +511,7 @@ if __name__ == "__main__":
     target_data = np.random.rand(100, 3)
 
     env_test = MockEnv(grammar, target_data, variables, max_depth=5, max_complexity=20)
-    
+
     # Instantiate the IntrinsicRewardCalculator
     intrinsic_calculator = IntrinsicRewardCalculator(
         novelty_weight=0.2,
@@ -531,7 +531,7 @@ if __name__ == "__main__":
     for i in range(total_steps_simulated):
         action = np.random.randint(env_test.action_space_n)
         next_obs, extrinsic_reward, done, truncated, info = env_test.step(action)
-        
+
         expression_embedding = np.random.rand(128) # Dummy embedding for diversity calculation
 
         total_intrinsic_reward_value = intrinsic_calculator.calculate_intrinsic_reward(
@@ -544,7 +544,7 @@ if __name__ == "__main__":
             predicted_forward_traj=info.get('predicted_forward_traj'),
             predicted_backward_traj=info.get('predicted_backward_traj')
         )
-        
+
         final_reward = extrinsic_reward + total_intrinsic_reward_value
 
         print(f"\n--- Step {i+1} ---")
@@ -552,7 +552,7 @@ if __name__ == "__main__":
         print(f"  Extrinsic Reward: {extrinsic_reward:.4f}")
         print(f"  Intrinsic Reward: {total_intrinsic_reward_value:.4f}")
         print(f"  Final Reward: {final_reward:.4f}")
-        
+
         if done:
             print("  Episode Done. Resetting environment.")
             obs, info = env_test.reset()
@@ -560,4 +560,3 @@ if __name__ == "__main__":
             obs = next_obs
 
     print("\nIntrinsicRewardCalculator demonstration complete.")
-

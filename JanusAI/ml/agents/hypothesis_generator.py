@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 # Assuming ScientificAgent is in xolver_scientific_agents
 # Adjust the import path if necessary based on your project structure
-from JanusAI.ml.agents.xolver_scientific_agents import ScientificAgent
+from janus_ai.ml.agents.xolver_scientific_agents import ScientificAgent
 # Assuming SharedMemory is in memory.dual_memory_system
 # Adjust the import path if necessary
 from memory.dual_memory_system import SharedMemory

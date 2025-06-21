@@ -3,7 +3,7 @@ import yaml
 import os
 from pathlib import Path
 
-from .models import JanusConfig # Assuming JanusConfig might be a common return type or used internally
+from janus_ai.config.models import JanusConfig # Assuming JanusConfig might be a common return type or used internally
 
 # Define a more specific type for configuration dictionaries if possible
 ConfigDict = Dict[str, Any]

@@ -11,14 +11,14 @@ import numpy as np
 from typing import Dict, Any
 
 # Import reward components and handler
-from JanusAI.ml.rewards.reward_handler import RewardHandler, AdaptiveRewardHandler
-from JanusAI.ml.rewards.reward_registry import (
+from janus_ai.ml.rewards.reward_handler import RewardHandler, AdaptiveRewardHandler
+from janus_ai.ml.rewards.reward_registry import (
     create_handler_from_preset,
     create_reward_component,
     list_available_rewards
 )
-from JanusAI.ml.rewards.intrinsic_rewards import NoveltyReward, ComplexityReward
-from JanusAI.ml.rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.ml.rewards.intrinsic_rewards import NoveltyReward, ComplexityReward
+from janus_ai.ml.rewards.interpretability_reward import InterpretabilityReward
 
 
 # Example 1: Basic Usage with Direct Components

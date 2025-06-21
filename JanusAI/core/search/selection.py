@@ -12,8 +12,8 @@ from abc import ABC, abstractmethod
 import random
 import logging
 
-from JanusAI.core.expressions.expression import Expression
-from JanusAI.utils.exceptions import UnsupportedOperationError, OptimizationError
+from janus_ai.core.expressions.expression import Expression
+from janus_ai.utils.exceptions import UnsupportedOperationError, OptimizationError
 
 
 class SelectionStrategy(ABC):

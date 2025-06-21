@@ -8,7 +8,7 @@ import torch.nn as nn
 import sympy as sp
 from unittest.mock import MagicMock, patch
 
-from JanusAI.ai_interpretability.evaluation.fidelity import FidelityCalculator
+from janus_ai.ai_interpretability.evaluation.fidelity import FidelityCalculator
 
 # --- Helper Mocks ---
 @pytest.fixture

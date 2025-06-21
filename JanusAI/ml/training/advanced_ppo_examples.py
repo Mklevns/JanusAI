@@ -14,9 +14,9 @@ from concurrent.futures import ThreadPoolExecutor
 import pickle
 from pathlib import Path
 
-from JanusAI.ml.training.ppo_trainer import PPOTrainer, RolloutBuffer
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from JanusAI.ml.networks.hypothesis_net import HypothesisNet
+from janus_ai.ml.training.ppo_trainer import PPOTrainer, RolloutBuffer
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.ml.networks.hypothesis_net import HypothesisNet
 
 
 class DistributedPPOTrainer:

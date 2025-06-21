@@ -8,7 +8,7 @@ import torch.nn as nn
 from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
 
-# Mock dependencies from JanusAI.core and JanusAI.utils
+# Mock dependencies from janus_ai.core and JanusAI.utils
 # These mocks are based on the ones in the __main__ block of consistency.py
 @dataclass(eq=True, frozen=False)
 class MockVariable:

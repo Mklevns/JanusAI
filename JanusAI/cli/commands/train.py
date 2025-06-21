@@ -6,8 +6,8 @@ import click
 import logging
 from pathlib import Path
 
-from JanusAI.training.trainer import UnifiedTrainer
-from JanusAI.config.loader import load_config
+from janus_ai.training.trainer import UnifiedTrainer
+from janus_ai.config.loader import load_config
 
 logger = logging.getLogger(__name__)
 

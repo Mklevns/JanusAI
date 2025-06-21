@@ -4,31 +4,31 @@ import random
 from typing import List, Dict, Any, Callable
 
 # Environment and Grammar
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from JanusAI.core.grammar.base_grammar import AIGrammar # Assuming AIGrammar is the one for 'full_ai_grammar'
-from JanusAI.core.expressions.expression import Variable # For defining variables if needed
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.core.grammar.base_grammar import AIGrammar # Assuming AIGrammar is the one for 'full_ai_grammar'
+from janus_ai.core.expressions.expression import Variable # For defining variables if needed
 
 # Rewards
 # Assuming InterpretabilityReward is in one of these locations.
-# from JanusAI.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
+# from janus_ai.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
 # Or
-from JanusAI.ml.rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.ml.rewards.interpretability_reward import InterpretabilityReward
 
 # PPO Trainer and Components
 # These are placeholders, actual paths might differ.
-# from JanusAI.ml.training.ppo_trainer import AdvancedPPOTrainer, PPOConfig # Or enhanced_ppo_trainer
-from JanusAI.ml.training.enhaced_ppo_trainer import AdvancedPPOTrainer # Corrected based on file listing
-from JanusAI.ml.training.ppo_config import PPOConfig # Assuming ppo_config.py for PPOConfig
-# from JanusAI.ml.training.experience_buffer import ExperienceBuffer # Placeholder
+# from janus_ai.ml.training.ppo_trainer import AdvancedPPOTrainer, PPOConfig # Or enhanced_ppo_trainer
+from janus_ai.ml.training.enhaced_ppo_trainer import AdvancedPPOTrainer # Corrected based on file listing
+from janus_ai.ml.training.ppo_config import PPOConfig # Assuming ppo_config.py for PPOConfig
+# from janus_ai.ml.training.experience_buffer import ExperienceBuffer # Placeholder
 # For ExperienceBuffer, let's assume a path, e.g., from a utils or replay buffer module
-from JanusAI.utils.replay_buffer import ExperienceBuffer # Placeholder, might be utils.buffers or ml.buffers
+from janus_ai.utils.replay_buffer import ExperienceBuffer # Placeholder, might be utils.buffers or ml.buffers
 
 # Curriculum and Checkpoints
-from JanusAI.ml.training.curriculum import CurriculumManager # Assuming this path
-from JanusAI.utils.io.checkpoint_manager import CheckpointManager
+from janus_ai.ml.training.curriculum import CurriculumManager # Assuming this path
+from janus_ai.utils.io.checkpoint_manager import CheckpointManager
 
 # Data Generator
-from JanusAI.experiments.data.attention_data_generator import AttentionDataGenerator
+from janus_ai.experiments.data.attention_data_generator import AttentionDataGenerator
 
 # Policy Network (Placeholder - this would be a defined PyTorch nn.Module)
 class PlaceholderPolicy(torch.nn.Module):

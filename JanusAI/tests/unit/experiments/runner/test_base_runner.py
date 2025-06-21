@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, ANY
 import numpy as np
 import torch
 
-from JanusAI.experiments.runner.base_runner import BaseExperimentRunner
+from janus_ai.experiments.runner.base_runner import BaseExperimentRunner
 
 # --- Mocks for dependencies ---
 MockSymbolicDiscoveryEnv = MagicMock(name="MockSymbolicDiscoveryEnv")

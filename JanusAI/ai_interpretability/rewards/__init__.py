@@ -1,6 +1,6 @@
 # Init file for rewards module
-from .interpretability_reward import InterpretabilityReward
-from .fidelity_reward import FidelityRewardCalculator
+from janus_ai.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.ai_interpretability.rewards.fidelity_reward import FidelityRewardCalculator
 
 __all__ = [
     "InterpretabilityReward",

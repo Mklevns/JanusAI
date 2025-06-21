@@ -22,7 +22,7 @@ Main Components:
 """
 
 # Import main classes and functions for easy access
-from JanusAI.core.search.config import (
+from janus_ai.core.search.config import (
     GAConfig,
     PerformanceConfig,  # Deprecated but kept for compatibility
     ExpressionConfig,
@@ -35,7 +35,7 @@ from JanusAI.core.search.config import (
     create_exploratory_expression_config
 )
 
-from JanusAI.core.search.stats import (
+from janus_ai.core.search.stats import (
     StatsTracker,
     SearchStats,
     GenerationStats,
@@ -43,7 +43,7 @@ from JanusAI.core.search.stats import (
     analyze_search_run
 )
 
-from JanusAI.core.search.selection import (
+from janus_ai.core.search.selection import (
     SelectionStrategy,
     TournamentSelection,
     RouletteWheelSelection,
@@ -55,7 +55,7 @@ from JanusAI.core.search.selection import (
     analyze_selection_pressure
 )
 
-from JanusAI.core.search.operators import (
+from janus_ai.core.search.operators import (
     ExpressionGenerator,
     CrossoverOperator,
     MutationOperator,
@@ -72,7 +72,7 @@ from JanusAI.core.search.operators import (
 
 # Import main regressor from the parent module to maintain clean imports
 # This allows: from janus.core.search import SymbolicRegressor
-from JanusAI.physics.algorithms.genetic import (
+from janus_ai.physics.algorithms.genetic import (
     SymbolicRegressor,
     FitnessCache,
     create_regressor_from_config,

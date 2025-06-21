@@ -14,8 +14,8 @@ import sympy as sp
 from typing import Any, Callable, Dict, List, Optional, Union
 
 # Import components from new structure
-from JanusAI.core.expressions.expression import Expression, Variable # For type hinting expression
-from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data # For evaluating symbolic expressions
+from janus_ai.core.expressions.expression import Expression, Variable # For type hinting expression
+from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data # For evaluating symbolic expressions
 
 # Placeholder for AI model classes, assuming they are nn.Module compatible
 try:

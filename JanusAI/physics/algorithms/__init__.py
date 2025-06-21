@@ -6,11 +6,14 @@ Includes symbolic discovery, reinforcement learning, and model-based approaches.
 """
 
 # Symbolic discovery algorithms
-from .genetic import SymbolicRegressor, GeneticAlgorithm
-from .ace import ACEAlgorithm  # Placeholder for ACE implementation
+from janus_ai.physics.genetic import SymbolicRegressor, GeneticAlgorithm
+
+from janus_ai.physics.ace import ACEAlgorithm  # Placeholder for ACE implementation
+
 
 # Reinforcement learning algorithms
-from .reinforcement import (
+from janus_ai.physics.reinforcement import (
+
     BaseRLAgent, 
     SoftActorCritic, 
     TD3,
@@ -19,13 +22,16 @@ from .reinforcement import (
 )
 
 # Model-based algorithms
-from .model_based import MuZeroAgent, DreamerV2Agent  # Placeholders
+from janus_ai.physics.model_based import MuZeroAgent, DreamerV2Agent  # Placeholders
+
 
 # Hybrid algorithms
-from .hybrid import CEMRLAgent, EvolutionaryRLHybrid
+from janus_ai.physics.hybrid import CEMRLAgent, EvolutionaryRLHybrid
+
 
 # Configuration classes
-from .config import AlgorithmConfig, GeneticConfig, RLConfig
+from janus_ai.physics.config import AlgorithmConfig, GeneticConfig, RLConfig
+
 
 __all__ = [
     # Symbolic discovery

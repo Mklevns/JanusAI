@@ -6,8 +6,8 @@ import traceback
 import torch
 
 # Import the necessary components from their new locations
-from JanusAI.ml.training.meta_trainer import MetaLearningConfig, MetaLearningPolicy, MAMLTrainer, TaskEnvironmentBuilder
-from JanusAI.physics.data.generators import PhysicsTaskDistribution
+from janus_ai.ml.training.meta_trainer import MetaLearningConfig, MetaLearningPolicy, MAMLTrainer, TaskEnvironmentBuilder
+from janus_ai.physics.data.generators import PhysicsTaskDistribution
 
 
 def main():

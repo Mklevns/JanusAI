@@ -10,12 +10,13 @@ from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime
 import logging
 
-from .dual_memory_system import (
+from janus_ai.dual_memory_system import (
+
     DualMemorySystem, Discovery, IntermediateResult, 
     EmbeddingGenerator, SharedMemory
 )
-from ..environments.symbolic_discovery_env import SymbolicDiscoveryEnv
-from ..grammar.expression_tree import ExpressionTree
+from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
+from janus_ai.grammar.expression_tree import ExpressionTree
 
 
 class MemoryIntegratedEnv(SymbolicDiscoveryEnv):

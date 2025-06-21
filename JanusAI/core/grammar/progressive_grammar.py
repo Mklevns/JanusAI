@@ -11,9 +11,9 @@ from sklearn.decomposition import FastICA
 import warnings
 
 # Imports that will be needed from the new module structure
-from JanusAI.core.expressions.expression import Expression, Variable
-from .denoiser import NoisyObservationProcessor
-from .cfg import ContextFreeGrammar, CFGRule # CFGRule is used by ProgressiveGrammar
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.grammar.denoiser import NoisyObservationProcessor
+from janus_ai.core.grammar.cfg import ContextFreeGrammar, CFGRule # CFGRule is used by ProgressiveGrammar
 
 warnings.filterwarnings('ignore')
 

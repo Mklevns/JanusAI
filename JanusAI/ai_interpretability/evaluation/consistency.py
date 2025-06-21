@@ -15,16 +15,16 @@ from typing import Any, Dict, List, Optional, Union
 from dataclasses import dataclass, field
 
 # Import core components
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data, are_expressions_equivalent_sympy # For comparison and evaluation
-from JanusAI.utils.math.operations import calculate_expression_complexity # For simplicity metrics
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data, are_expressions_equivalent_sympy # For comparison and evaluation
+from janus_ai.utils.math.operations import calculate_expression_complexity # For simplicity metrics
 
 # Import the new ModelFidelityEvaluator for consistency checks
-from JanusAI.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
+from janus_ai.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
 
 # Placeholder for AI model classes
 try:
-    from JanusAI.ml.networks.hypothesis_net import HypothesisNet, AIHypothesisNet
+    from janus_ai.ml.networks.hypothesis_net import HypothesisNet, AIHypothesisNet
 except ImportError:
     print("Warning: HypothesisNet or AIHypothesisNet not found for type hinting in consistency.py. Using generic nn.Module.")
     HypothesisNet = nn.Module
@@ -268,10 +268,10 @@ class InterpretabilityEvaluator:
 if __name__ == "__main__":
     # Mock symbolic_math, Expression, Variable, HypothesisNet for testing
     try:
-        from JanusAI.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
-        from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
-        from JanusAI.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
-        from JanusAI.utils.math.operations import calculate_expression_complexity as real_calc_expr_comp
+        from janus_ai.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
+        from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
+        from janus_ai.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
+        from janus_ai.utils.math.operations import calculate_expression_complexity as real_calc_expr_comp
     except ImportError:
         print("Using mock dependencies for consistency.py test.")
         @dataclass(eq=True, frozen=False)

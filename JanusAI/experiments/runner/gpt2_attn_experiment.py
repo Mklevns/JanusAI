@@ -9,11 +9,11 @@ import torch
 from transformers import GPT2Model, GPT2Tokenizer
 
 # Janus imports
-from JanusAI.ai_interpretability.evaluation.fidelity import FidelityCalculator
-from JanusAI.core.grammar import EnhancedAIGrammar
-from JanusAI.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from JanusAI.ml.training.ppo_trainer import PPOTrainer
+from janus_ai.ai_interpretability.evaluation.fidelity import FidelityCalculator
+from janus_ai.core.grammar import EnhancedAIGrammar
+from janus_ai.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.ml.training.ppo_trainer import PPOTrainer
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

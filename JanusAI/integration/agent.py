@@ -25,8 +25,8 @@ from datetime import datetime
 from dataclasses import dataclass
 
 # Import schemas and infrastructure
-from .schemas import AgentRole, MessageType, Discovery, Message
-from .knowledge import SharedKnowledgeBase
+from janus_ai.integration.schemas import AgentRole, MessageType, Discovery, Message
+from janus_ai.integration.knowledge import SharedKnowledgeBase
 
 logger = logging.getLogger(__name__)
 

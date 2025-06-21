@@ -2,13 +2,13 @@
 
 # Assuming ProgressiveGrammar, Expression, Variable are in a place accessible by this path
 # If they are part of the old root structure and not yet moved:
-# from janus.core.grammar import ProgressiveGrammar
-# from janus.core.expression import Expression, Variable
+# from janus_ai.core.grammar import ProgressiveGrammar
+# from janus_ai.core.expression import Expression, Variable
 # If they are meant to be part of janus core or a shared module:
-# from ....shared import ProgressiveGrammar, Expression, Variable
+# from janus_ai.shared import ProgressiveGrammar, Expression, Variable # Assuming a shared module might exist
 # For now, using placeholder relative imports if they are also being moved into janus structure
-# from ...core.grammar import ProgressiveGrammar, Expression, Variable
-# Based on file listing, `grammar.py` is now in `janus/core`.
+# from janus_ai.core.grammar import ProgressiveGrammar, Expression, Variable
+# Based on file listing, `grammar.py` is now in `janus_ai/core`.
 # So, the import needs to be adjusted once its final location is decided.
 # For this refactoring, we'll assume it will be findable from the new structure.
 # A common pattern is to have a `core` or `common` module at `janus/` level.
@@ -16,8 +16,8 @@
 
 import sympy as sp
 from typing import List, Dict, Any, Optional
-from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
-from JanusAI.core.expressions.expression import Expression, Variable
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
+from janus_ai.core.expressions.expression import Expression, Variable
 
 class AIGrammar(ProgressiveGrammar):
     """
