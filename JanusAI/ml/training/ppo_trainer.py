@@ -20,10 +20,10 @@ from collections import deque
 from dataclasses import dataclass, field
 
 # Import necessary modules (adjust paths as needed)
-from janus.ml.networks.hypothesis_net import HypothesisNet
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.utils.io.checkpoint_manager import CheckpointManager
-from janus.utils.general_utils import safe_env_reset
+from JanusAI.ml.networks.hypothesis_net import HypothesisNet
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from JanusAI.utils.io.checkpoint_manager import CheckpointManager
+from JanusAI.utils.general_utils import safe_env_reset
 
 
 @dataclass

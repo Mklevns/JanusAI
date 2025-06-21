@@ -6,13 +6,13 @@ import logging # Added for more consistent logging
 
 # Attempt to import ExperimentVisualizer
 try:
-    from janus.ai_interpretability.utils.visualization import ExperimentVisualizer
+    from JanusAI.utils.visualization.plotting import ExperimentVisualizer
     HAS_VISUALIZER = True
 except ImportError:
     HAS_VISUALIZER = False
     ExperimentVisualizer = None # Placeholder
     # Using logging for warnings is more consistent than click.echo at import time
-    logging.warning("ExperimentVisualizer not found in janus.ai_interpretability.utils.visualization. Visualization capabilities will be limited.")
+    logging.warning("ExperimentVisualizer not found in JanusAI.utils.visualization.plotting. Visualization capabilities will be limited.")
 
 # Helper function similar to one in 'evaluate.py' to load results
 def load_aggregated_results(results_path: Path) -> pd.DataFrame:

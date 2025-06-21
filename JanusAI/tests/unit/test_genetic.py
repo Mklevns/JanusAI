@@ -13,30 +13,30 @@ import tempfile
 import os
 
 # Import components to test
-from janus.core.search.config import (
+from JanusAI.core.search.config import (
     GAConfig, ExpressionConfig, 
     create_default_config, create_fast_config
 )
-from janus.core.search.selection import (
+from JanusAI.core.search.selection import (
     TournamentSelection, RouletteWheelSelection, RankSelection,
     create_selection_strategy
 )
-from janus.core.search.operators import (
+from JanusAI.core.search.operators import (
     ExpressionGenerator, SubtreeCrossover, NodeReplacementMutation,
     create_crossover_operator, create_mutation_operator
 )
-from janus.core.search.stats import (
+from JanusAI.core.search.stats import (
     StatsTracker, calculate_structural_fingerprint, 
     calculate_tree_edit_distance, calculate_average_pairwise_distance
 )
-from janus.physics.algorithms.genetic import (
+from JanusAI.physics.algorithms.genetic import (
     SymbolicRegressor, FitnessCache, _evaluate_expression_fitness_worker
 )
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.grammar.base_grammar import BaseGrammar
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 
 
-class MockGrammar(BaseGrammar):
+class MockGrammar(BaseGrammar): # Now correctly inherits from aliased ProgressiveGrammar
     """Mock grammar for testing."""
     
     def __init__(self):

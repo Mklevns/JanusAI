@@ -6,8 +6,8 @@ import logging
 from typing import List, Dict, Any
 import pandas as pd
 
-from janus.experiments.benchmarks import BenchmarkSuite
-from janus.utils.visualization import plot_benchmark_results
+from JanusAI.experiments.benchmarks import BenchmarkSuite
+from JanusAI.utils.visualization import plot_benchmark_results
 
 logger = logging.getLogger(__name__)
 

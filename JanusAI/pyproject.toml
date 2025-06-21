@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "janus-ai"
 version = "0.1.0"
-description = "A research framework for symbolic regression, machine learning, and scientific discovery"
+description = "A research framework for symbolic regression, AI Interpretability machine learning, and scientific discovery"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Janus Research Team", email = "janus@example.com"},
+    {name = "Michael Evans", email = "michael965@gmail.com"},
 ]
 keywords = [
     "symbolic-regression",
@@ -43,29 +43,27 @@ dependencies = [
     
     # Machine learning
     "torch>=2.0.0",
-    "gymnasium>=0.28.0", # Replaces gym
     "stable-baselines3>=2.0.0",
     
     # Configuration and data validation
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "omegaconf>=2.3.0",
+    "PyYAML",
+    "python-dotenv",
+    "json5",
+    "toml",
     
     # Utilities
     "tqdm>=4.65.0",
     "rich>=13.0.0",
     "click>=8.1.0",
-    "psutil>=5.9.0",
+    "GitPython",
+    "requests",
+    "setuptools",
     
     # Logging and monitoring
     "structlog>=23.1.0",
-    "python-json-logger>=2.0.0",
-
-    # From r2.txt
-    "huggingface-hub>=0.16.0",
-    "openai>=1.0.0",  # For GPT models
-    "anthropic>=0.3.0",  # For Claude
-    "llama-cpp-python>=0.2.0", # OR for local models
 ]
 
 [project.optional-dependencies]
@@ -85,46 +83,33 @@ dev = [
     "pytest-mock>=3.11.0",
     "pytest-xdist>=3.3.0",
     "hypothesis>=6.80.0",
+    "py",
     
     # Documentation
     "sphinx>=7.0.0",
     "sphinx-rtd-theme>=1.3.0",
     "sphinx-autodoc-typehints>=1.24.0",
     "myst-parser>=2.0.0",
+    "jinja2",
     
     # Type stubs
     "types-PyYAML",
     "types-requests",
     "types-setuptools",
-    "torch-stubs", # Already present
-
-    # Security
-    "bandit>=1.7.0",
-    "safety>=2.3.0",
-
-    # Jupyter support
-    "jupyter>=1.0.0",
-    "notebook>=7.0.0",
-    "ipykernel>=6.25.0",
-    "nbstripout>=0.6.0",
 ]
 
 # Visualization dependencies
 viz = [
-    "matplotlib>=3.7.0", # Updated from r2.txt
+    "matplotlib>=3.7.0",
     "seaborn>=0.12.0",
-    "plotly>=5.14.0",
-    "networkx>=3.0",
     "graphviz>=0.20.0",
+    "Pillow",
 ]
 
 # AI/ML extras
 ml = [
-    "transformers>=4.30.0", # From r2.txt (already present, version confirmed)
-    "datasets>=2.13.0",
-    "accelerate>=0.20.0",
+    "transformers>=4.30.0",
     "einops>=0.6.0",
-    "safetensors>=0.3.0",
 ]
 
 # Distributed computing
@@ -132,28 +117,17 @@ distributed = [
     "ray[default]>=2.5.0",
     "ray[tune]>=2.5.0",
     "ray[rllib]>=2.5.0",
-    "dask[complete]>=2023.6.0",
-    "joblib>=1.3.0", # From r2.txt (already present, version confirmed)
+    "joblib>=1.3.0",
 ]
 
 # Experiment tracking
 tracking = [
-    "wandb>=0.15.0", # From r2.txt (already present, version confirmed)
-    "mlflow>=2.4.0",
-    "tensorboard>=2.13.0", # From r2.txt
-    "neptune-client>=1.3.0",
-]
-
-# GPU monitoring (optional)
-gpu = [
-    "gputil>=1.4.0",
-    "nvidia-ml-py>=12.535.0",
-    "pynvml>=11.5.0",
+    "wandb>=0.15.0",
 ]
 
 # All optional dependencies
 all = [
-    "janus-ai[dev,viz,ml,distributed,tracking,gpu]",
+    "janus-ai[dev,viz,ml,distributed,tracking]",
 ]
 
 [project.scripts]

@@ -5,12 +5,12 @@
 import numpy as np
 from typing import Type, Optional
 
-from janus.experiments.base import BaseExperiment
-from janus.experiments.registry import register_experiment
-from janus.config.models import ExperimentResult
-from janus.physics.environments.base import PhysicsEnvironment
-from janus.core.grammar import ProgressiveGrammar
-from janus.core.expression import Variable
+from JanusAI.experiments.base import BaseExperiment
+from JanusAI.experiments.registry import register_experiment
+from JanusAI.config.models import ExperimentResult
+from JanusAI.physics.environments.base import PhysicsEnvironment
+from JanusAI.core.grammar import ProgressiveGrammar
+from JanusAI.core.expression import Variable
 
 
 @register_experiment(

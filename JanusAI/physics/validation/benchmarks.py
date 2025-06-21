@@ -11,10 +11,10 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Tuple, Callable
 
 # Import necessary components from other modules
-from janus.physics.data.task_distribution import PhysicsTask, PhysicsTaskDistribution
-from janus.physics.validation.known_laws import KnownLawLibrary
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.expressions.symbolic_math import evaluate_expression_on_data, are_expressions_equivalent_sympy
+from JanusAI.physics.data.task_distribution import PhysicsTask, PhysicsTaskDistribution
+from JanusAI.physics.validation.known_laws import KnownLawLibrary
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data, are_expressions_equivalent_sympy
 
 
 class BenchmarkSuite:

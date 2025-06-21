@@ -9,18 +9,19 @@ import sympy as sp
 from unittest.mock import MagicMock, patch, PropertyMock
 from sklearn.decomposition import FastICA
 
-from janus.core.grammar.base_grammar import BaseGrammar, ProgressiveGrammar
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.processor.noisy_observation_processor import NoisyObservationProcessor
+# BaseGrammar is now ProgressiveGrammar for the purpose of these tests
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated, BaseGrammar replaced
+from JanusAI.core.grammar.denoiser import NoisyObservationProcessor # Updated
+from JanusAI.core.expressions.expression import Expression, Variable
 
 
-class TestBaseGrammar:
-    """Test the BaseGrammar abstract class functionality."""
+class TestBaseGrammar: # This class name might be misleading now.
+    """Test the BaseGrammar (now ProgressiveGrammar) abstract class functionality."""
     
     @pytest.fixture
     def mock_grammar(self):
-        """Create a mock concrete implementation of BaseGrammar."""
-        class MockGrammar(BaseGrammar):
+        """Create a mock concrete implementation of ProgressiveGrammar (formerly BaseGrammar)."""
+        class MockGrammar(ProgressiveGrammar): # Changed from BaseGrammar
             def discover_variables(self, observations, time_stamps=None):
                 return []
             
@@ -93,7 +94,7 @@ class TestProgressiveGrammar:
             'z': Variable("z", 2, {"type": "energy"})
         }
     
-    @patch('janus.core.grammar.base_grammar.FastICA')
+    @patch('JanusAI.core.grammar.base_grammar.FastICA')
     @patch.object(NoisyObservationProcessor, 'denoise')
     def test_discover_variables_basic(self, mock_denoise, mock_fastica, grammar):
         """Test basic variable discovery from observations."""
