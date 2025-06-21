@@ -19,7 +19,7 @@ class AdaptiveTrainingController:
     to optimize the learning process by adapting learning rates, exploration
     bonuses, and curriculum difficulty.
     """
-    
+
     def __init__(self,
                  base_lr: float = 3e-4,
                  base_exploration_coef: float = 0.1,
@@ -70,7 +70,7 @@ class AdaptiveTrainingController:
             self.discovery_rate_history.append(metrics['discovery_rate'])
         if 'mean_complexity_episode' in metrics:
             self.complexity_history.append(metrics['mean_complexity_episode'])
-        
+
         # Detect current training phase after updating histories
         self.current_phase = self._detect_training_phase()
         self.phase_history.append(self.current_phase)
@@ -80,18 +80,26 @@ class AdaptiveTrainingController:
         Analyzes recent metric trends to determine the current training phase.
         This logic is derived from the `AdaptiveTrainingController` in `enhanced_feedback.py`.
         """
-        if len(self.performance_history) < 5 or len(self.discovery_rate_history) < 5:
+        if len(self.performance_history) < 3 or len(self.discovery_rate_history) < 3: # Changed from 5 to 3
             return "initial" # Not enough data to detect phase
 
         # Calculate recent trends
         recent_perf = list(self.performance_history)
         recent_discovery_rate = list(self.discovery_rate_history)
-        
+
         # Performance trend: slope of a linear fit
-        perf_trend = np.polyfit(range(len(recent_perf)), recent_perf, 1)[0] if len(recent_perf) > 1 else 0.0
-        
+        # Ensure there are enough points for polyfit to avoid RankWarning or errors
+        if len(recent_perf) >= 2:
+            perf_trend = np.polyfit(range(len(recent_perf)), recent_perf, 1)[0]
+        else:
+            perf_trend = 0.0
+
         # Average recent discovery rate
-        avg_discovery_rate = np.mean(recent_discovery_rate)
+        if len(recent_discovery_rate) > 0:
+            avg_discovery_rate = np.mean(recent_discovery_rate)
+        else:
+            avg_discovery_rate = 0.0
+
 
         # Heuristic rules for phase detection
         if perf_trend > self.breakthrough_threshold and avg_discovery_rate > 0.5:
@@ -152,25 +160,28 @@ class AdaptiveTrainingController:
             'entropy_coeff': exploration_coef,
             'complexity_penalty': complexity_penalty
         }
-    
+
     def suggest_intervention(self) -> Optional[str]:
         """
         Suggests high-level interventions based on the current training phase
         and metrics, for a meta-controller to act upon (e.g., adjusting curriculum).
         """
+        # Ensure histories are not empty before calculating mean, check for at least 5 for consistency with original intent
+        min_len_for_suggestion = 5
+
         if self.current_phase == "stagnation":
-            # If stagnating and mean complexity is high, suggest reducing complexity budget
-            if self.complexity_history and np.mean(list(self.complexity_history)[-5:]) > 20:
+            if len(self.complexity_history) >= min_len_for_suggestion and \
+               np.mean(list(self.complexity_history)[-min_len_for_suggestion:]) > 20:
                 return "reduce_max_complexity"
-            # If stagnating and still exploring poorly, suggest increasing exploration (e.g., novelty bonus)
-            elif self.discovery_rate_history and np.mean(list(self.discovery_rate_history)[-5:]) < 0.1:
+            elif len(self.discovery_rate_history) >= min_len_for_suggestion and \
+                 np.mean(list(self.discovery_rate_history)[-min_len_for_suggestion:]) < 0.1:
                 return "increase_exploration_bonus"
-        
-        # If successfully breaking through, suggest increasing curriculum difficulty
+
         if self.current_phase == "breakthrough":
-            if self.performance_history and np.mean(list(self.performance_history)[-5:]) > 0.8: # High average reward
+            if len(self.performance_history) >= min_len_for_suggestion and \
+               np.mean(list(self.performance_history)[-min_len_for_suggestion:]) > 0.8:
                 return "advance_curriculum"
-        
+
         return None # No specific intervention suggested
 
 
@@ -184,29 +195,34 @@ if __name__ == "__main__":
         base_exploration_coef=0.05,
         stagnation_threshold=0.005,
         breakthrough_threshold=0.02,
-        history_length=10
+        history_length=10 # Keep history length for demo shorter
     )
 
     print("Initial parameters:", controller.adapt_parameters())
 
     # --- Simulate different training phases ---
 
-    print("\n--- Phase 1: Initial/Exploration ---")
+    print("\n--- Phase 1: Initial/Exploration (with new <3 rule) ---")
     # Simulate a phase where performance is flat, but discovery rate is okay
-    for i in range(10):
+    # Phase should change from 'initial' after 3 updates
+    for i in range(5): # Run for 5 steps to see transition
         mock_metrics = {
-            'mean_reward_episode': 0.1 + i * 0.005 + np.random.rand() * 0.01, # Slowly increasing
-            'discovery_rate': 0.3 + np.random.rand() * 0.1,
+            'mean_reward_episode': 0.1 + i * 0.01 + np.random.rand() * 0.005, # Slowly increasing
+            'discovery_rate': 0.65 + np.random.rand() * 0.1, # High discovery for exploration
             'mean_complexity_episode': 5 + np.random.randint(0, 3)
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
         print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}")
-    
-    print("Suggested intervention:", controller.suggest_intervention())
+
+    print("Suggested intervention:", controller.suggest_intervention()) # Might be None if history not long enough for suggestion logic
 
     print("\n--- Phase 2: Breakthrough ---")
     # Simulate a sudden jump in performance and high discovery rate
+    # Fill history to ensure phase detection
+    for _ in range(controller.history_length - len(controller.performance_history)): # Fill up history if needed
+         controller.update_metrics({'mean_reward_episode': 0.1, 'discovery_rate': 0.1})
+
     for i in range(5):
         mock_metrics = {
             'mean_reward_episode': 0.8 + np.random.rand() * 0.1, # High reward
@@ -215,14 +231,17 @@ if __name__ == "__main__":
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
-        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coef']:.3f}")
+        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}")
 
     print("Suggested intervention:", controller.suggest_intervention())
 
 
     print("\n--- Phase 3: Stagnation ---")
     # Simulate performance decline and low discovery
-    for i in range(10):
+    for _ in range(controller.history_length - len(controller.performance_history)): # Fill up history
+         controller.update_metrics({'mean_reward_episode': 0.8, 'discovery_rate': 0.8})
+
+    for i in range(10): # Stagnation might take a few steps to detect with trend
         mock_metrics = {
             'mean_reward_episode': 0.5 - i * 0.02 - np.random.rand() * 0.01, # Declining reward
             'discovery_rate': 0.05 + np.random.rand() * 0.05, # Very low discovery
@@ -230,9 +249,8 @@ if __name__ == "__main__":
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
-        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coef']:.3f}")
+        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}")
 
     print("Suggested intervention:", controller.suggest_intervention())
 
     print("\nAdaptiveTrainingController demonstration complete.")
-
