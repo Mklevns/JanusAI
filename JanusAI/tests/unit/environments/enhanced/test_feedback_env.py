@@ -7,11 +7,11 @@ import torch
 from collections import deque
 from unittest.mock import MagicMock, patch
 
-from JanusAI.environments.enhanced.feedback_env import EnhancedObservationEncoder, EnhancedSymbolicDiscoveryEnv
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode, NodeType
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
-from JanusAI.core.expressions.expression import Variable
-from JanusAI.ml.rewards.intrinsic_rewards import IntrinsicRewardCalculator # For type hinting/mocking
+from environments.enhanced.feedback_env import EnhancedObservationEncoder, EnhancedSymbolicDiscoveryEnv
+from environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode, NodeType
+from core.grammar.base_grammar import ProgressiveGrammar
+from core.expressions.expression import Variable
+from ml.rewards.intrinsic_rewards import IntrinsicRewardCalculator # For type hinting/mocking
 
 # --- Mocks for dependencies ---
 MockTreeState = MagicMock(spec=TreeState)
@@ -209,9 +209,9 @@ class TestEnhancedObservationEncoder:
 
 # --- Tests for EnhancedSymbolicDiscoveryEnv ---
 # We need to patch the superclass (SymbolicDiscoveryEnv) for these tests
-@patch('JanusAI.environments.enhanced.feedback_env.SymbolicDiscoveryEnv', MockBaseSymbolicDiscoveryEnv)
-@patch('JanusAI.environments.enhanced.feedback_env.IntrinsicRewardCalculator', MockIntrinsicRewardCalculator)
-@patch('JanusAI.environments.enhanced.feedback_env.EnhancedObservationEncoder') # Patch the class used by EnhancedEnv
+@patch('environments.enhanced.feedback_env.SymbolicDiscoveryEnv', MockBaseSymbolicDiscoveryEnv)
+@patch('environments.enhanced.feedback_env.IntrinsicRewardCalculator', MockIntrinsicRewardCalculator)
+@patch('environments.enhanced.feedback_env.EnhancedObservationEncoder') # Patch the class used by EnhancedEnv
 class TestEnhancedSymbolicDiscoveryEnv:
 
     @pytest.fixture

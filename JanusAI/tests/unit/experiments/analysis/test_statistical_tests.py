@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 from scipy import stats # For comparing results if needed, or for direct use in StatisticalAnalyzer
 
-from JanusAI.experiments.analysis.statistical_tests import StatisticalAnalyzer
+from experiments.analysis.statistical_tests import StatisticalAnalyzer
 
 @pytest.fixture
 def analyzer():

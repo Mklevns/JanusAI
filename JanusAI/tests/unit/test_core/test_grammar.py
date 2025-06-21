@@ -33,8 +33,8 @@ if 'sklearn' not in sys.modules:
     sys.modules['sklearn.preprocessing'] = sklearn_preproc_stub
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from JanusAI.core.grammar import ProgressiveGrammar
-from JanusAI.core.expressions.expression import Variable, Expression
+from core.grammar import ProgressiveGrammar
+from core.expressions.expression import Variable, Expression
 import sympy as sp
 import numpy as np
 
@@ -591,7 +591,8 @@ def test_create_expression_general_invalid_operand_types(grammar_and_vars):
 # --- Tests for Variable Discovery ---
 from unittest.mock import patch, MagicMock
 
-def test_analyze_component(grammar_and_vars):
+# def test_analyze_component(grammar_and_vars): # Grammar fixture already provides instance
+def test_analyze_component(grammar_and_vars): # Grammar fixture provides instance
     grammar, _, _, _, _, _ = grammar_and_vars
     time_stamps = np.linspace(0, 10, 100)
 
@@ -711,9 +712,9 @@ def test_generate_variable_name(grammar_and_vars):
 
 
 # Patching 'sklearn.decomposition.FastICA' as it's imported like `from sklearn.decomposition import FastICA`
-# Patching denoiser at the class level janus.core.grammar.NoisyObservationProcessor
-@patch('JanusAI.core.grammar.FastICA')
-@patch('JanusAI.core.grammar.NoisyObservationProcessor.denoise')
+# Patching denoiser at the class level core.grammar.NoisyObservationProcessor
+@patch('core.grammar.FastICA')
+@patch('core.grammar.NoisyObservationProcessor.denoise')
 def test_discover_variables_simple_run(mock_denoise, MockFastICA, grammar_and_vars):
     grammar, _, _, _, _, _ = grammar_and_vars
     grammar.variables = {}
@@ -764,9 +765,9 @@ def test_discover_variables_simple_run(mock_denoise, MockFastICA, grammar_and_va
         assert grammar.variables[var.name] == var
 
 
-@patch('JanusAI.core.grammar.FastICA')
+@patch('core.grammar.FastICA')
 @patch.object(ProgressiveGrammar, '_analyze_component')
-@patch('JanusAI.core.grammar.NoisyObservationProcessor')
+@patch('core.grammar.NoisyObservationProcessor')
 def test_discover_variables_controlled(MockNoisyObservationProcessor, mock_analyze_component, MockFastICA):
     # Create ProgressiveGrammar instance *after* mocks are in place
     grammar = ProgressiveGrammar()
@@ -1094,7 +1095,7 @@ def test_mine_abstractions(mock_add_learned_function, grammar_and_vars):
 
 
 # --- Tests for NoisyObservationProcessor ---
-from JanusAI.core.grammar import NoisyObservationProcessor
+from core.grammar import NoisyObservationProcessor
 from unittest.mock import PropertyMock
 
 def test_simple_denoise():
@@ -1126,10 +1127,10 @@ def test_simple_denoise():
     assert np.array_equal(denoised_small_15, obs_small_15_rows)
 
 
-@patch('JanusAI.core.grammar.StandardScaler')
-@patch('JanusAI.core.grammar.torch.FloatTensor')
-@patch('JanusAI.core.grammar.torch.optim.Adam')
-@patch('JanusAI.core.grammar.torch.nn.MSELoss')
+@patch('core.grammar.StandardScaler')
+@patch('core.grammar.torch.FloatTensor')
+@patch('core.grammar.torch.optim.Adam')
+@patch('core.grammar.torch.nn.MSELoss')
 @patch.object(NoisyObservationProcessor, 'build_autoencoder')
 def test_denoise_structure(mock_build_autoencoder, mock_loss, mock_adam, mock_float_tensor, MockStandardScaler):
     processor = NoisyObservationProcessor()

@@ -6,7 +6,7 @@ import torch # Required for ExperimentConfig's device logic
 from unittest.mock import patch
 import json # For comparing dicts if necessary, or just direct comparison
 
-from JanusAI.experiments.configs.experiment_config import ExperimentConfig
+from experiments.configs.experiment_config import ExperimentConfig
 
 class TestExperimentConfig:
 

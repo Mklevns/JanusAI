@@ -7,7 +7,7 @@ import torch
 import numpy as np
 
 # Import classes to be tested
-from JanusAI.experiments.configs.run_gpt_2_attention_experiment import (
+from experiments.configs.run_gpt_2_attention_experiment import (
     GPT2AttentionConfig,
     GPT2AttentionExperiment
 )
@@ -45,13 +45,13 @@ class TestGPT2AttentionConfig:
 
 # --- Tests for GPT2AttentionExperiment ---
 # Patch all major external dependencies for the experiment class
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.GPT2Model', MockGPT2Model)
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.GPT2Tokenizer', MockGPT2Tokenizer)
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.EnhancedAIGrammar', MockEnhancedAIGrammar)
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.InterpretabilityReward', MockInterpretabilityReward)
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.FidelityCalculator', MockFidelityCalculator)
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.SymbolicDiscoveryEnv', MockSymbolicDiscoveryEnv)
-@patch('JanusAI.experiments.configs.run_gpt_2_attention_experiment.PPOTrainer', MockPPOTrainer)
+@patch('experiments.configs.run_gpt_2_attention_experiment.GPT2Model', MockGPT2Model)
+@patch('experiments.configs.run_gpt_2_attention_experiment.GPT2Tokenizer', MockGPT2Tokenizer)
+@patch('experiments.configs.run_gpt_2_attention_experiment.EnhancedAIGrammar', MockEnhancedAIGrammar)
+@patch('experiments.configs.run_gpt_2_attention_experiment.InterpretabilityReward', MockInterpretabilityReward)
+@patch('experiments.configs.run_gpt_2_attention_experiment.FidelityCalculator', MockFidelityCalculator)
+@patch('experiments.configs.run_gpt_2_attention_experiment.SymbolicDiscoveryEnv', MockSymbolicDiscoveryEnv)
+@patch('experiments.configs.run_gpt_2_attention_experiment.PPOTrainer', MockPPOTrainer)
 class TestGPT2AttentionExperiment:
 
     @pytest.fixture(autouse=True)
@@ -120,7 +120,7 @@ class TestGPT2AttentionExperiment:
         assert experiment.model == mock_model_instance
         assert experiment.tokenizer == mock_tokenizer_instance
 
-    @patch.object(GPT2AttentionExperiment, '_generate_text_samples')
+    @patch('experiments.configs.run_gpt_2_attention_experiment.GPT2AttentionExperiment._generate_text_samples')
     def test_extract_attention_data(self, mock_generate_samples, experiment, config):
         mock_generate_samples.return_value = ["sample text 1", "sample text 2"]
 

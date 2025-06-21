@@ -4,8 +4,8 @@ Tests for core/grammar/base_grammar.py: CFGRule, ContextFreeGrammar, NoisyObserv
 import pytest
 import random
 from collections import defaultdict
-from JanusAI.core.grammar.base_grammar import CFGRule, ContextFreeGrammar
-from JanusAI.core.expressions.expression import Variable # For TargetType in CFG
+from core.grammar.base_grammar import CFGRule, ContextFreeGrammar
+from core.expressions.expression import Variable # For TargetType in CFG
 
 # Tests for CFGRule
 class TestCFGRule:
@@ -292,7 +292,7 @@ else: # Minimal mock if torch is not available at all
             return x * 1.01, x[:, :self.latent_dim] # Slightly alter x to show "not denoised"
 
 
-from JanusAI.core.grammar.base_grammar import NoisyObservationProcessor
+from core.grammar.base_grammar import NoisyObservationProcessor
 import numpy as np
 
 @pytest.fixture
@@ -446,7 +446,7 @@ class TestNoisyObservationProcessor:
         assert processor.model.encoder[0].in_features == 8
 
 
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar, Expression # Expression is needed
+from core.grammar.base_grammar import ProgressiveGrammar, Expression # Expression is needed
 from sklearn.decomposition import FastICA # For mocking
 import logging # For checking log messages from CFG generation
 
@@ -793,7 +793,7 @@ class TestProgressiveGrammar:
         assert not state["proven_lemmas"]
 
 
-from JanusAI.core.grammar.base_grammar import AIGrammar # AIGrammar specific import
+from core.grammar.base_grammar import AIGrammar # AIGrammar specific import
 import sympy as sp # For checking symbolic forms from AIGrammar
 
 @pytest.fixture

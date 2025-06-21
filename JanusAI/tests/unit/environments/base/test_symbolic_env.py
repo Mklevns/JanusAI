@@ -5,11 +5,11 @@ import pytest
 import numpy as np
 import gym
 
-from JanusAI.environments.base.symbolic_env import (
+from environments.base.symbolic_env import (
     SymbolicDiscoveryEnv, ExpressionNode, TreeState, NodeType
 )
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
-from JanusAI.core.expressions.expression import Expression, Variable
+from core.grammar.base_grammar import ProgressiveGrammar
+from core.expressions.expression import Expression, Variable
 from unittest.mock import MagicMock, patch
 
 

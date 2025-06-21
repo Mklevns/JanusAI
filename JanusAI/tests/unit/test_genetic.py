@@ -13,27 +13,27 @@ import tempfile
 import os
 
 # Import components to test
-from JanusAI.core.search.config import (
+from core.search.config import (
     GAConfig, ExpressionConfig, 
     create_default_config, create_fast_config
 )
-from JanusAI.core.search.selection import (
+from core.search.selection import (
     TournamentSelection, RouletteWheelSelection, RankSelection,
     create_selection_strategy
 )
-from JanusAI.core.search.operators import (
+from core.search.operators import (
     ExpressionGenerator, SubtreeCrossover, NodeReplacementMutation,
     create_crossover_operator, create_mutation_operator
 )
-from JanusAI.core.search.stats import (
+from core.search.stats import (
     StatsTracker, calculate_structural_fingerprint, 
     calculate_tree_edit_distance, calculate_average_pairwise_distance
 )
-from JanusAI.physics.algorithms.genetic import (
+from physics.algorithms.genetic import (
     SymbolicRegressor, FitnessCache, _evaluate_expression_fitness_worker
 )
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
+from core.expressions.expression import Expression, Variable
+from core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 
 
 class MockGrammar(BaseGrammar): # Now correctly inherits from aliased ProgressiveGrammar
