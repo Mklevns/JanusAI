@@ -120,9 +120,14 @@ class AsyncExpressionEvaluator:
 
             try:
                 # Parse expression
-                # Assuming create_expression takes type and args, and 'var' is a valid type
+                # create_expression will validate by default and return None if invalid
                 expr = self.grammar.create_expression('var', [expr_str]) 
                 
+                if expr is None:
+                    # Log the error for debugging (assuming logger is set up)
+                    # print(f"Validation failed for expression string: {expr_str}")
+                    raise ValueError(f"Expression validation failed for: {expr_str}")
+
                 # Evaluate on data
                 predictions = []
                 for i in range(len(data)):
