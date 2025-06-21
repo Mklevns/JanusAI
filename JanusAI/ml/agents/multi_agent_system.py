@@ -21,7 +21,7 @@ from janus_ai.memory.dual_memory_system import (
 )
 from janus_ai.grammar.ai_grammar import AIGrammar
 
-from janus_ai.grammar.expression_tree import ExpressionTree
+from janus_ai.environments.base.symbolic_env import TreeState
 
 from janus_ai.rewards.interpretability_reward import InterpretabilityReward
 
