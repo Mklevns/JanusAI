@@ -10,7 +10,12 @@ class Remapper:
         # Sort variables by length of the key (e.g., 'x10' before 'x1') to prevent partial replacements.
         sorted_vars = sorted(var_mapping.items(), key=lambda item: len(item[0]), reverse=True)
         for new_var, orig_var in sorted_vars:
-            result = re.sub(r'' + re.escape(new_var) + r'', orig_var, result)
+            # Use lookarounds to ensure replacement is for whole words/tokens,
+            # even if the variable name contains non-alphanumeric characters.
+            # This pattern says: "not preceded by a word character" AND "not followed by a word character".
+            # This allows variables like "x*" or "data[0]" to be correctly replaced when surrounded by spaces or operators.
+            pattern = r'(?<!\w)' + re.escape(new_var) + r'(?!\w)'
+            result = re.sub(pattern, orig_var, result)
         return result
 
 def test_remap_expression_logic():

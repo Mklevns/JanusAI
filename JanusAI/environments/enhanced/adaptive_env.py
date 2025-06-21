@@ -19,7 +19,7 @@ class AdaptiveTrainingController:
     to optimize the learning process by adapting learning rates, exploration
     bonuses, and curriculum difficulty.
     """
-    
+
     def __init__(self,
                  base_lr: float = 3e-4,
                  base_exploration_coef: float = 0.1,
@@ -70,7 +70,7 @@ class AdaptiveTrainingController:
             self.discovery_rate_history.append(metrics['discovery_rate'])
         if 'mean_complexity_episode' in metrics:
             self.complexity_history.append(metrics['mean_complexity_episode'])
-        
+
         # Detect current training phase after updating histories
         self.current_phase = self._detect_training_phase()
         self.phase_history.append(self.current_phase)
@@ -80,25 +80,56 @@ class AdaptiveTrainingController:
         Analyzes recent metric trends to determine the current training phase.
         This logic is derived from the `AdaptiveTrainingController` in `enhanced_feedback.py`.
         """
-        if len(self.performance_history) < 5 or len(self.discovery_rate_history) < 5:
-            return "initial" # Not enough data to detect phase
+        # Determine the minimum number of points needed for a trend.
+        # np.polyfit (deg=1) needs at least 2 points. For a more stable trend, 3-5 points are better.
+        # The history_length determines the max number of points available.
+        # We use at least 3 points if available, up to a cap of 5, respecting history_length.
 
-        # Calculate recent trends
-        recent_perf = list(self.performance_history)
+        # Effective number of points to consider for trend detection based on history_length
+        # If history_length is small (e.g., 3), use all available points (i.e., history_length).
+        # If history_length is large (e.g., 50), use a window (e.g., last 5 points) for recent trend.
+        # The test case implies that if history_length=3, 3 points are enough.
+        # Let's set min_points to be min(self.history_length, 5), but ensure it's at least 2 for polyfit.
+
+        min_points_for_meaningful_trend = 3 # General minimum for a somewhat reliable trend
+
+        # Number of points to use for trend calculation: min of history_length, a practical cap (e.g. 5),
+        # but not less than min_points_for_meaningful_trend if history_length allows.
+        # If history_length is very small (e.g. < 3), this logic might need refinement,
+        # but for the test case (history_length=3), this should work.
+
+        # Effective minimum points based on how many data points are actually IN the history deque
+        num_perf_points = len(self.performance_history)
+        num_discovery_points = len(self.discovery_rate_history)
+
+        # If not enough points have been collected yet (less than what history_length allows,
+        # or less than our defined minimum for a trend), stay in "initial".
+        if num_perf_points < min_points_for_meaningful_trend or \
+           num_discovery_points < min_points_for_meaningful_trend:
+            # This check also covers cases where history_length is less than min_points_for_meaningful_trend,
+            # as num_perf_points will be <= history_length.
+            return "initial"
+
+        # Calculate recent trends using all available points up to history_length
+        recent_perf = list(self.performance_history) # uses all points in deque (max history_length)
         recent_discovery_rate = list(self.discovery_rate_history)
-        
+
         # Performance trend: slope of a linear fit
-        perf_trend = np.polyfit(range(len(recent_perf)), recent_perf, 1)[0] if len(recent_perf) > 1 else 0.0
-        
+        # Ensure there are enough points for polyfit (at least 2 for degree 1)
+        if len(recent_perf) >= 2:
+            perf_trend = np.polyfit(range(len(recent_perf)), recent_perf, 1)[0]
+        else:
+            perf_trend = 0.0 # Not enough data for a trend line, assume flat
+
         # Average recent discovery rate
-        avg_discovery_rate = np.mean(recent_discovery_rate)
+        avg_discovery_rate = np.mean(recent_discovery_rate) if recent_discovery_rate else 0.0
 
         # Heuristic rules for phase detection
         if perf_trend > self.breakthrough_threshold and avg_discovery_rate > 0.5:
             return "breakthrough" # Significant improvement with high discovery
         elif perf_trend < -self.stagnation_threshold and avg_discovery_rate < 0.2:
             return "stagnation" # Performance declining, low discovery
-        elif avg_discovery_rate > 0.6 and perf_trend >= 0:
+        elif avg_discovery_rate > 0.6 and perf_trend >= 0: # Condition from test case
             return "exploration" # High discovery rate, even if performance is stable/improving slowly
         elif perf_trend > 0 and avg_discovery_rate < 0.3:
             return "refinement" # Performance improving, but discovery is low (focus on current discoveries)
@@ -152,26 +183,28 @@ class AdaptiveTrainingController:
             'entropy_coeff': exploration_coef,
             'complexity_penalty': complexity_penalty
         }
-    
+
     def suggest_intervention(self) -> Optional[str]:
         """
         Suggests high-level interventions based on the current training phase
         and metrics, for a meta-controller to act upon (e.g., adjusting curriculum).
         """
+        # Use last 5 points for these suggestions if available, else all history
+        complexity_window = list(self.complexity_history)[-5:] if len(self.complexity_history) >= 5 else list(self.complexity_history)
+        discovery_window = list(self.discovery_rate_history)[-5:] if len(self.discovery_rate_history) >= 5 else list(self.discovery_rate_history)
+        performance_window = list(self.performance_history)[-5:] if len(self.performance_history) >= 5 else list(self.performance_history)
+
         if self.current_phase == "stagnation":
-            # If stagnating and mean complexity is high, suggest reducing complexity budget
-            if self.complexity_history and np.mean(list(self.complexity_history)[-5:]) > 20:
+            if complexity_window and np.mean(complexity_window) > 20:
                 return "reduce_max_complexity"
-            # If stagnating and still exploring poorly, suggest increasing exploration (e.g., novelty bonus)
-            elif self.discovery_rate_history and np.mean(list(self.discovery_rate_history)[-5:]) < 0.1:
+            elif discovery_window and np.mean(discovery_window) < 0.1:
                 return "increase_exploration_bonus"
-        
-        # If successfully breaking through, suggest increasing curriculum difficulty
+
         if self.current_phase == "breakthrough":
-            if self.performance_history and np.mean(list(self.performance_history)[-5:]) > 0.8: # High average reward
+            if performance_window and np.mean(performance_window) > 0.8:
                 return "advance_curriculum"
-        
-        return None # No specific intervention suggested
+
+        return None
 
 
 if __name__ == "__main__":
@@ -184,55 +217,75 @@ if __name__ == "__main__":
         base_exploration_coef=0.05,
         stagnation_threshold=0.005,
         breakthrough_threshold=0.02,
-        history_length=10
+        history_length=10 # Test with history_length=10
     )
 
-    print("Initial parameters:", controller.adapt_parameters())
+    print(f"Initial parameters (Phase: {controller.current_phase}):", controller.adapt_parameters())
 
     # --- Simulate different training phases ---
 
     print("\n--- Phase 1: Initial/Exploration ---")
     # Simulate a phase where performance is flat, but discovery rate is okay
-    for i in range(10):
+    # Needs enough steps to get out of "initial" based on min_points_for_meaningful_trend = 3
+    for i in range(controller.history_length): # Fill up history
         mock_metrics = {
-            'mean_reward_episode': 0.1 + i * 0.005 + np.random.rand() * 0.01, # Slowly increasing
-            'discovery_rate': 0.3 + np.random.rand() * 0.1,
+            'mean_reward_episode': 0.1 + i * 0.005 + np.random.rand() * 0.01,
+            'discovery_rate': 0.7 + np.random.rand() * 0.1, # High discovery to trigger exploration
             'mean_complexity_episode': 5 + np.random.randint(0, 3)
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
-        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}")
-    
+        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}, PerfTrend={np.polyfit(range(len(controller.performance_history)), list(controller.performance_history),1)[0] if len(controller.performance_history) >=2 else 0:.3f}, AvgDisc={np.mean(list(controller.discovery_rate_history)):.3f}")
+
     print("Suggested intervention:", controller.suggest_intervention())
 
     print("\n--- Phase 2: Breakthrough ---")
     # Simulate a sudden jump in performance and high discovery rate
-    for i in range(5):
+    for i in range(5): # Add 5 more points
         mock_metrics = {
-            'mean_reward_episode': 0.8 + np.random.rand() * 0.1, # High reward
-            'discovery_rate': 0.8 + np.random.rand() * 0.1, # High discovery
+            'mean_reward_episode': 0.8 + np.random.rand() * 0.1,
+            'discovery_rate': 0.8 + np.random.rand() * 0.1,
             'mean_complexity_episode': 10 + np.random.randint(0, 5)
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
-        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coef']:.3f}")
+        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}, PerfTrend={np.polyfit(range(len(controller.performance_history)), list(controller.performance_history),1)[0] if len(controller.performance_history) >=2 else 0:.3f}, AvgDisc={np.mean(list(controller.discovery_rate_history)):.3f}")
 
     print("Suggested intervention:", controller.suggest_intervention())
 
 
     print("\n--- Phase 3: Stagnation ---")
     # Simulate performance decline and low discovery
-    for i in range(10):
+    for i in range(controller.history_length): # Fill history with stagnation data
         mock_metrics = {
-            'mean_reward_episode': 0.5 - i * 0.02 - np.random.rand() * 0.01, # Declining reward
-            'discovery_rate': 0.05 + np.random.rand() * 0.05, # Very low discovery
-            'mean_complexity_episode': 25 + np.random.randint(0, 5) # High complexity
+            'mean_reward_episode': 0.5 - i * 0.02 - np.random.rand() * 0.01,
+            'discovery_rate': 0.05 + np.random.rand() * 0.05,
+            'mean_complexity_episode': 25 + np.random.randint(0, 5)
         }
         controller.update_metrics(mock_metrics)
         adapted_params = controller.adapt_parameters()
-        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coef']:.3f}")
+        print(f"Step {i+1}: Phase='{controller.current_phase}', LR={adapted_params['learning_rate']:.2e}, Exploration={adapted_params['entropy_coeff']:.3f}, PerfTrend={np.polyfit(range(len(controller.performance_history)), list(controller.performance_history),1)[0] if len(controller.performance_history) >=2 else 0:.3f}, AvgDisc={np.mean(list(controller.discovery_rate_history)):.3f}")
 
     print("Suggested intervention:", controller.suggest_intervention())
 
-    print("\nAdaptiveTrainingController demonstration complete.")
+    # Test with history_length = 3 as in the unit test
+    print("\n--- Test with history_length = 3 (like unit test) ---")
+    controller_short_hist = AdaptiveTrainingController(history_length=3)
+    metrics_seq = [
+        {'mean_reward_episode': 0.1, 'discovery_rate': 0.5, 'mean_complexity_episode': 10},
+        {'mean_reward_episode': 0.2, 'discovery_rate': 0.6},
+        {'mean_reward_episode': 0.3, 'discovery_rate': 0.7, 'mean_complexity_episode': 12},
+        {'mean_reward_episode': 0.4, 'discovery_rate': 0.8, 'mean_complexity_episode': 13},
+        {'mean_reward_episode': 0.5, 'discovery_rate': 0.9, 'mean_complexity_episode': 14}
+    ]
+    for i, metrics in enumerate(metrics_seq):
+        controller_short_hist.update_metrics(metrics)
+        print(f"Step {i+1}: Phase='{controller_short_hist.current_phase}', PerfHist={list(controller_short_hist.performance_history)}, DiscHist={list(controller_short_hist.discovery_rate_history)}")
+        if i == 4: # After 5th update, as in test
+             # perf_trend for [0.3,0.4,0.5] is 0.1. avg_discovery for [0.7,0.8,0.9] is 0.8.
+             # exploration: avg_discovery_rate > 0.6 and perf_trend >= 0. (0.8 > 0.6 and 0.1 >=0) -> True.
+            assert controller_short_hist.current_phase == "exploration"
+            print("Assertion for exploration phase after 5 updates with history_length=3 PASSED.")
 
+
+    print("\nAdaptiveTrainingController demonstration complete.")

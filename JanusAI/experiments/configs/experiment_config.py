@@ -10,6 +10,7 @@ discovery experiments.
 
 from dataclasses import dataclass, field
 from typing import Dict, Any
+import torch
 
 
 @dataclass
