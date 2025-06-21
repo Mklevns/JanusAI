@@ -12,9 +12,9 @@ import torch
 from unittest.mock import Mock, MagicMock, patch
 from typing import Dict
 
-from JanusAI.ml.training.ppo_trainer import PPOTrainer, RolloutBuffer
-from JanusAI.ml.networks.hypothesis_net import HypothesisNet
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from ml.training.ppo_trainer import PPOTrainer, RolloutBuffer
+from ml.networks.hypothesis_net import HypothesisNet
+from environments.base.symbolic_env import SymbolicDiscoveryEnv
 
 
 class TestRolloutBuffer(unittest.TestCase):
@@ -232,8 +232,8 @@ class TestPPOTrainerIntegration(unittest.TestCase):
     def test_full_training_loop(self):
         """Test complete training loop with real components."""
         # Create simple environment
-        from janus.core.grammar.base_grammar import ProgressiveGrammar
-        from janus.core.expressions.expression import Variable
+        from core.grammar.base_grammar import ProgressiveGrammar
+        from core.expressions.expression import Variable
         
         grammar = ProgressiveGrammar()
         variables = [Variable('x', 0)]

@@ -7,7 +7,7 @@ import torch.nn as nn
 import numpy as np
 from unittest.mock import MagicMock, patch, call
 
-from JanusAI.environments.ai_interpretability.model_hooks import ModelHookManager, register_hooks_for_layers
+from environments.ai_interpretability.model_hooks import ModelHookManager, register_hooks_for_layers
 
 # --- Helper Simple Model ---
 class SimpleNet(nn.Module):
@@ -191,7 +191,7 @@ class TestModelHookManager:
 
 # --- Tests for register_hooks_for_layers function ---
 
-@patch('JanusAI.environments.ai_interpretability.model_hooks.ModelHookManager.get_module_by_name')
+@patch('environments.ai_interpretability.model_hooks.ModelHookManager.get_module_by_name')
 def test_register_hooks_for_layers_successful(mock_get_module, simple_model):
     captured_dict = {}
     layer_names_to_hook = ['fc1', 'relu']
@@ -230,7 +230,7 @@ def test_register_hooks_for_layers_successful(mock_get_module, simple_model):
     assert np.array_equal(captured_dict['fc1'], dummy_fc1_out.cpu().numpy())
 
 
-@patch('JanusAI.environments.ai_interpretability.model_hooks.ModelHookManager.get_module_by_name')
+@patch('environments.ai_interpretability.model_hooks.ModelHookManager.get_module_by_name')
 def test_register_hooks_for_layers_module_not_found(mock_get_module, simple_model, capsys):
     captured_dict = {}
     mock_get_module.return_value = None # Simulate module not found

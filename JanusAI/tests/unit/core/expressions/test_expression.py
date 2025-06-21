@@ -3,7 +3,7 @@ Tests for core/expressions/expression.py: Variable and Expression classes.
 """
 import pytest
 import sympy as sp
-from JanusAI.core.expressions.expression import Variable, Expression # Assuming Expression is also in this file
+from core.expressions.expression import Variable, Expression # Assuming Expression is also in this file
 
 # Tests for Variable Class
 class TestVariable:

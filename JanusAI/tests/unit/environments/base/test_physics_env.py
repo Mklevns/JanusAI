@@ -6,7 +6,7 @@ import numpy as np
 from unittest.mock import MagicMock, patch, ANY
 
 # Import the class to be tested
-from JanusAI.environments.base.physics_env import PhysicsEnvironment
+from environments.base.physics_env import PhysicsEnvironment
 
 # Mock dependencies that are imported by physics_env
 MockSymbolicDiscoveryEnv = MagicMock(name="MockSymbolicDiscoveryEnv")
@@ -25,11 +25,11 @@ def create_mock_variable(name, index):
     return var
 
 
-@patch('JanusAI.environments.base.physics_env.SymbolicDiscoveryEnv', MockSymbolicDiscoveryEnv)
-@patch('JanusAI.environments.base.physics_env.Expression', MockExpression)
-@patch('JanusAI.environments.base.physics_env.Variable', MockVariable)
-@patch('JanusAI.physics.data.task_distribution.PhysicsTask', MockPhysicsTask) # Assuming this is the path
-@patch('JanusAI.physics.laws.conservation.ConservationDetector', MockConservationDetector)
+@patch('environments.base.physics_env.SymbolicDiscoveryEnv', MockSymbolicDiscoveryEnv)
+@patch('environments.base.physics_env.Expression', MockExpression)
+@patch('environments.base.physics_env.Variable', MockVariable)
+@patch('physics.data.task_distribution.PhysicsTask', MockPhysicsTask) # Assuming this is the path
+@patch('physics.laws.conservation.ConservationDetector', MockConservationDetector)
 class TestPhysicsEnvironment:
 
     @pytest.fixture(autouse=True)

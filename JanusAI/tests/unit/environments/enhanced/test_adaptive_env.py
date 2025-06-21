@@ -5,7 +5,7 @@ import pytest
 import numpy as np
 from collections import deque
 
-from JanusAI.environments.enhanced.adaptive_env import AdaptiveTrainingController
+from environments.enhanced.adaptive_env import AdaptiveTrainingController
 
 class TestAdaptiveTrainingController:
 

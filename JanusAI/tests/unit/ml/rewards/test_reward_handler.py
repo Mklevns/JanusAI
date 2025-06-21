@@ -12,9 +12,9 @@ from unittest.mock import Mock, patch
 import tempfile
 import json
 
-from JanusAI.ml.rewards.reward_handler import RewardHandler, AdaptiveRewardHandler, RewardInfo
-from JanusAI.ml.rewards.base_reward import BaseReward
-from JanusAI.ml.rewards.reward_registry import (
+from ml.rewards.reward_handler import RewardHandler, AdaptiveRewardHandler, RewardInfo
+from ml.rewards.base_reward import BaseReward
+from ml.rewards.reward_registry import (
     register_reward,
     create_reward_component,
     create_handler_from_preset,
@@ -288,7 +288,7 @@ class TestIntegration(unittest.TestCase):
     
     def test_physics_discovery_scenario(self):
         """Test physics discovery reward scenario."""
-        from janus.ml.rewards.intrinsic_rewards import (
+        from ml.rewards.intrinsic_rewards import (
             NoveltyReward,
             ComplexityReward,
             ConservationLawReward
@@ -358,9 +358,9 @@ class TestRewardHandlerWithEnvironment(unittest.TestCase):
     
     def test_environment_integration(self):
         """Test using RewardHandler in an environment."""
-        from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-        from janus.core.grammar.base_grammar import ProgressiveGrammar
-        from janus.core.expressions.expression import Variable
+        from environments.base.symbolic_env import SymbolicDiscoveryEnv
+        from core.grammar.base_grammar import ProgressiveGrammar
+        from core.expressions.expression import Variable
         
         # Create simple environment
         grammar = ProgressiveGrammar()

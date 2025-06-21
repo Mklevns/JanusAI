@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional, Callable, Union
 from dataclasses import dataclass
 
 # Import base grammar
-from janus.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
 
 
 class AttentionPrimitives:
