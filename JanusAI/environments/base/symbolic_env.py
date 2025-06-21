@@ -19,6 +19,7 @@ from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
 from JanusAI.core.expressions.expression import Expression, Variable
 from JanusAI.utils.math.operations import calculate_expression_complexity
 from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
+from memory.dual_memory_system import SharedMemory # Added import
 
 
 class NodeType(Enum):
@@ -172,6 +173,9 @@ class SymbolicDiscoveryEnv(gym.Env):
         self.current_state: Optional[TreeState] = None
         self.episode_steps = 0
         self.max_episode_steps = max_depth * 3  # Heuristic
+
+        # Initialize Shared Memory
+        self.shared_memory = SharedMemory(capacity=10)
         
     def _validate_inputs(self):
         """Validate input data consistency."""
@@ -268,6 +272,22 @@ class SymbolicDiscoveryEnv(gym.Env):
         # Get observation and info
         obs = self._get_observation()
         info = self._get_info()
+
+        # Add high-scoring attempts to shared memory
+        # Using a placeholder threshold of 0.8, adjust as needed.
+        reward_threshold = 0.8
+        if reward > reward_threshold and self.current_state and self.current_state.is_complete():
+            current_expr_str = info.get('expression')
+            if current_expr_str:
+                self.shared_memory.add({
+                    'expression': current_expr_str,
+                    'reward': reward,
+                    'metadata': {
+                        'complexity': info.get('complexity', -1),
+                        'depth': info.get('tree_depth', -1),
+                        'steps': self.episode_steps,
+                    }
+                })
         
         return obs, reward, terminated, truncated, info
     
