@@ -296,7 +296,7 @@ if __name__ == '__main__':
                 return np.full_like(data_dict.get('x', np.array([0.0])), 5.0) + np.random.rand(data_dict.get('x', np.array([0.0])).shape[0]) * 1e-5
             elif 'x' in expr_str and 'x' in data_dict:
                 # Simulate a varying quantity for "not conserved" scenario
-                return data_dict['x'] * np.sin(data_dict['t'] if 't' in data_dict else 1.0)
+                return data_dict['x'] * np.sin(data_dict.get('t', 1.0))
             return np.array([0.0]) # Default mock return
 
     try:
