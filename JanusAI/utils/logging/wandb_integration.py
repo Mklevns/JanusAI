@@ -7,7 +7,7 @@ for experiment tracking, visualization, and collaboration.
 """
 
 # Use safe_import to make wandb an optional dependency
-from JanusAI.utils.general_utils import safe_import
+from janus_ai.utils.general_utils import safe_import
 wandb = safe_import("wandb", "wandb")
 
 from typing import Any, Dict, Optional, Union, List

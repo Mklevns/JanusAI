@@ -1,8 +1,8 @@
 import click
-from JanusAI.cli.commands.train import train
-from JanusAI.cli.commands.evaluate import evaluate
-from JanusAI.cli.commands.discover import discover
-from JanusAI.cli.commands.visualize import visualize
+from janus_ai.cli.commands.train import train
+from janus_ai.cli.commands.evaluate import evaluate
+from janus_ai.cli.commands.discover import discover
+from janus_ai.cli.commands.visualize import visualize
 
 # janus/cli/main.py
 """Main CLI interface for Janus framework."""
@@ -12,9 +12,9 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-from JanusAI.cli.commands import discover, train, evaluate, visualize, benchmark
-from JanusAI.config.loader import load_config
-from JanusAI.utils.logging import setup_logging
+from janus_ai.cli.commands import discover, train, evaluate, visualize, benchmark
+from janus_ai.config.loader import load_config
+from janus_ai.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)
 

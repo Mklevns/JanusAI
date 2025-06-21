@@ -8,8 +8,8 @@ import numpy as np
 import sympy as sp
 from unittest.mock import MagicMock, patch
 
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data
 
 
 class TestVariable:

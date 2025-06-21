@@ -13,15 +13,15 @@ from datetime import datetime, timedelta
 import threading
 from pathlib import Path
 
-from ..memory.dual_memory_system import (
+from janus_ai.memory.dual_memory_system import (
     DualMemorySystem, EpisodicMemory, SharedMemory,
     Discovery, IntermediateResult, EmbeddingGenerator
 )
-from ..memory.memory_integration import (
+from janus_ai.memory.memory_integration import (
     MemoryIntegratedEnv, MemoryAugmentedAgent,
     MemoryReplayBuffer, MemoryMetrics
 )
-from ..memory.advanced_features import (
+from janus_ai.memory.advanced_features import (
     MemoryConsolidator, MemoryVisualizer,
     MemoryExporter, ImportanceSampler
 )

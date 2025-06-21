@@ -7,23 +7,23 @@ from typing import Dict, List, Tuple, Optional, Any
 # AIBehaviorData, HypothesisNet, PPOTrainer are accessible.
 # These imports will need to be relative to their new locations.
 
-# from ...core.grammar import Expression # If Expression is in a core module
-# from ..grammars.neural_grammar import NeuralGrammar
-# from ..environments.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
-# from ...training.ppo_trainer import PPOTrainer # Assuming ppo_trainer might be structured elsewhere
-# from ...models.hypothesis_network import HypothesisNet # Assuming hypothesis_network might be structured elsewhere
+# from janus_ai.core.grammar import Expression # If Expression is in a core module
+# from janus_ai.ai_interpretability.grammars.neural_grammar import NeuralGrammar
+# from janus_ai.ai_interpretability.environments.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
+# from janus_ai.training.ppo_trainer import PPOTrainer # Assuming ppo_trainer might be structured elsewhere
+# from janus_ai.ml.networks.hypothesis_network import HypothesisNet # Assuming hypothesis_network might be structured elsewhere
 
 # TEMPORARY: Using direct/potentially adjusted imports.
 # These will be fixed in the "Adjust Imports" step.
-from JanusAI.core.grammar.expression import Expression # Updated import
-from JanusAI.ai_interpretability.grammars.neural_grammar import NeuralGrammar
-from JanusAI.environments.ai_interpretability.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
+from janus_ai.core.grammar.expression import Expression # Updated import
+from janus_ai.ai_interpretability.grammars.neural_grammar import NeuralGrammar
+from janus_ai.environments.ai_interpretability.neural_net_env import AIInterpretabilityEnv, LocalInterpretabilityEnv, AIBehaviorData
 
 # The following imports are for components that might not be part of this specific refactoring's scope
 # but were present in the original file. Their final location will determine the correct import path.
 # If they are not found, these lines will cause errors later, highlighting unresolved dependencies.
 try:
-    from JanusAI.ml.networks.hypothesis_net import HypothesisNet, PPOTrainer
+    from janus_ai.ml.networks.hypothesis_net import HypothesisNet, PPOTrainer
 except ImportError:
     # Provide dummy classes if not found, to allow rest of the file to be processed.
     # This is a temporary measure for the refactoring step.

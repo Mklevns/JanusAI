@@ -12,17 +12,23 @@ import logging
 from dataclasses import dataclass
 from collections import deque
 
-from .multi_agent_system import (
+from janus_ai.ml.multi_agent_system import (
+
     BaseScientificAgent, DynamicAgentPool, PlannerAgent,
     AgentRole, AgentConfig
 )
-from ..memory.dual_memory_system import (
+from janus_ai.memory.dual_memory_system import (
+
     DualMemorySystem, IntermediateResult, Discovery
 )
-from ..grammar.ai_grammar import AIGrammar
-from ..rewards.interpretability_reward import InterpretabilityReward
-from ..ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
-from ..environments.symbolic_discovery_env import SymbolicDiscoveryEnv
+from janus_ai.grammar.ai_grammar import AIGrammar
+
+from janus_ai.rewards.interpretability_reward import InterpretabilityReward
+
+from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
+
+from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
+
 
 
 @dataclass

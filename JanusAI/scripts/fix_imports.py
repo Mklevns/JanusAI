@@ -3,14 +3,13 @@
 fix_imports.py - A utility to correct import statements across the JanusAI project.
 
 This script scans all Python files within the project and replaces any old
-'JanusAI' import prefixes with the correct 'janus' prefix. This is necessary
-to resolve ModuleNotFoundError issues after renaming the main package directory.
+'JanusAI' import prefixes with the correct 'janus_ai' prefix. This is necessary
+to align with standard Python packaging practices where the package name in
+pyproject.toml (`janus-ai`) is normalized to `janus_ai` for imports.
 
 Usage:
 1. Run this script from the project root directory:
-   python scripts/fix_imports.py
-2. If the script ran on the 'JanusAI' directory, rename it to 'janus':
-   mv JanusAI janus
+   python JanusAI/scripts/fix_imports.py
 """
 
 import os
@@ -18,34 +17,30 @@ import os
 def fix_imports_in_project():
     """
     Walks through the project, finds all .py files, and corrects
-    'from JanusAI' or 'import JanusAI' to 'from janus' or 'import janus'.
-    This version is more robust and checks for both 'janus' and 'JanusAI' directories.
+    'from janus_ai' or 'import janus_ai' to 'from janus_ai' or 'import janus_ai'.
     """
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Assuming the script is in JanusAI/scripts/fix_imports.py
+    # project_root will be the directory containing the JanusAI directory.
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     
     # --- ENHANCED DIRECTORY CHECKING ---
-    janus_dir = os.path.join(project_root, 'janus')
+    # The source directory is JanusAI, located directly in the project_root
     janusai_dir = os.path.join(project_root, 'JanusAI')
     
     source_dir = None
-    needs_rename = False
     
-    if os.path.isdir(janus_dir):
-        source_dir = janus_dir
-        print("🔍 Found 'janus' directory. Scanning for old imports...")
-    elif os.path.isdir(janusai_dir):
+    if os.path.isdir(janusai_dir):
         source_dir = janusai_dir
-        needs_rename = True
         print("🔍 Found 'JanusAI' directory. Will fix imports inside.")
     else:
-        print(f"❌ Error: Neither 'janus' nor 'JanusAI' source directories found in the project root.")
-        print("   Please ensure you are running this script from the correct location.")
+        print(f"❌ Error: 'JanusAI' source directory not found in the project root.")
+        print("   Please ensure you are running this script from the correct location relative to the 'JanusAI' directory.")
         return
         
-    old_prefix_from = "from JanusAI"
-    new_prefix_from = "from janus"
-    old_prefix_import = "import JanusAI"
-    new_prefix_import = "import janus"
+    old_prefix_from = "from janus_ai"
+    new_prefix_from = "from janus_ai"
+    old_prefix_import = "import janus_ai"
+    new_prefix_import = "import janus_ai"
     
     files_modified = 0
     total_replacements = 0
@@ -67,13 +62,13 @@ def fix_imports_in_project():
                     
                     new_content = content
                     
-                    # Fix 'from JanusAI...' statements
+                    # Fix 'from janus_ai...' statements
                     if old_prefix_from in new_content:
                         count = new_content.count(old_prefix_from)
                         new_content = new_content.replace(old_prefix_from, new_prefix_from)
                         replacements_in_file += count
 
-                    # Fix 'import JanusAI...' statements
+                    # Fix 'import janus_ai...' statements
                     if old_prefix_import in new_content:
                         count = new_content.count(old_prefix_import)
                         new_content = new_content.replace(old_prefix_import, new_prefix_import)
@@ -97,16 +92,7 @@ def fix_imports_in_project():
         print(f"   Total files modified: {files_modified}")
         print(f"   Total imports corrected: {total_replacements}")
     else:
-        print("   No incorrect 'JanusAI' imports were found. Your project is already up to date!")
-    
-    if needs_rename:
-        print("\n" + "!"*70)
-        print("‼️ IMPORTANT NEXT STEP ‼️")
-        print("   The script has fixed the imports inside the 'JanusAI' directory.")
-        print("   You must now rename the directory for the imports to work.")
-        print("   From your project root, please run this command:")
-        print("\n      mv JanusAI janus\n")
-        print("!"*70)
+        print("   No incorrect 'JanusAI' imports were found. Your project might already be using 'janus_ai' or has no 'JanusAI' imports.")
     
     print("="*70)
 

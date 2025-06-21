@@ -7,8 +7,8 @@ import torch # Added for _attention_op, _embedding_op
 from typing import Dict, List, Tuple, Optional, Set, Any, Union # Added Union
 import logging # Added for _validate_expression
 
-from .progressive_grammar import ProgressiveGrammar
-from JanusAI.core.expressions.expression import Expression, Variable # Variable is used in _validate_expression
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar
+from janus_ai.core.expressions.expression import Expression, Variable # Variable is used in _validate_expression
 
 class AIGrammar(ProgressiveGrammar):
     """

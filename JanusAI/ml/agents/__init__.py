@@ -1,7 +1,11 @@
-from .hypothesis_generator import HypothesisGenerator
-from .integration import JanusMultiAgentFramework, MultiAgentEnvironmentWrapper
-from .iterative_refinement import IterativeRefinementLoop, JudgeAgent as RefinementJudgeAgent, IterationMetrics
-from .multi_agent_system import (
+from janus_ai.ml.hypothesis_generator import HypothesisGenerator
+
+from janus_ai.ml.integration import JanusMultiAgentFramework, MultiAgentEnvironmentWrapper
+
+from janus_ai.ml.iterative_refinement import IterativeRefinementLoop, JudgeAgent as RefinementJudgeAgent, IterationMetrics
+
+from janus_ai.ml.multi_agent_system import (
+
     BaseScientificAgent,
     DynamicAgentPool,
     # PlannerAgent, # Not found in the provided snippet of multi_agent_system.py
@@ -13,8 +17,10 @@ from .multi_agent_system import (
     ValidatorAgent as MASystemValidatorAgent,
     CriticAgent as MASystemCriticAgent
 )
-from .task_setter import TaskSetterAgent, TaskSetterConfig, TaskSetterEnv
-from .xolver_scientific_agents import (
+from janus_ai.ml.task_setter import TaskSetterAgent, TaskSetterConfig, TaskSetterEnv
+
+from janus_ai.ml.xolver_scientific_agents import (
+
     ScientificAgent as XolverScientificAgent,
     HypothesisGeneratorAgent as XolverHypothesisGeneratorAgent,
     ExperimentDesignerAgent as XolverExperimentDesignerAgent,

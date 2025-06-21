@@ -14,10 +14,12 @@ import logging
 from dataclasses import dataclass
 from collections import deque
 
-from .base_trainer import BaseTrainer
-from ..rollouts.rollout_buffer import RolloutBuffer
-from ...utils.general_utils import safe_env_reset
-from ...utils.io.checkpoint_manager import CheckpointManager
+from janus_ai.ml.base_trainer import BaseTrainer
+
+from janus_ai.rollouts.rollout_buffer import RolloutBuffer
+
+from janus_ai.utils.general_utils import safe_env_reset
+from janus_ai.utils.io.checkpoint_manager import CheckpointManager
 
 
 @dataclass

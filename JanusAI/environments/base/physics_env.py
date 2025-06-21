@@ -16,16 +16,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 
 # Import base symbolic environment
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode
 
 # Import core expression and symbolic math utilities
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
 
 # Import physics-specific utilities
-from JanusAI.physics.laws.conservation import ConservationDetector # For potential use in reward
+from janus_ai.physics.laws.conservation import ConservationDetector # For potential use in reward
 # Import PhysicsTask from the new task_distribution module
-from JanusAI.physics.data.task_distribution import PhysicsTask
+from janus_ai.physics.data.task_distribution import PhysicsTask
 
 
 class PhysicsEnvironment(SymbolicDiscoveryEnv):
@@ -71,7 +71,7 @@ class PhysicsEnvironment(SymbolicDiscoveryEnv):
             provide_tree_structure=provide_tree_structure
         )
         self.physics_task = physics_task
-        
+
         # Convert variable names from PhysicsTask into Variable objects for the environment
         # This mapping is crucial for `SymbolicDiscoveryEnv` and expression evaluation
         self.variables: List[Variable] = []
@@ -89,7 +89,7 @@ class PhysicsEnvironment(SymbolicDiscoveryEnv):
         # self.physical_constants = physics_task.physical_parameters
         # self.true_law_sympy = sp.sympify(physics_task.true_law)
         # self.true_law_str = physics_task.true_law
-        
+
         # Initialize ConservationDetector if rewards use it
         self.conservation_detector = ConservationDetector()
 
@@ -103,7 +103,7 @@ class PhysicsEnvironment(SymbolicDiscoveryEnv):
         # `n_samples` should be based on `self.num_steps` if that's still relevant, or a default.
         # Let's generate 1000 samples for the episode's data.
         episode_data_matrix = self.physics_task.generate_data(n_samples=1000, add_noise=self.physics_task.noise_level > 0)
-        
+
         # Update the target_data in the SymbolicDiscoveryEnv base class.
         # Assumes the last column of the generated data is the target (dependent variable).
         # This convention needs to be consistent with how `PhysicsTask` lists `variables`.
@@ -111,7 +111,7 @@ class PhysicsEnvironment(SymbolicDiscoveryEnv):
 
         # The initial observation for the agent (e.g., encoded blank tree, or initial state)
         # The base `SymbolicDiscoveryEnv.reset` will handle the initial observation.
-        
+
         # Pass relevant physics-specific info to the info dict
         info = {
             'trajectory_data': {}, # Will be populated from episode_data_matrix
@@ -209,7 +209,7 @@ if __name__ == "__main__":
             truncated = False
             info = {}
             # Mock expression in info
-            info['expression'] = "x_0 + 1" 
+            info['expression'] = "x_0 + 1"
             info['complexity'] = 5
             return next_obs, reward, done, truncated, info
 
@@ -264,4 +264,3 @@ if __name__ == "__main__":
 
     # Clean up mock
     del sys.modules['janus.environments.base.symbolic_env'].SymbolicDiscoveryEnv
-

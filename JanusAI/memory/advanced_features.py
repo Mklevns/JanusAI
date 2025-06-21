@@ -18,7 +18,8 @@ from sklearn.cluster import DBSCAN
 import zipfile
 import io
 
-from .dual_memory_system import (
+from janus_ai.dual_memory_system import (
+
     DualMemorySystem, Discovery, IntermediateResult,
     EpisodicMemory, SharedMemory, EmbeddingGenerator
 )

@@ -10,19 +10,26 @@ from datetime import datetime
 import logging
 
 # Import Janus components
-from ..memory.dual_memory_system import (
+from janus_ai.memory.dual_memory_system import (
+
     DualMemorySystem, Discovery, IntermediateResult,
     EmbeddingGenerator
 )
-from ..memory.memory_integration import (
+from janus_ai.memory.memory_integration import (
+
     MemoryIntegratedEnv, MemoryAugmentedAgent,
     MemoryReplayBuffer, MemoryMetrics
 )
-from ..ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
-from ..ml.networks.policy_networks import TransformerPolicy
-from ..environments.symbolic_discovery_env import SymbolicDiscoveryEnv
-from ..grammar.ai_grammar import AIGrammar
-from ..rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
+
+from janus_ai.ml.networks.policy_networks import TransformerPolicy
+
+from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
+
+from janus_ai.grammar.ai_grammar import AIGrammar
+
+from janus_ai.rewards.interpretability_reward import InterpretabilityReward
+
 
 
 # Configure logging

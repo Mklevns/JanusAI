@@ -25,7 +25,8 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 # Import data structures from schemas module
-from .schemas import AgentRole, MessageType, Discovery, Message
+from janus_ai.schemas import AgentRole, MessageType, Discovery, Message
+
 
 # Configure logging
 logger = logging.getLogger(__name__)

@@ -12,13 +12,13 @@ from dataclasses import dataclass
 import json
 
 # Import Janus components
-from ..ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
-from ..ml.training.discovery_self_play import DiscoverySelfPlaySystem, NeuralDiscoveryAgent
-from ..ml.training.advanced_meta_learning import MetaLearner, AdvancedMetaTrainer
-from ..environments.hierarchical_discovery_env import HierarchicalDiscoveryEnv
-from ..ml.agents.xolver_scientific_agents import XolverScientificDiscoverySystem
-from ..grammar.ai_grammar import AIGrammar
-from ..rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
+from janus_ai.ml.training.discovery_self_play import DiscoverySelfPlaySystem, NeuralDiscoveryAgent
+from janus_ai.ml.training.advanced_meta_learning import MetaLearner, AdvancedMetaTrainer
+from janus_ai.environments.hierarchical_discovery_env import HierarchicalDiscoveryEnv
+from janus_ai.ml.agents.xolver_scientific_agents import XolverScientificDiscoverySystem
+from janus_ai.core.grammar.ai_grammar import AIGrammar # Adjusted path
+from janus_ai.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward # Adjusted path
 
 
 class XolverEnhancedJanusPipeline:
@@ -63,7 +63,7 @@ class XolverEnhancedJanusPipeline:
         )
         
         # Base policy network (shared across agents)
-        from ..ml.networks.policy_networks import TransformerPolicy
+        from janus_ai.ml.networks.policy_networks import TransformerPolicy
         
         self.base_policy = TransformerPolicy(
             obs_dim=256,  # Larger for richer representations
@@ -93,7 +93,7 @@ class XolverEnhancedJanusPipeline:
         
         # Meta-learner for rapid adaptation
         if self.enable_meta_learning:
-            from ..ml.training.advanced_meta_learning import MetaLearningConfig
+            from janus_ai.ml.training.advanced_meta_learning import MetaLearningConfig
             
             meta_config = MetaLearningConfig(
                 learn_inner_lr=True,
@@ -187,7 +187,7 @@ class XolverEnhancedJanusPipeline:
     def _meta_learning_warmup(self, domain: str, num_steps: int):
         """Warm up with meta-learning on synthetic tasks"""
         
-        from ..ml.training.advanced_meta_learning import ScientificTaskDistribution
+        from janus_ai.ml.training.advanced_meta_learning import ScientificTaskDistribution
         
         task_distribution = ScientificTaskDistribution(
             domains=[domain],

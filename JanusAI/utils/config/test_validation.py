@@ -8,7 +8,7 @@ import pytest
 from typing import List, Dict, Optional, Union, Any
 import numpy as np
 
-from JanusAI.utils.config.validation import validate_inputs
+from janus_ai.utils.config.validation import validate_inputs
 
 
 class TestValidateInputsDecorator:

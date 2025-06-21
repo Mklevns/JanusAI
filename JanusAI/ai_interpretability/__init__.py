@@ -12,22 +12,22 @@ VERSION = "0.1.0" # Example version
 # For symbols within the ai_interpretability package, relative imports are fine.
 # For symbols outside, absolute imports are used.
 
-from JanusAI.ai_interpretability.grammars import NeuralGrammar
-from JanusAI.environments.ai_interpretability.neural_net_env import (
+from janus_ai.ai_interpretability.grammars import NeuralGrammar
+from janus_ai.environments.ai_interpretability.neural_net_env import (
     AIBehaviorData,
     AIInterpretabilityEnv,
     LocalInterpretabilityEnv,
     SymbolicDiscoveryEnv,
     AIDiscoveryEnv
 )
-from JanusAI.environments.ai_interpretability.transformer_env import TransformerInterpretabilityEnv # Assuming it's here
-from JanusAI.ai_interpretability.rewards import InterpretabilityReward, FidelityRewardCalculator
-from JanusAI.ai_interpretability.interpreters import AILawDiscovery
-from JanusAI.ai_interpretability.symbolic.expression_parser import ExpressionParser
-from JanusAI.environments.ai_interpretability.model_hooks import ModelHookManager, register_hooks_for_layers
-from JanusAI.utils.visualization.plotting import ExperimentVisualizer
+from janus_ai.environments.ai_interpretability.transformer_env import TransformerInterpretabilityEnv # Assuming it's here
+from janus_ai.ai_interpretability.rewards import InterpretabilityReward, FidelityRewardCalculator
+from janus_ai.ai_interpretability.interpreters import AILawDiscovery
+from janus_ai.ai_interpretability.symbolic.expression_parser import ExpressionParser
+from janus_ai.environments.ai_interpretability.model_hooks import ModelHookManager, register_hooks_for_layers
+from janus_ai.utils.visualization.plotting import ExperimentVisualizer
 # 'math_utils' was too vague and its previous import '.utils' was incorrect.
-# Users should import specific math utilities directly from JanusAI.utils.math
+# Users should import specific math utilities directly from janus_ai.utils.math
 
 __all__ = [
     "NeuralGrammar",

@@ -19,10 +19,10 @@ from collections import deque
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
 
-from JanusAI.ml.agents.task_setter import TaskSetterAgent, TaskSetterConfig
-from JanusAI.ml.training.meta_trainer import MAMLTrainer, MetaLearningConfig
-from JanusAI.physics.data.dynamic_task_distribution import DynamicPhysicsTaskDistribution
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.ml.agents.task_setter import TaskSetterAgent, TaskSetterConfig
+from janus_ai.ml.training.meta_trainer import MAMLTrainer, MetaLearningConfig
+from janus_ai.physics.data.dynamic_task_distribution import DynamicPhysicsTaskDistribution
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
 
 
 @dataclass

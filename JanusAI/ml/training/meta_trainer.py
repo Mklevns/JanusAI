@@ -14,12 +14,12 @@ import sympy as sp
 from pathlib import Path
 
 # Updated imports based on the new structure
-from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from JanusAI.ml.networks.hypothesis_net import HypothesisNet
-from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
-from JanusAI.core.expressions.expression import Variable
-from JanusAI.utils.math.operations import calculate_symbolic_accuracy
-from JanusAI.environments.base.symbolic_env import safe_env_reset
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.ml.networks.hypothesis_net import HypothesisNet
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
+from janus_ai.core.expressions.expression import Variable
+from janus_ai.utils.math.operations import calculate_symbolic_accuracy
+from janus_ai.environments.base.symbolic_env import safe_env_reset
 
 # Conditional imports based on the original file's structure and the new one
 try:
@@ -35,7 +35,7 @@ except ImportError:
     print("Warning: feedback_integration module not found, intrinsic rewards disabled")
     add_intrinsic_rewards_to_env = None
 
-from JanusAI.physics.data.generators import PhysicsTaskDistribution, PhysicsTask
+from janus_ai.physics.data.generators import PhysicsTaskDistribution, PhysicsTask
 
 
 @dataclass
@@ -45,50 +45,50 @@ class MetaLearningConfig:
     meta_lr: float = 0.0003
     adaptation_lr: float = 0.01
     adaptation_steps: int = 5
-    
+
     # Task sampling
     tasks_per_batch: int = 10
     support_episodes: int = 10
     query_episodes: int = 10
-    
+
     # Environment parameters
     max_episode_steps: int = 50
     max_tree_depth: int = 7
     max_complexity: int = 20
-    
+
     # Training parameters
     meta_iterations: int = 1000
     checkpoint_interval: int = 50
     eval_interval: int = 25
-    
+
     # Reward configuration
     use_intrinsic_rewards: bool = True
     intrinsic_weight: float = 0.2
-    
+
     # Logging
     log_dir: str = "./meta_learning_logs"
     checkpoint_dir: str = "./meta_learning_checkpoints"
-    
+
     # Device
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
 
 class MetaLearningPolicy(nn.Module):
     """Enhanced HypothesisNet with meta-learning capabilities"""
-    
-    def __init__(self, 
+
+    def __init__(self,
                  observation_dim: int,
                  action_dim: int,
                  hidden_dim: int = 256,
                  n_layers: int = 3,
                  use_task_embedding: bool = True):
         super().__init__()
-        
+
         self.observation_dim = observation_dim
         self.action_dim = action_dim
         self.hidden_dim = hidden_dim
         self.use_task_embedding = use_task_embedding
-        
+
         # Task encoder for conditioning
         if use_task_embedding:
             self.task_encoder = nn.LSTM(
@@ -97,66 +97,66 @@ class MetaLearningPolicy(nn.Module):
                 batch_first=True,
                 bidirectional=True
             )
-            
+
             # Task modulation network
             self.task_modulator = nn.Sequential(
                 nn.Linear(hidden_dim, hidden_dim),
                 nn.ReLU(),
                 nn.Linear(hidden_dim, hidden_dim * 2)  # Gains and biases
             )
-        
+
         # Main policy network (modulated by task)
         layers = []
         input_dim = observation_dim
-        
+
         for i in range(n_layers):
             layers.append(nn.Linear(input_dim, hidden_dim))
             layers.append(nn.ReLU())
             layers.append(nn.LayerNorm(hidden_dim))
             input_dim = hidden_dim
-        
+
         self.feature_extractor = nn.ModuleList(layers)
-        
+
         # Heads for actor-critic
         self.policy_head = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(hidden_dim // 2, action_dim)
         )
-        
+
         self.value_head = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(hidden_dim // 2, 1)
         )
-        
+
         # Physics-aware heads
         self.symmetry_detector = nn.Linear(hidden_dim, 10)  # Common symmetries
         self.conservation_predictor = nn.Linear(hidden_dim, 5)  # Conservation laws
-        
+
         # Initialize weights
         self.apply(self._init_weights)
-        
+
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
             nn.init.orthogonal_(module.weight, gain=np.sqrt(2))
             nn.init.constant_(module.bias, 0.0)
-    
-    def forward(self, 
+
+    def forward(self,
               obs: torch.Tensor,
               task_embedding: Optional[torch.Tensor] = None,
               action_mask: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         """Forward pass with optional task conditioning"""
-        
+
         # Get task modulation if available
         if self.use_task_embedding and task_embedding is not None:
             # Encode task context
             if len(task_embedding.shape) == 2:
                 task_embedding = task_embedding.unsqueeze(0)
-            
+
             _, (hidden, _) = self.task_encoder(task_embedding)
             task_features = hidden.transpose(0, 1).reshape(hidden.shape[1], -1)
-            
+
             # Get modulation parameters
             modulation = self.task_modulator(task_features)
             gains, biases = modulation.chunk(2, dim=-1)
@@ -164,7 +164,7 @@ class MetaLearningPolicy(nn.Module):
         else:
             gains = 1.0
             biases = 0.0
-        
+
         # Extract features with modulation
         x = obs
         for i, layer in enumerate(self.feature_extractor):
@@ -173,9 +173,9 @@ class MetaLearningPolicy(nn.Module):
             if isinstance(layer, nn.ReLU) and i < len(self.feature_extractor) - 1:
                 if isinstance(gains, torch.Tensor):
                     x = x * gains + biases
-        
+
         features = x
-        
+
         # Compute outputs
         policy_logits = self.policy_head(features)
 
@@ -205,11 +205,11 @@ class MetaLearningPolicy(nn.Module):
             policy_logits[~action_mask] = float('-inf')
 
         value = self.value_head(features)
-        
+
         # Physics predictions (return raw logits)
         symmetry_logits = self.symmetry_detector(features)
         conservation_logits = self.conservation_predictor(features)
-        
+
         return {
             'policy_logits': policy_logits,
             'value': value,
@@ -217,7 +217,7 @@ class MetaLearningPolicy(nn.Module):
             'conservations_logits': conservation_logits,
             'features': features
         }
-    
+
     def act(self, obs: torch.Tensor, task_embedding: Optional[torch.Tensor] = None, action_mask: Optional[torch.Tensor] = None) -> Tuple[int, Dict]:
         """Select action using current policy"""
         with torch.no_grad():
@@ -225,7 +225,7 @@ class MetaLearningPolicy(nn.Module):
                 obs = obs.unsqueeze(0)
 
             outputs = self.forward(obs, task_embedding, action_mask)
-            
+
             probs = F.softmax(outputs['policy_logits'], dim=-1)
 
             if torch.any(torch.isnan(probs)) or torch.any(torch.isinf(probs)):
@@ -253,7 +253,7 @@ class MetaLearningPolicy(nn.Module):
 
             dist = torch.distributions.Categorical(probs)
             action = dist.sample()
-            
+
             return action.item(), {
                 'log_prob': dist.log_prob(action).item(),
                 'value': outputs['value'].item(),
@@ -263,39 +263,39 @@ class MetaLearningPolicy(nn.Module):
 
 class TaskEnvironmentBuilder:
     """Builds SymbolicDiscoveryEnv from PhysicsTask"""
-    
+
     def __init__(self, config: MetaLearningConfig):
         self.config = config
         if EnhancedObservationEncoder is None:
             print("Warning: EnhancedObservationEncoder is not available.")
         self.observation_encoder = EnhancedObservationEncoder()
-        
+
     def build_env(self, task: PhysicsTask, max_action_space: Optional[int] = None) -> SymbolicDiscoveryEnv:
         """Create environment for specific physics task"""
-        
+
         data = task.generate_data(1000, noise=True)
-        
+
         variables = []
         for i, var_name in enumerate(task.variables[:-1]):
             var_properties = {}
-            
+
             if var_name in task.physical_parameters:
                 var_properties['is_constant'] = True
                 var_properties['value'] = task.physical_parameters[var_name]
-            
+
             variables.append(Variable(var_name, i, var_properties))
-        
+
         grammar = self._create_task_grammar(task)
-        
+
         reward_config = {
             'mse_weight': -1.0,
             'complexity_penalty': -0.005,
             'parsimony_bonus': 0.1,
         }
-        
+
         if task.symmetries and "none" not in task.symmetries:
             reward_config['symmetry_bonus'] = 0.2
-        
+
         # Determine X_data and y_data from the combined 'data'
         # Assuming the last column of 'data' is the target (y_data)
         # and the rest are features (X_data).
@@ -336,7 +336,7 @@ class TaskEnvironmentBuilder:
             reward_config=reward_config,
             action_space_size=max_action_space
         )
-        
+
         if not hasattr(env, 'get_action_mask'):
             def get_action_mask(self_env):
                 if hasattr(self_env, 'current_state') and hasattr(self_env.current_state, 'get_valid_actions'):
@@ -356,7 +356,7 @@ class TaskEnvironmentBuilder:
                 print(f"Warning: Could not add intrinsic rewards: {e}")
         elif self.config.use_intrinsic_rewards and add_intrinsic_rewards_to_env is None:
             print("Warning: Intrinsic rewards enabled in config, but feedback_integration module not found. Skipping.")
-        
+
         env.task_info = {
             'name': task.name,
             'true_law': task.true_law,
@@ -364,88 +364,88 @@ class TaskEnvironmentBuilder:
             'difficulty': task.difficulty,
             'symmetries': task.symmetries
         }
-        
+
         return env
-    
+
     def _create_task_grammar(self, task: PhysicsTask) -> ProgressiveGrammar:
         """Create grammar with operators appropriate for task"""
         grammar = ProgressiveGrammar(load_defaults=True)
-        
+
         if task.domain == "mechanics":
             grammar.add_operators(['**2', 'sqrt'])
             if "pendulum" in task.name:
                 grammar.add_operators(['sin', 'cos'])
-                
+
         elif task.domain == "thermodynamics":
             grammar.add_operators(['log', 'exp', '**'])
-            
+
         elif task.domain == "electromagnetism":
             grammar.add_operators(['**2', '1/'])
-        
+
         if "**" in task.true_law:
             grammar.add_operators(['**'])
-        
+
         return grammar
 
 
 class MAMLTrainer:
     """Main MAML training logic for physics discovery"""
-    
-    def __init__(self, 
+
+    def __init__(self,
                  config: MetaLearningConfig,
                  policy: MetaLearningPolicy,
                  task_distribution: PhysicsTaskDistribution):
-        
+
         self.config = config
         self.policy = policy.to(config.device)
         self.task_distribution = task_distribution
         self.env_builder = TaskEnvironmentBuilder(config)
-        
+
         self.meta_optimizer = torch.optim.Adam(
-            self.policy.parameters(), 
+            self.policy.parameters(),
             lr=config.meta_lr
         )
-        
+
         self.writer = SummaryWriter(config.log_dir)
         self.iteration = 0
-        
+
         self.meta_losses = []
         self.task_metrics = defaultdict(list)
         self.discovered_laws = defaultdict(list)
-        
+
         Path(config.checkpoint_dir).mkdir(parents=True, exist_ok=True)
-        
+
     def meta_train_step(self) -> Dict[str, float]:
         """Single meta-training step across multiple tasks"""
-        
+
         meta_loss = 0
         meta_metrics = defaultdict(float)
-        
+
         tasks = self.task_distribution.sample_task_batch(
             self.config.tasks_per_batch,
             curriculum=True
         )
-        
+
         task_gradients = []
-        
+
         for task_idx, task in enumerate(tasks):
             env = self.env_builder.build_env(task, max_action_space=self.policy.action_dim)
-            
+
             adapted_policy = self._clone_policy()
             inner_optimizer = torch.optim.SGD(
-                adapted_policy.parameters(), 
+                adapted_policy.parameters(),
                 lr=self.config.adaptation_lr
             )
-            
+
             support_trajectories = self._collect_trajectories(
                 self.policy,
                 env,
                 n_episodes=self.config.support_episodes,
                 task_context=None
             )
-            
+
             task_embedding = self._compute_task_embedding(support_trajectories)
-            
+
             for adapt_step in range(self.config.adaptation_steps):
                 support_loss = self._compute_trajectory_loss(
                     adapted_policy,
@@ -453,34 +453,34 @@ class MAMLTrainer:
                     task_embedding,
                     task
                 )
-                
+
                 inner_optimizer.zero_grad()
                 support_loss.backward()
                 inner_optimizer.step()
-            
+
             query_trajectories = self._collect_trajectories(
                 adapted_policy,
                 env,
                 n_episodes=self.config.query_episodes,
                 task_context=task_embedding
             )
-            
+
             query_loss = self._compute_trajectory_loss(
                 adapted_policy,
                 query_trajectories,
                 task_embedding,
                 task
             )
-            
+
             task_metrics = self._compute_task_metrics(
                 query_trajectories,
                 task,
                 adapted_policy
             )
-            
+
             for key, value in task_metrics.items():
                 meta_metrics[key] += value / self.config.tasks_per_batch
-            
+
             task_grad = torch.autograd.grad(
                 query_loss,
                 self.policy.parameters(),
@@ -488,43 +488,43 @@ class MAMLTrainer:
                 allow_unused=True
             )
             task_gradients.append(task_grad)
-            
+
             self._log_task_performance(task, task_metrics, task_idx)
-            
+
             meta_loss += query_loss
-        
+
         self.meta_optimizer.zero_grad()
-        
+
         for param_idx, param in enumerate(self.policy.parameters()):
             valid_grads = [g[param_idx] for g in task_gradients if g is not None and g[param_idx] is not None]
             if valid_grads:
                 param.grad = sum(valid_grads) / len(valid_grads)
-        
+
         torch.nn.utils.clip_grad_norm_(self.policy.parameters(), 1.0)
-        
+
         self.meta_optimizer.step()
-        
+
         avg_meta_loss = meta_loss.item() / self.config.tasks_per_batch
         self.meta_losses.append(avg_meta_loss)
         meta_metrics['meta_loss'] = avg_meta_loss
-        
+
         return meta_metrics
-    
+
     def _clone_policy(self) -> MetaLearningPolicy:
         """Create a functional clone of the policy for adaptation"""
         cloned = copy.deepcopy(self.policy)
         cloned.load_state_dict(self.policy.state_dict())
         return cloned
-    
+
     def _collect_trajectories(self,
                             policy: MetaLearningPolicy,
                             env: SymbolicDiscoveryEnv,
                             n_episodes: int,
                             task_context: Optional[torch.Tensor] = None) -> List[Dict]:
         """Collect trajectories using given policy"""
-        
+
         trajectories = []
-        
+
         for episode in range(n_episodes):
             obs, _ = safe_env_reset(env)
             trajectory = {
@@ -536,19 +536,19 @@ class MAMLTrainer:
                 'dones': [],
                 'infos': []
             }
-            
+
             episode_reward = 0
-            
+
             for step in range(self.config.max_episode_steps):
                 obs_tensor = torch.FloatTensor(obs).to(self.config.device)
 
                 action_mask_np = env.get_action_mask()
                 action_mask = torch.BoolTensor(action_mask_np).to(self.config.device)
-                
+
                 action, action_info = policy.act(obs_tensor, task_context, action_mask)
-                
+
                 next_obs, reward, done, truncated, info = env.step(action)
-                
+
                 trajectory['observations'].append(obs)
                 trajectory['actions'].append(action)
                 trajectory['rewards'].append(reward)
@@ -556,24 +556,24 @@ class MAMLTrainer:
                 trajectory['values'].append(action_info['value'])
                 trajectory['dones'].append(done or truncated)
                 trajectory['infos'].append(info)
-                
+
                 episode_reward += reward
                 obs = next_obs
-                
+
                 if done or truncated:
                     break
-            
+
             trajectory['episode_reward'] = episode_reward
             trajectory['episode_length'] = len(trajectory['actions'])
-            
+
             if trajectory['infos'] and 'expression' in trajectory['infos'][-1]:
                 trajectory['discovered_expression'] = trajectory['infos'][-1]['expression']
                 trajectory['discovery_mse'] = trajectory['infos'][-1].get('mse', float('inf'))
-            
+
             trajectories.append(trajectory)
-        
+
         return trajectories
-    
+
     def _compute_task_embedding(self, trajectories: List[Dict]) -> torch.Tensor:
         """
         Computes the task context by collecting all observations from support trajectories.
@@ -589,23 +589,23 @@ class MAMLTrainer:
             return torch.zeros((1, obs_dim), device=self.config.device)
 
         return torch.FloatTensor(all_obs).to(self.config.device)
-    
+
     def _compute_trajectory_loss(self,
                                 policy: MetaLearningPolicy,
                                 trajectories: List[Dict],
                                 task_embedding: torch.Tensor,
                                 task: PhysicsTask) -> torch.Tensor:
         """Compute policy gradient loss for trajectories"""
-        
+
         total_loss = 0
-        
+
         for traj in trajectories:
             obs = torch.FloatTensor(traj['observations']).to(self.config.device)
             actions = torch.LongTensor(traj['actions']).to(self.config.device)
             rewards = torch.FloatTensor(traj['rewards']).to(self.config.device)
-            
+
             outputs = policy(obs, task_embedding)
-            
+
             log_probs = F.log_softmax(outputs['policy_logits'], dim=-1)
 
             if actions.dim() == 1:
@@ -617,16 +617,16 @@ class MAMLTrainer:
             actions_clamped = torch.clamp(actions_expanded, 0, num_actions_from_logits - 1)
 
             selected_log_probs = log_probs.gather(1, actions_clamped).squeeze(-1)
-            
+
             returns = self._compute_returns(rewards)
             advantages = returns - outputs['value'].squeeze()
-            
+
             policy_loss = -(selected_log_probs * advantages.detach()).mean()
-            
+
             value_loss = F.mse_loss(outputs['value'].squeeze(), returns)
-            
+
             entropy = -(log_probs * log_probs.exp()).sum(dim=-1).mean()
-            
+
             physics_loss = 0
             if task.symmetries and "none" not in task.symmetries:
                 symmetry_targets = self._create_symmetry_targets(task.symmetries)
@@ -635,31 +635,31 @@ class MAMLTrainer:
                     outputs['symmetries_logits'].mean(0),
                     symmetry_targets.to(self.config.device)
                 )
-            
+
             traj_loss = (
-                policy_loss + 
-                0.5 * value_loss - 
+                policy_loss +
+                0.5 * value_loss -
                 0.01 * entropy +
                 0.1 * physics_loss
             )
-            
+
             total_loss += traj_loss
-        
+
         return total_loss / len(trajectories)
-    
+
     def _compute_returns(self, rewards: torch.Tensor, gamma: float = 0.99) -> torch.Tensor:
         """Compute discounted returns"""
         returns = torch.zeros_like(rewards)
         running_return = 0
-        
+
         for t in reversed(range(len(rewards))):
             running_return = rewards[t] + gamma * running_return
             returns[t] = running_return
-            
+
         returns = (returns - returns.mean()) / (returns.std() + 1e-8)
-        
+
         return returns
-    
+
     def _create_symmetry_targets(self, symmetries: List[str]) -> torch.Tensor:
         """Create binary targets for symmetry detection"""
         symmetry_types = [
@@ -668,20 +668,20 @@ class MAMLTrainer:
             'energy_conservation', 'momentum_conservation',
             'angular_momentum_conservation', 'none'
         ]
-        
+
         targets = torch.zeros(len(symmetry_types))
         for i, sym_type in enumerate(symmetry_types):
             if sym_type in symmetries:
                 targets[i] = 1.0
-                
+
         return targets
-    
+
     def _compute_task_metrics(self,
                             trajectories: List[Dict],
                             task: PhysicsTask,
                             policy: MetaLearningPolicy) -> Dict[str, float]:
         """Compute task-specific metrics"""
-        
+
         metrics = {
             'discovery_rate': 0,
             'avg_episode_reward': 0,
@@ -689,36 +689,36 @@ class MAMLTrainer:
             'best_mse': float('inf'),
             'correct_discovery': 0
         }
-        
+
         discoveries = []
-        
+
         for traj in trajectories:
             metrics['avg_episode_reward'] += traj['episode_reward']
             metrics['avg_episode_length'] += traj['episode_length']
-            
+
             if 'discovered_expression' in traj:
                 expr = traj['discovered_expression']
                 mse = traj['discovery_mse']
-                
+
                 discoveries.append(expr)
                 metrics['discovery_rate'] += 1
                 metrics['best_mse'] = min(metrics['best_mse'], mse)
-                
+
                 if self._expression_matches(expr, task.true_law):
                     metrics['correct_discovery'] += 1
-        
+
         n_traj = len(trajectories)
         metrics['discovery_rate'] /= n_traj
         metrics['avg_episode_reward'] /= n_traj
         metrics['avg_episode_length'] /= n_traj
         metrics['correct_discovery'] /= n_traj
-        
+
         metrics['unique_discoveries'] = len(set(discoveries))
-        
+
         self.discovered_laws[task.name].extend(discoveries)
-        
+
         return metrics
-    
+
     def _expression_matches(self, expr: str, target: str, tol: float = 0.01) -> bool:
         """Check if discovered expression matches target using symbolic accuracy."""
         if not expr or not target:
@@ -733,47 +733,47 @@ class MAMLTrainer:
         except (sp.SympifyError, TypeError) as e:
             print(f"Error sympifying target expression: {target}. Error: {e}")
             return False
-    
-    def _log_task_performance(self, 
+
+    def _log_task_performance(self,
                             task: PhysicsTask,
                             metrics: Dict[str, float],
                             task_idx: int):
         """Log individual task performance"""
-        
+
         prefix = f"task_{task_idx}_{task.name}"
-        
+
         for key, value in metrics.items():
             self.writer.add_scalar(f"{prefix}/{key}", value, self.iteration)
-        
+
         self.writer.add_scalar(f"{prefix}/difficulty", task.difficulty, self.iteration)
-    
+
     def evaluate_on_new_tasks(self, n_tasks: int = 10) -> Dict[str, float]:
         """Evaluate meta-learned policy on unseen tasks"""
-        
+
         eval_metrics = defaultdict(list)
-        
+
         eval_tasks = self.task_distribution.sample_task_batch(
             n_tasks,
             curriculum=False
         )
-        
+
         for task in tqdm(eval_tasks, desc="Evaluating"):
             env = self.env_builder.build_env(task, max_action_space=self.policy.action_dim)
-            
+
             adapted_policy = self._clone_policy()
             inner_optimizer = torch.optim.SGD(
                 adapted_policy.parameters(),
                 lr=self.config.adaptation_lr
             )
-            
+
             adapt_trajectories = self._collect_trajectories(
                 self.policy,
                 env,
                 n_episodes=self.config.support_episodes
             )
-            
+
             task_embedding = self._compute_task_embedding(adapt_trajectories)
-            
+
             for _ in range(self.config.adaptation_steps):
                 loss = self._compute_trajectory_loss(
                     adapted_policy,
@@ -781,42 +781,42 @@ class MAMLTrainer:
                     task_embedding,
                     task
                 )
-                
+
                 inner_optimizer.zero_grad()
                 loss.backward()
                 inner_optimizer.step()
-            
+
             test_trajectories = self._collect_trajectories(
                 adapted_policy,
                 env,
                 n_episodes=20,
                 task_context=task_embedding
             )
-            
+
             task_metrics = self._compute_task_metrics(
                 test_trajectories,
                 task,
                 adapted_policy
             )
-            
+
             for key, value in task_metrics.items():
                 eval_metrics[key].append(value)
             eval_metrics['task_difficulty'].append(task.difficulty)
             eval_metrics['task_domain'].append(task.domain)
-        
+
         aggregated = {}
         for key, values in eval_metrics.items():
             if key != 'task_domain':
                 aggregated[f"eval/{key}_mean"] = np.mean(values)
                 aggregated[f"eval/{key}_std"] = np.std(values)
-        
+
         return aggregated
-    
+
     def save_checkpoint(self, path: Optional[str] = None):
         """Save training checkpoint"""
         if path is None:
             path = f"{self.config.checkpoint_dir}/checkpoint_{self.iteration}.pt"
-        
+
         torch.save({
             'iteration': self.iteration,
             'policy_state_dict': self.policy.state_dict(),
@@ -825,37 +825,37 @@ class MAMLTrainer:
             'discovered_laws': dict(self.discovered_laws),
             'config': self.config
         }, path)
-    
+
     def load_checkpoint(self, path: str):
         """Load training checkpoint"""
         checkpoint = torch.load(path)
-        
+
         self.iteration = checkpoint['iteration']
         self.policy.load_state_dict(checkpoint['policy_state_dict'])
         self.meta_optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         self.meta_losses = checkpoint['meta_losses']
         self.discovered_laws = defaultdict(list, checkpoint['discovered_laws'])
-    
+
     def train(self):
         """Main training loop"""
-        
+
         print(f"Starting MAML training for {self.config.meta_iterations} iterations")
         print(f"Tasks per batch: {self.config.tasks_per_batch}")
         print(f"Support episodes: {self.config.support_episodes}")
         print(f"Query episodes: {self.config.query_episodes}")
         print("-" * 50)
-        
+
         for iteration in range(self.config.meta_iterations):
             self.iteration = iteration
-            
+
             start_time = time.time()
             meta_metrics = self.meta_train_step()
             step_time = time.time() - start_time
-            
+
             for key, value in meta_metrics.items():
                 self.writer.add_scalar(f"train/{key}", value, iteration)
             self.writer.add_scalar("train/step_time", step_time, iteration)
-            
+
             if iteration % 10 == 0:
                 print(f"\nIteration {iteration}/{self.config.meta_iterations}")
                 print(f"  Meta loss: {meta_metrics['meta_loss']:.4f}")
@@ -863,32 +863,32 @@ class MAMLTrainer:
                 print(f"  Correct discoveries: {meta_metrics['correct_discovery']:.3f}")
                 print(f"  Unique discoveries: {meta_metrics['unique_discoveries']:.1f}")
                 print(f"  Step time: {step_time:.2f}s")
-            
+
             if iteration % self.config.eval_interval == 0 and iteration > 0:
                 print("\nEvaluating on new tasks...")
                 eval_metrics = self.evaluate_on_new_tasks()
-                
+
                 for key, value in eval_metrics.items():
                     self.writer.add_scalar(key, value, iteration)
-                
+
                 print(f"  Eval discovery rate: {eval_metrics['eval/discovery_rate_mean']:.3f} ± {eval_metrics['eval/discovery_rate_std']:.3f}")
                 print(f"  Eval correct rate: {eval_metrics['eval/correct_discovery_mean']:.3f} ± {eval_metrics['eval/correct_discovery_std']:.3f}")
-            
+
             if iteration % self.config.checkpoint_interval == 0 and iteration > 0:
                 self.save_checkpoint()
                 print(f"  Saved checkpoint at iteration {iteration}")
-            
+
             if iteration % 50 == 0:
                 self._log_discovered_laws()
-        
+
         print("\nTraining complete!")
         self.save_checkpoint(f"{self.config.checkpoint_dir}/final_checkpoint.pt")
-        
+
     def _log_discovered_laws(self):
         """Log summary of discovered laws"""
         print("\nDiscovered Laws Summary:")
         print("-" * 50)
-        
+
         for task_name, discoveries in self.discovered_laws.items():
             if discoveries:
                 unique_discoveries = list(set(discoveries))

@@ -11,11 +11,11 @@ import torch
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
-from JanusAI.environments.ai_interpretability.neural_net_env import (
+from janus_ai.environments.ai_interpretability.neural_net_env import (
     AIInterpretabilityEnv, AIBehaviorData
 )
-from JanusAI.core.expressions.expression import Variable
-from JanusAI.ai_interpretability.grammars.transformer_grammar import TransformerGrammar
+from janus_ai.core.expressions.expression import Variable
+from janus_ai.ai_interpretability.grammars.transformer_grammar import TransformerGrammar
 
 
 @dataclass

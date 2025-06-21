@@ -11,13 +11,13 @@ from typing import Dict, Type, Any, Optional, Callable
 import inspect
 from functools import partial
 
-from JanusAI.ml.rewards.base_reward import BaseReward
-from JanusAI.ml.rewards.intrinsic_rewards import (
+from janus_ai.ml.rewards.base_reward import BaseReward
+from janus_ai.ml.rewards.intrinsic_rewards import (
     NoveltyReward,
     ComplexityReward,
     ConservationLawReward
 )
-from JanusAI.ml.rewards.interpretability_reward import InterpretabilityReward
+from janus_ai.ml.rewards.interpretability_reward import InterpretabilityReward
 
 
 # Global registry for reward components

@@ -12,18 +12,18 @@ to maintain backward compatibility.
 import warnings
 
 # Re-export classes from their new locations
-from .cfg import CFGRule, ContextFreeGrammar
-from .denoiser import NoisyObservationProcessor
-from .progressive_grammar import ProgressiveGrammar
-from .ai_grammar import AIGrammar
+from janus_ai.core.grammar.cfg import CFGRule, ContextFreeGrammar
+from janus_ai.core.grammar.denoiser import NoisyObservationProcessor
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar
+from janus_ai.core.grammar.ai_grammar import AIGrammar
 
 # It's also common to re-export key components from sibling modules if they were
 # previously accessible via this base module, e.g., Expression and Variable.
 # Assuming Expression and Variable were commonly imported alongside grammar classes:
-from .expression import Expression, Variable
+from janus_ai.core.expressions.expression import Expression, Variable # Adjusted path
 
 # And the TargetType alias if it was considered part of this module's public API
-from .cfg import TargetType # TargetType is defined and used in cfg.py
+from janus_ai.core.grammar.cfg import TargetType # TargetType is defined and used in cfg.py
 
 warnings.filterwarnings('ignore')
 

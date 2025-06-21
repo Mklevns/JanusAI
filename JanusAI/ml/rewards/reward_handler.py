@@ -14,7 +14,7 @@ import logging
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from JanusAI.ml.rewards.base_reward import BaseReward
+from janus_ai.ml.rewards.base_reward import BaseReward
 
 
 @dataclass

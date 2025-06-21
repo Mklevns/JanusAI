@@ -11,7 +11,7 @@ import time
 import numpy as np
 
 # Import the task distribution from its new location
-from JanusAI.physics.data.generators import PhysicsTaskDistribution
+from janus_ai.physics.data.generators import PhysicsTaskDistribution
 
 
 class CurriculumManager:

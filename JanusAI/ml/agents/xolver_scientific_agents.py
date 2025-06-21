@@ -12,9 +12,9 @@ from collections import defaultdict, deque
 from abc import ABC, abstractmethod
 import json
 
-from ...grammar.expression_tree import ExpressionTree
-from ...grammar.ai_grammar import AIGrammar
-from ...environments.symbolic_discovery_env import SymbolicDiscoveryEnv
+from janus_ai.grammar.expression_tree import ExpressionTree
+from janus_ai.grammar.ai_grammar import AIGrammar
+from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
 
 
 @dataclass

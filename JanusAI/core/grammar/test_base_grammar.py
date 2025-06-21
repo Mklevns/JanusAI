@@ -10,9 +10,9 @@ from unittest.mock import MagicMock, patch, PropertyMock
 from sklearn.decomposition import FastICA
 
 # BaseGrammar is now ProgressiveGrammar for the purpose of these tests
-from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated, BaseGrammar replaced
-from JanusAI.core.grammar.denoiser import NoisyObservationProcessor # Updated
-from JanusAI.core.expressions.expression import Expression, Variable
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated, BaseGrammar replaced
+from janus_ai.core.grammar.denoiser import NoisyObservationProcessor # Updated
+from janus_ai.core.expressions.expression import Expression, Variable
 
 
 class TestBaseGrammar: # This class name might be misleading now.

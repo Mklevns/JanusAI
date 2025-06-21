@@ -110,14 +110,14 @@ def _evaluate_expression_fitness_worker(
         return -1e6
 
 # Import Janus components
-from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.expressions.symbolic_math import (
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.symbolic_math import (
     evaluate_expression_on_data, 
     get_expression_complexity,
     expression_to_string
 )
-from JanusAI.utils.exceptions import (
+from janus_ai.utils.exceptions import (
     JanusError, 
     GrammarError, 
     DataValidationError,
@@ -126,10 +126,10 @@ from JanusAI.utils.exceptions import (
 )
 
 # Import new modular components
-from JanusAI.core.search.config import GAConfig, ExpressionConfig
-from JanusAI.core.search.stats import StatsTracker, SearchStats, GenerationStats
-from JanusAI.core.search.selection import create_selection_strategy
-from JanusAI.core.search.operators import (
+from janus_ai.core.search.config import GAConfig, ExpressionConfig
+from janus_ai.core.search.stats import StatsTracker, SearchStats, GenerationStats
+from janus_ai.core.search.selection import create_selection_strategy
+from janus_ai.core.search.operators import (
     ExpressionGenerator, 
     create_crossover_operator, 
     create_mutation_operator

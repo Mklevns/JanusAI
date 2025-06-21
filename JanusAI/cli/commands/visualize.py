@@ -6,7 +6,7 @@ import logging # Added for more consistent logging
 
 # Attempt to import ExperimentVisualizer
 try:
-    from JanusAI.utils.visualization.plotting import ExperimentVisualizer
+    from janus_ai.utils.visualization.plotting import ExperimentVisualizer
     HAS_VISUALIZER = True
 except ImportError:
     HAS_VISUALIZER = False

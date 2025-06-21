@@ -24,9 +24,11 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from dataclasses import dataclass, field
 
-# Assuming schemas and knowledge are in the same 'integration' package
-from .schemas import AgentRole, MessageType, Discovery, Message
-from .knowledge import SharedKnowledgeBase, DualMemorySystem # Import the robust memory system
+
+# Import schemas and infrastructure
+from janus_ai.integration.schemas import AgentRole, MessageType, Discovery, Message
+from janus_ai.integration.knowledge import SharedKnowledgeBase
+
 
 logger = logging.getLogger(__name__)
 

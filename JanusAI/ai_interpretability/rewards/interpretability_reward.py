@@ -2,7 +2,7 @@ from typing import Any, Dict
 import numpy as np
 import torch
 
-from JanusAI.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
+from janus_ai.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
 
 class InterpretabilityReward:
     # existing class content...

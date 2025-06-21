@@ -2,8 +2,8 @@ import numpy as np
 import sympy as sp
 from typing import List, Dict, Any, Callable
 
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar, Primitive
-from JanusAI.core.expressions.expression import Expression, Variable
+from janus_ai.core.grammar.base_grammar import ProgressiveGrammar, Primitive
+from janus_ai.core.expressions.expression import Expression, Variable
 
 # Helper function for softmax, assuming it might be used by Attention node
 def softmax(x: np.ndarray, axis: int = -1) -> np.ndarray:

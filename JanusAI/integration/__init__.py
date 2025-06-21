@@ -20,8 +20,8 @@ Core Schemas:
  - `AgentRole`, `MessageType`: Enums for defining agent and message types.
 
 Example Usage:
-    from JanusAI.integration import run_training_pipeline, AdvancedJanusTrainer
-    from JanusAI.config import JanusConfig
+    from janus_ai.integration import run_training_pipeline, AdvancedJanusTrainer
+    from janus_ai.config import JanusConfig
 
     # Configure and run a multi-agent experiment
     config = JanusConfig(training_mode="multi_agent", ...)
@@ -40,7 +40,7 @@ __author__ = "JanusAI Team"
 # --- Public API for the Integration Package ---
 
 # Core data structures for type hinting and message creation
-from .schemas import (
+from janus_ai.integration.schemas import (
     AgentRole,
     MessageType,
     Discovery,
@@ -48,20 +48,20 @@ from .schemas import (
 )
 
 # Core infrastructure for advanced use cases
-from .knowledge import (
+from janus_ai.integration.knowledge import (
     MessageBus,
     SharedKnowledgeBase
 )
 
 # Core agent and communication modules
-from .agent import (
+from janus_ai.integration.agent import (
     DiscoveryAgent,
     CommunicationEncoder,
     CommunicationAggregator
 )
 
 # Primary pipeline and trainer entry points
-from .pipeline import (
+from janus_ai.integration.pipeline import (
     JanusTrainer,
     AdvancedJanusTrainer,
     create_trainer,
@@ -70,11 +70,11 @@ from .pipeline import (
 )
 
 # Expose sub-modules for advanced, direct import
-from . import distributed
-from . import meta_learning
+from janus_ai.integration import distributed
+from janus_ai.integration import meta_learning
 
 
-# Define what is exposed when a user does 'from JanusAI.integration import *'
+# Define what is exposed when a user does 'from janus_ai.integration import *'
 __all__ = [
     # High-level pipeline functions
     "run_training_pipeline",

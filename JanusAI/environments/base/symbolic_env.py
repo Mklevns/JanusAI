@@ -17,10 +17,10 @@ from enum import Enum, auto
 # Import necessary modules (adjust paths as needed)
 
 
-from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
-from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.utils.math.operations import calculate_expression_complexity
-from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
+from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
+from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.utils.math.operations import calculate_expression_complexity
+from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data
 from memory.dual_memory_system import SharedMemory # Added import
 
 

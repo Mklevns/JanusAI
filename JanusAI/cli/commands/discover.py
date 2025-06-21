@@ -8,9 +8,9 @@ import logging
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-from JanusAI.experiments.registry import ExperimentRegistry
-from JanusAI.config.models import DiscoveryConfig
-from JanusAI.utils.io import save_results
+from janus_ai.experiments.registry import ExperimentRegistry
+from janus_ai.config.models import DiscoveryConfig
+from janus_ai.utils.io import save_results
 
 logger = logging.getLogger(__name__)
 

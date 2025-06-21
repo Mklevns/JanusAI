@@ -18,7 +18,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.policies import ActorCriticPolicy
 from gymnasium import spaces
 
-from JanusAI.physics.data.generators import PhysicsTask
+from janus_ai.physics.data.generators import PhysicsTask
 
 
 @dataclass
