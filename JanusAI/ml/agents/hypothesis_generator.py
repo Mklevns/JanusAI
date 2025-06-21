@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 from janus_ai.ml.agents.xolver_scientific_agents import ScientificAgent
 # Assuming SharedMemory is in memory.dual_memory_system
 # Adjust the import path if necessary
-from memory.dual_memory_system import SharedMemory
+from janus_ai.memory.dual_memory_system import SharedMemory
 # Assuming EpisodicMemory is a defined class/type
 # from somewhere import EpisodicMemory # Placeholder for actual import
 

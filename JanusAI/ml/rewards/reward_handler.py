@@ -83,7 +83,7 @@ class RewardHandler:
     def _get_component_from_registry(self, name: str) -> BaseReward:
         """Get reward component from registry by name."""
         # Import here to avoid circular imports
-        from janus.ml.rewards.reward_registry import REWARD_REGISTRY
+        from janus_ai.ml.rewards.reward_registry import REWARD_REGISTRY
         
         if name not in REWARD_REGISTRY:
             raise ValueError(f"Unknown reward component: {name}. "
@@ -312,7 +312,7 @@ class RewardHandler:
         Returns:
             RewardHandler instance
         """
-        from janus.ml.rewards.reward_registry import create_reward_component
+        from janus_ai.ml.rewards.reward_registry import create_reward_component
         
         # Process components
         component_dict = {}

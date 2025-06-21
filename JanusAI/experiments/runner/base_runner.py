@@ -26,7 +26,7 @@ from janus_ai.utils.logging.experiment_logger import TrainingLogger
 from janus_ai.utils.io.checkpoint_manager import CheckpointManager # For saving/loading models
 
 # Forward declaration for type hinting if needed (though Python 3.7+ usually handles this with strings)
-# from janus.config.models import ExperimentConfig # If ExperimentConfig is available
+# from janus_ai.config.models import ExperimentConfig # If ExperimentConfig is available
 
 
 class BaseExperimentRunner:

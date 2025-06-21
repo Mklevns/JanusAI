@@ -21,20 +21,20 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.vec_env import DummyVecEnv
 
-from janus.ml.networks.dynamics_ensemble import DynamicsEnsemble
-from janus.ml.rewards.intrinsic_rewards import (
+from janus_ai.ml.networks.dynamics_ensemble import DynamicsEnsemble
+from janus_ai.ml.rewards.intrinsic_rewards import (
     InformationGainReward,
     PreNDIntrinsicReward,
     GoalMatchingReward,
     CombinedIntrinsicReward
 )
-from janus.utils.ai.llm_exploration import (
+from janus_ai.utils.ai.llm_exploration import (
     LLMGoalGenerator,
     ExplorationContext,
     AdaptiveLLMExploration
 )
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.physics.data.generators import PhysicsTask
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.physics.data.generators import PhysicsTask
 
 
 @dataclass
@@ -519,7 +519,7 @@ class IntrinsicRewardCallback(BaseCallback):
 # Example usage
 if __name__ == "__main__":
     # Create environment
-    from janus.physics.data.generators import PhysicsTaskDistribution
+    from janus_ai.physics.data.generators import PhysicsTaskDistribution
     
     task_dist = PhysicsTaskDistribution()
     task = task_dist.sample_task()

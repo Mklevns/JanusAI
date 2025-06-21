@@ -281,7 +281,7 @@ def create_handler_from_preset(preset_name: str, **overrides) -> 'RewardHandler'
     Returns:
         RewardHandler instance
     """
-    from janus.ml.rewards.reward_handler import RewardHandler
+    from janus_ai.ml.rewards.reward_handler import RewardHandler
     
     config = get_preset_config(preset_name)
     

@@ -11,13 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-from janus.ml.networks.attention_meta_policy import EnhancedMetaLearningPolicy
-from janus.ml.training.enhanced_meta_trainer import (
+from janus_ai.ml.networks.attention_meta_policy import EnhancedMetaLearningPolicy
+from janus_ai.ml.training.enhanced_meta_trainer import (
     EnhancedMAMLTrainer, 
     EnhancedMetaLearningConfig
 )
-from janus.physics.data.generators import PhysicsTaskDistribution
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.physics.data.generators import PhysicsTaskDistribution
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
 
 
 def visualize_attention_for_task(trainer, task_name="harmonic_oscillator"):

@@ -14,14 +14,14 @@ import json
 import time
 from typing import Dict, List, Tuple
 
-from janus.ml.training.enhanced_ppo_trainer import (
+from janus_ai.ml.training.enhanced_ppo_trainer import (
     EnhancedPPOTrainer, 
     EnhancedPPOConfig
 )
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.physics.data.generators import PhysicsTaskDistribution
-from janus.ml.networks.dynamics_ensemble import DynamicsEnsemble
-from janus.utils.ai.llm_exploration import ExplorationContext
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.physics.data.generators import PhysicsTaskDistribution
+from janus_ai.ml.networks.dynamics_ensemble import DynamicsEnsemble
+from janus_ai.utils.ai.llm_exploration import ExplorationContext
 
 
 class ExplorationDemo:

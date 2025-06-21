@@ -161,7 +161,7 @@ class KnownLawLibrary:
 if __name__ == "__main__":
     # Mock evaluate_expression_on_data and are_expressions_equivalent_sympy if not fully available
     try:
-        from janus.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq
+        from janus_ai.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq
     except ImportError:
         print("Using mock are_expressions_equivalent_sympy for known_laws.py test.")
         def are_expressions_equivalent_sympy(expr1: sp.Expr, expr2: sp.Expr, symbols: List[sp.Symbol], tolerance: float) -> bool:
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
     # Mock Expression and Variable classes if needed for `KnownLaw.is_equivalent` tests
     try:
-        from janus.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
+        from janus_ai.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
     except ImportError:
         print("Using mock Expression and Variable for known_laws.py test.")
         # Minimal mocks
