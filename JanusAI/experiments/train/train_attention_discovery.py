@@ -17,7 +17,7 @@ from janus_ai.ml.rewards.interpretability_reward import InterpretabilityReward
 # PPO Trainer and Components
 # These are placeholders, actual paths might differ.
 # from janus_ai.ml.training.ppo_trainer import AdvancedPPOTrainer, PPOConfig # Or enhanced_ppo_trainer
-from janus_ai.ml.training.enhaced_ppo_trainer import AdvancedPPOTrainer # Corrected based on file listing
+from janus_ai.ml.training.enhanced_ppo_trainer import AdvancedPPOTrainer # Corrected based on file listing
 from janus_ai.ml.training.ppo_config import PPOConfig # Assuming ppo_config.py for PPOConfig
 # from janus_ai.ml.training.experience_buffer import ExperienceBuffer # Placeholder
 # For ExperienceBuffer, let's assume a path, e.g., from a utils or replay buffer module

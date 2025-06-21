@@ -22,11 +22,12 @@ class PhysicsSymmetryDetector:
         # Helper to evaluate the law_function at multiple points.
         results = []
         for point in points:
+            res = np.nan # Initialize res
             try:
                 res = law_function(point, params)
                 results.append(res)
             except Exception as e:
-                results.append(np.nan)
+                results.append(np.nan) # If error, np.nan is used for this point's result
         return np.array(results)
 
     def _generate_test_points(self, trajectory: np.ndarray, num_samples: int = 100) -> np.ndarray:
