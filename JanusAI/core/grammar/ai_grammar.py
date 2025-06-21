@@ -1,384 +1,226 @@
 # JanusAI/core/grammar/ai_grammar.py
-"""
-Unified AIGrammar implementation combining all scattered components
-into a single, coherent attention-aware symbolic regression grammar.
-"""
+"""AI-specific Grammar components, extending Progressive Grammar."""
 
 import numpy as np
-import torch
-import torch.nn.functional as F
 import sympy as sp
-from typing import Any, Dict, List, Optional, Callable, Union
-import logging
+import torch # Added for _attention_op, _embedding_op
+from typing import Dict, List, Tuple, Optional, Set, Any, Union # Added Union
+import logging # Added for _validate_expression
 
-from .base_grammar import ProgressiveGrammar, Expression, Variable
-
-
-class AttentionPrimitives:
-    """
-    Attention-specific operations usable in both symbolic and numerical modes.
-    This is the core engine for attention pattern discovery.
-    """
-    
-    def __init__(self):
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.numerical_tolerance = 1e-8
-
-    def attention_score(self, query: Any, key: Any, scale: Optional[float] = None) -> Any:
-        """Compute attention scores: Q @ K^T / sqrt(d_k)"""
-        if self._is_symbolic(query, key):
-            if scale is not None:
-                return sp.Function('AttentionScore')(query, key) / scale
-            return sp.Function('AttentionScore')(query, key)
-        
-        # Numerical computation
-        q = self._to_tensor(query)
-        k = self._to_tensor(key)
-        
-        if q.dim() == 1: q = q.unsqueeze(0)
-        if k.dim() == 1: k = k.unsqueeze(0)
-        
-        scores = q @ k.transpose(-2, -1)
-        if scale is None:
-            scale = 1.0 / np.sqrt(q.shape[-1])
-        
-        return (scores * scale).cpu().numpy()
-
-    def softmax_attention(self, scores: Any, mask: Optional[Any] = None) -> Any:
-        """Apply softmax to attention scores with optional masking"""
-        if self._is_symbolic(scores):
-            return sp.Function('Softmax')(scores)
-        
-        t = self._to_tensor(scores)
-        if mask is not None:
-            m = self._to_tensor(mask, dtype=torch.bool)
-            t = t.masked_fill(~m, float('-inf'))
-        
-        return F.softmax(t, dim=-1).cpu().numpy()
-
-    def weighted_value(self, weights: Any, values: Any) -> Any:
-        """Compute weighted combination: W @ V"""
-        if self._is_symbolic(weights, values):
-            return sp.Function('WeightedSum')(weights, values)
-        
-        w = self._to_tensor(weights)
-        v = self._to_tensor(values)
-        
-        if w.dim() == 2 and v.dim() == 2:
-            result = w @ v
-        else:
-            result = w.unsqueeze(-1) * v
-        
-        return result.cpu().numpy()
-
-    def position_encoding(self, positions: Any, d_model: int = 512) -> Any:
-        """Compute sinusoidal position encodings"""
-        if self._is_symbolic(positions):
-            return sp.Function('PosEnc')(positions)
-        
-        pos = np.array(positions, dtype=int)
-        enc = np.zeros((len(pos), d_model), dtype=float)
-        
-        for idx, p in enumerate(pos):
-            for i in range(0, d_model, 2):
-                angle = p / (10000 ** (2 * i / d_model))
-                enc[idx, i] = np.sin(angle)
-                if i + 1 < d_model:
-                    enc[idx, i + 1] = np.cos(angle)
-        
-        return enc
-
-    def causal_mask(self, seq_len: int) -> np.ndarray:
-        """Generate causal (lower triangular) mask"""
-        return np.tril(np.ones((seq_len, seq_len), dtype=bool), k=0)
-
-    def attention_pattern_detector(self, weights: Any, pattern: str = 'previous_token') -> Any:
-        """Detect specific attention patterns"""
-        if self._is_symbolic(weights):
-            return sp.Function(f'Pattern_{pattern}')(weights)
-        
-        arr = np.array(weights)
-        
-        if pattern == 'previous_token':
-            # Extract previous token attention pattern
-            result = np.zeros_like(arr)
-            for i in range(1, arr.shape[0]):
-                result[i, i-1] = arr[i, i-1]
-            return result
-        
-        elif pattern == 'copying':
-            # Extract diagonal (self-attention) pattern
-            result = np.zeros_like(arr)
-            min_dim = min(arr.shape)
-            for i in range(min_dim):
-                result[i, i] = arr[i, i]
-            return result
-        
-        elif pattern == 'positional_bias':
-            # Extract position-based bias
-            seq_len = arr.shape[0]
-            bias = np.zeros_like(arr)
-            for i in range(seq_len):
-                for j in range(seq_len):
-                    bias[i, j] = 1.0 / (1.0 + abs(i - j))
-            return arr * bias
-        
-        else:
-            return np.zeros_like(arr)
-
-    def _is_symbolic(self, *args) -> bool:
-        """Check if any argument is symbolic"""
-        return any(isinstance(a, (sp.Expr, sp.Symbol)) for a in args)
-
-    def _to_tensor(self, data: Any, dtype=torch.float32) -> torch.Tensor:
-        """Convert data to tensor on the appropriate device"""
-        if isinstance(data, torch.Tensor):
-            return data.to(self.device)
-        elif isinstance(data, (list, np.ndarray)):
-            return torch.tensor(data, dtype=dtype, device=self.device)
-        else:
-            return torch.tensor([data], dtype=dtype, device=self.device)
-
+from .progressive_grammar import ProgressiveGrammar
+from .expression import Expression, Variable # Variable is used in _validate_expression
 
 class AIGrammar(ProgressiveGrammar):
     """
-    Enhanced grammar for AI interpretability with complete attention primitive support.
-    This is the unified implementation that consolidates all previous versions.
+    Extends ProgressiveGrammar with primitives and operations tailored for
+    AI model interpretability, such as attention and activation functions.
     """
+    def __init__(self):
+        super().__init__(load_defaults=False)
+        self.add_primitive_set('activation_types', ['relu', 'sigmoid', 'tanh', 'gelu'])
+        self.add_primitive('attention', self._attention_op, category='custom_callable_ops')
+        self.add_primitive('embedding_lookup', self._embedding_op, category='custom_callable_ops') # Renamed for clarity
+        self.add_primitive('if_then_else', lambda cond, true_val, false_val: true_val if cond else false_val, category='custom_callable_ops')
+        self.add_primitive('threshold', lambda x, t: x > t, category='custom_callable_ops')
+        self.add_primitive('weighted_sum', lambda weights, values: sum(w*v for w,v in zip(weights, values)), category='custom_callable_ops')
+        self.add_primitive('max_pool', lambda values: max(values) if values else None, category='custom_callable_ops')
+        # Add common NN ops as placeholders, actual execution logic might be external
+        self.primitives['unary_ops'].update(['relu', 'sigmoid', 'tanh', 'gelu', 'softmax', 'layer_norm'])
+        self.primitives['binary_ops'].update(['residual']) # e.g. residual(x, y) = x + y
 
-    def __init__(self, load_defaults: bool = True):
-        super().__init__(load_defaults=load_defaults)
-        self.attention_primitives = AttentionPrimitives()
-        self._init_ai_primitives()
-        self._ai_operator_arities = self._define_ai_operator_arities()
-        
-        # Custom converters for SymPy integration
-        self._custom_converters = {}
 
-    def _init_ai_primitives(self):
-        """Initialize AI-specific primitives and operators"""
-        
-        # Attention operations
-        attention_ops = {
-            'attention_score': self.attention_primitives.attention_score,
-            'softmax_attention': self.attention_primitives.softmax_attention,
-            'weighted_value': self.attention_primitives.weighted_value,
-            'position_encoding': self.attention_primitives.position_encoding,
-            'causal_mask': self.attention_primitives.causal_mask,
-        }
-        
-        # Pattern detection operations
-        pattern_ops = {
-            'previous_token': lambda w: self.attention_primitives.attention_pattern_detector(w, 'previous_token'),
-            'copying_pattern': lambda w: self.attention_primitives.attention_pattern_detector(w, 'copying'),
-            'positional_bias': lambda w: self.attention_primitives.attention_pattern_detector(w, 'positional_bias'),
-        }
-        
-        # Neural network operations
-        nn_ops = {
-            'relu': lambda x: np.maximum(0, x) if not self.attention_primitives._is_symbolic(x) else sp.Max(x, 0),
-            'sigmoid': lambda x: 1/(1+np.exp(-np.clip(x, -500, 500))) if not self.attention_primitives._is_symbolic(x) else 1/(1+sp.exp(-x)),
-            'tanh': lambda x: np.tanh(x) if not self.attention_primitives._is_symbolic(x) else sp.tanh(x),
-            'gelu': self._gelu_function,
-            'layer_norm': self._layer_norm_function,
-        }
-        
-        # Logic operations
-        logic_ops = {
-            'if_then_else': lambda cond, true_val, false_val: true_val if cond else false_val,
-            'threshold': lambda x, t: x > t,
-            'weighted_sum': lambda weights, values: sum(w*v for w,v in zip(weights, values)),
-            'max_pool': lambda values: max(values) if values else None,
-        }
-        
-        # Add all operations to primitives
-        if 'custom_callable_ops' not in self.primitives:
-            self.primitives['custom_callable_ops'] = {}
-        
-        self.primitives['custom_callable_ops'].update(attention_ops)
-        self.primitives['custom_callable_ops'].update(pattern_ops)
-        self.primitives['custom_callable_ops'].update(nn_ops)
-        self.primitives['custom_callable_ops'].update(logic_ops)
-        
-        # Add activation functions as unary operators too
-        activation_names = {'relu', 'sigmoid', 'tanh', 'gelu'}
-        if 'unary_ops' not in self.primitives:
-            self.primitives['unary_ops'] = set()
-        self.primitives['unary_ops'].update(activation_names)
-        
-        # Add custom sets for organization
-        if 'custom_sets' not in self.primitives:
-            self.primitives['custom_sets'] = {}
-        
-        self.primitives['custom_sets']['attention_types'] = list(attention_ops.keys())
-        self.primitives['custom_sets']['pattern_types'] = list(pattern_ops.keys())
-        self.primitives['custom_sets']['activation_types'] = list(activation_names)
+    def add_primitive_set(self, name: str, values: List[str]):
+        if 'custom_sets' not in self.primitives: self.primitives['custom_sets'] = {}
+        self.primitives['custom_sets'][name] = values
 
-    def _define_ai_operator_arities(self) -> Dict[str, int]:
-        """Define the arity (number of arguments) for AI-specific operators"""
-        return {
-            # Attention operations
-            'attention_score': 2,       # query, key
-            'softmax_attention': 1,     # scores (mask is optional)
-            'weighted_value': 2,        # weights, values
-            'position_encoding': 1,     # positions
-            'causal_mask': 1,          # sequence_length
-            
-            # Pattern operations
-            'previous_token': 1,
-            'copying_pattern': 1,
-            'positional_bias': 1,
-            
-            # Neural operations
-            'relu': 1,
-            'sigmoid': 1,
-            'tanh': 1,
-            'gelu': 1,
-            'layer_norm': 1,
-            
-            # Logic operations
-            'if_then_else': 3,
-            'threshold': 2,
-            'weighted_sum': 2,
-            'max_pool': 1,
-        }
+    def add_primitive(self, name: str, func_or_values: Any, category: Optional[str] = None):
+        if callable(func_or_values):
+            cat = category if category else 'custom_callable_ops'
+            if cat not in self.primitives: self.primitives[cat] = {}
+            self.primitives[cat][name] = func_or_values
+        elif isinstance(func_or_values, list):
+            if 'named_lists' not in self.primitives: self.primitives['named_lists'] = {}
+            self.primitives['named_lists'][name] = func_or_values
+        else:
+            if 'custom_values' not in self.primitives: self.primitives['custom_values'] = {}
+            self.primitives['custom_values'][name] = func_or_values
 
-    def _gelu_function(self, x: Any) -> Any:
-        """GELU activation function"""
-        if self.attention_primitives._is_symbolic(x):
-            return sp.Function('GELU')(x)
-        x = np.array(x)
-        return 0.5 * x * (1 + np.tanh(np.sqrt(2/np.pi) * (x + 0.044715 * x**3)))
+    def _attention_op(self, query: Any, key: Any, value: Any) -> Any:
+        if isinstance(query, (sp.Symbol, sp.Expr)): # Symbolic mode
+            return sp.Function('Attention')(query, key, value)
+        # Numeric mode
+        if isinstance(query, np.ndarray):
+            q = torch.tensor(query, dtype=torch.float32) if not isinstance(query, torch.Tensor) else query
+            k = torch.tensor(key, dtype=torch.float32) if not isinstance(key, torch.Tensor) else key
+            v = torch.tensor(value, dtype=torch.float32) if not isinstance(value, torch.Tensor) else value
+            d_k = q.shape[-1]
+            scores = torch.matmul(q, k.transpose(-2, -1)) / np.sqrt(d_k)
+            attention_weights = torch.softmax(scores, dim=-1)
+            output = torch.matmul(attention_weights, v)
+            return output.numpy() if isinstance(query, np.ndarray) else output
+        return f"Attention({query}, {key}, {value})"
 
-    def _layer_norm_function(self, x: Any) -> Any:
-        """Layer normalization function"""
-        if self.attention_primitives._is_symbolic(x):
-            return sp.Function('LayerNorm')(x)
-        x = np.array(x)
-        mean = np.mean(x, axis=-1, keepdims=True)
-        var = np.var(x, axis=-1, keepdims=True)
-        return (x - mean) / np.sqrt(var + 1e-5)
-
-    def get_arity(self, op_name: str) -> int:
-        """Get the arity of a given operator, including AI-specific operators"""
-        if op_name in self._ai_operator_arities:
-            return self._ai_operator_arities[op_name]
-        
-        # Fall back to parent class
-        return super().get_arity(op_name)
-
-    def _validate_expression(self, operator: str, operands: List[Any]) -> bool:
-        """Enhanced validation for AI-specific operators"""
-        
-        # First try standard validation
-        try:
-            if super()._validate_expression(operator, operands):
-                return True
-        except:
-            pass
-        
-        # AI-specific validation
-        if operator not in self._ai_operator_arities:
-            return False
-        
-        expected_arity = self._ai_operator_arities[operator]
-        if len(operands) != expected_arity:
-            logging.debug(f"AIGrammar validation: Arity mismatch for {operator}. "
-                         f"Expected {expected_arity}, got {len(operands)}")
-            return False
-        
-        # Type-specific checks
-        if operator in ['attention_score', 'weighted_value']:
-            return all(self._is_tensor_compatible(op) for op in operands)
-        
-        return True
+    def _embedding_op(self, indices: Any, embedding_matrix: Any) -> Any: # Renamed from _embedding_lookup
+        if isinstance(indices, (sp.Symbol, sp.Expr)): # Symbolic mode
+            return sp.Function('Embedding')(indices, embedding_matrix)
+        # Numeric mode
+        if isinstance(indices, (np.ndarray, list)):
+            indices_arr = np.array(indices, dtype=int) # Ensure it's an array for indexing
+            if isinstance(embedding_matrix, np.ndarray): return embedding_matrix[indices_arr]
+            elif isinstance(embedding_matrix, torch.Tensor):
+                indices_tensor = torch.tensor(indices_arr, dtype=torch.long)
+                return embedding_matrix[indices_tensor].numpy()
+            elif isinstance(embedding_matrix, str): # Symbolic reference to matrix name
+                return f"Embedding({indices_arr}, {embedding_matrix})"
+        return f"EmbeddingLookup({indices}, {embedding_matrix})"
 
     def _is_tensor_compatible(self, operand: Any) -> bool:
-        """Check if operand is compatible with tensor operations"""
-        return (isinstance(operand, (np.ndarray, torch.Tensor, list)) or 
-                isinstance(operand, (sp.Expr, sp.Symbol)) or
-                isinstance(operand, (int, float)))
+        return isinstance(operand, (Expression, Variable, np.ndarray, list, sp.Expr, int, float))
 
-    def convert_ai_expression_to_sympy(self, expression: Expression) -> sp.Expr:
-        """Convert AI-specific expressions to SymPy format"""
-        if expression.operator in self._custom_converters:
-            return self._custom_converters[expression.operator](expression)
-        
-        # Default conversion for AI operators
-        if expression.operator in self.primitives.get('custom_callable_ops', {}):
-            operand_symbols = []
-            for i, operand in enumerate(expression.operands):
-                if isinstance(operand, Expression):
-                    operand_symbols.append(self.convert_ai_expression_to_sympy(operand))
-                elif isinstance(operand, Variable):
-                    operand_symbols.append(sp.Symbol(operand.name))
-                else:
-                    operand_symbols.append(operand)
-            
-            return sp.Function(expression.operator)(*operand_symbols)
-        
-        # Fall back to standard conversion
-        raise NotImplementedError(f"No SymPy converter for {expression.operator}")
+    def _to_sympy(self, expr_node: Expression) -> sp.Expr: # Policy for Expression class to use
+        operator = expr_node.operator
+        # This method is a policy provider for Expression's .symbolic property.
+        # It should only handle cases specific to AIGrammar.
+        # Standard operations (+, -, sin, cos, etc.) should be handled by
+        # Expression class itself or by ProgressiveGrammar's _to_sympy if it were providing a policy.
 
-    def register_custom_operator(self, name: str, function: Callable, 
-                                arity: int, sympy_converter: Optional[Callable] = None):
-        """Register a custom operator with the grammar"""
-        self.primitives['custom_callable_ops'][name] = function
-        self._ai_operator_arities[name] = arity
-        
-        if sympy_converter:
-            self._custom_converters[name] = sympy_converter
+        # AI-specific operators that need custom Sympy representation
+        if operator == 'if_then_else':
+            # Ensure operands are converted to Sympy first
+            sympy_operands = [op.symbolic if isinstance(op, Expression) else
+                              op.symbolic if isinstance(op, Variable) else
+                              sp.sympify(op) for op in expr_node.operands]
+            return sp.Piecewise((sympy_operands[1], sympy_operands[0]), (sympy_operands[2], True))
+        elif operator == 'threshold':
+            sympy_operands = [op.symbolic if isinstance(op, Expression) else
+                              op.symbolic if isinstance(op, Variable) else
+                              sp.sympify(op) for op in expr_node.operands]
+            return sympy_operands[0] > sympy_operands[1] # Results in a Sympy Boolean expression
 
-    def list_attention_primitives(self) -> Dict[str, List[str]]:
-        """List all available attention-related primitives"""
-        return {
-            'attention_ops': self.primitives['custom_sets']['attention_types'],
-            'pattern_ops': self.primitives['custom_sets']['pattern_types'],
-            'activation_ops': self.primitives['custom_sets']['activation_types'],
+        # For other AI ops like 'attention', 'embedding_lookup', 'relu', 'softmax', etc.,
+        # represent them as uninterpreted functions in Sympy.
+        # This relies on Expression class calling this policy for unknown operators.
+        # Check if operator is one of AIGrammar's special custom callables or added unary/binary ops
+        ai_ops_needing_func_representation = (
+            set(self.primitives.get('custom_callable_ops', {}).keys()) |
+            {'relu', 'sigmoid', 'tanh', 'gelu', 'softmax', 'layer_norm', 'residual'}
+        )
+        if operator in ai_ops_needing_func_representation and operator not in ['if_then_else', 'threshold']:
+            sympy_operands = [op.symbolic if isinstance(op, Expression) else
+                              op.symbolic if isinstance(op, Variable) else
+                              sp.sympify(op) for op in expr_node.operands]
+            capitalized_op = operator.capitalize() if not operator.isupper() else operator
+            return sp.Function(capitalized_op)(*sympy_operands)
+
+        # If the operator is not specifically handled by AIGrammar's policy,
+        # it means it should be handled by the Expression class's default _to_sympy logic
+        # (which covers standard math ops, variables, constants).
+        # Thus, we should indicate that this policy doesn't apply by raising an error or returning a special value.
+        # However, the design implies Expression calls grammar.get_sympy_equivalent(self) or similar.
+        # For now, let's assume Expression.symbolic will try this policy, and if it fails (e.g. raises AttributeError
+        # because AIGrammar doesn't handle it), Expression falls back to its own internal _to_sympy.
+        # A cleaner way would be for Expression to call:
+        # try: return self.grammar._to_sympy_policy(self) except NotHandledByPolicy: return self._internal_to_sympy()
+        # For this refactoring, we keep the structure as close as possible.
+        # The original AIGrammar._to_sympy also had a complex fallback to a temporary Expression.
+        # This was problematic. AIGrammar should only define new symbolic forms.
+        # If an op is not AI-specific, Expression itself should handle it.
+        # So, if we reach here, it's an op AIGrammar doesn't know how to symbolize beyond default.
+        # We should let Expression handle it. How to signal this?
+        # The original code had "return super()._to_sympy(expr_node)" for var/const,
+        # and then "temp_expr_for_std_op_symb = Expression(operator, sympy_operands)"
+        # This implies Expression._to_sympy is the ultimate fallback.
+        # Let's make this explicit: if AIGrammar doesn't have a rule, it doesn't handle it.
+        # Expression.symbolic property must be structured to try grammar policy first, then its own.
+        raise NotImplementedError(f"AIGrammar does not provide a specific Sympy conversion for operator '{operator}'. Expression class should handle.")
+
+
+    def _validate_expression(self, operator: str, operands: List[Any]) -> bool:
+        # First, try validation with ProgressiveGrammar's rules.
+        # This covers standard ops, learned functions (if any were added to parent's primitives), var, const.
+        if super()._validate_expression(operator, operands):
+            return True
+
+        # Now check AI-specific operators if parent validation failed.
+        # Parent validation fails if operator is unknown to it, or arity/type is wrong.
+        # We only proceed if operator is potentially an AI op.
+        ai_operator_arity = {
+            'attention': 3, 'embedding_lookup': 2, 'if_then_else': 3,
+            'threshold': 2, 'weighted_sum': 2, 'max_pool': 1, # max_pool takes one list
+            'relu': 1, 'sigmoid': 1, 'tanh': 1, 'gelu': 1, 'softmax': 1, 'layer_norm': 1,
+            'residual': 2
         }
+        # Also include custom callables that might not be in the fixed arity dict
+        custom_callables = self.primitives.get('custom_callable_ops', {}).keys()
+
+        if operator not in ai_operator_arity and operator not in custom_callables:
+            # If it's not in parent's valid ops (checked by super call) AND not in AI specific ops,
+            # then it's truly unknown or invalid according to this grammar.
+            return False
+
+        expected_arity = ai_operator_arity.get(operator)
+
+        # For custom callables not in ai_operator_arity, we can't check arity here easily.
+        # Assume they are valid if operator name matches. More robust: store arity with custom_callable.
+        if expected_arity is not None:
+            if len(operands) != expected_arity:
+                logging.debug(f"AIGrammar validation: Arity mismatch for {operator}. Expected {expected_arity}, got {len(operands)}")
+                return False
+        elif operator in custom_callables:
+            # Arity not specified in ai_operator_arity, assume valid for now if op name matches a custom callable.
+            # This part might need refinement if custom callables have fixed arities not listed.
+            pass
+        else:
+            # Operator is not in fixed arity list and not a registered custom callable.
+            # This case should ideally be caught by the first check (operator not in ai_operator_arity and operator not in custom_callables)
+            return False
 
 
-# Integration helper for backward compatibility
-def create_enhanced_ai_grammar() -> AIGrammar:
-    """Factory function to create a fully configured AIGrammar"""
-    grammar = AIGrammar(load_defaults=True)
-    
-    # Add any additional configuration here
-    logging.info(f"Created AIGrammar with {len(grammar.primitives['custom_callable_ops'])} AI operators")
-    
-    return grammar
+        # Type checks for AI operators (example for attention)
+        if operator == 'attention':
+            return all(self._is_tensor_compatible(op) for op in operands)
+        # Add more specific type checks for other AI ops if needed.
+        # For now, allow general operand types if arity matches for other AI ops.
+        return True
 
 
-if __name__ == "__main__":
-    # Test the unified implementation
-    grammar = create_enhanced_ai_grammar()
-    
-    print("Available attention primitives:")
-    for category, ops in grammar.list_attention_primitives().items():
-        print(f"  {category}: {ops}")
-    
-    # Test symbolic and numerical modes
-    print("\nTesting attention primitives:")
-    
-    # Symbolic test
-    q, k, v = sp.symbols('q k v')
-    symbolic_score = grammar.attention_primitives.attention_score(q, k)
-    print(f"Symbolic attention score: {symbolic_score}")
-    
-    # Numerical test
-    Q = np.random.randn(2, 4)
-    K = np.random.randn(2, 4)
-    V = np.random.randn(2, 4)
-    
-    scores = grammar.attention_primitives.attention_score(Q, K)
-    weights = grammar.attention_primitives.softmax_attention(scores)
-    output = grammar.attention_primitives.weighted_value(weights, V)
-    
-    print(f"Numerical shapes - Scores: {scores.shape}, Weights: {weights.shape}, Output: {output.shape}")
-    
-    # Test pattern detection
-    attention_matrix = np.random.rand(5, 5)
-    prev_token_pattern = grammar.attention_primitives.attention_pattern_detector(
-        attention_matrix, 'previous_token'
-    )
-    print(f"Previous token pattern detected: {np.sum(prev_token_pattern) > 0}")
+# The get_arity method was monkey-patched onto AIGrammar in the original base_grammar.py
+# It should be a proper method of the AIGrammar class.
+    def get_arity(self, op_name: str) -> int:
+        _ai_op_arities = {
+            'attention': 3, 'embedding_lookup': 2, 'if_then_else': 3,
+            'threshold': 2, 'weighted_sum': 2, 'max_pool': 1,
+            'relu':1, 'sigmoid':1, 'tanh':1, 'gelu':1, 'softmax':1, 'layer_norm':1, 'residual':2
+            # Add other AI specific ops from self.primitives if they have fixed arity
+        }
+        # Check AI specific arities first
+        if op_name in _ai_op_arities:
+            return _ai_op_arities[op_name]
+
+        # Check custom callable ops if not in the dict above (might be dynamically added)
+        # This part is tricky if arity isn't stored with them. For now, assume covered by _ai_op_arities
+        # or they fall through to parent.
+
+        # Fallback to ProgressiveGrammar's get_arity for standard operators
+        # or operators AIGrammar inherited but doesn't override arity for.
+        try:
+            return super().get_arity(op_name)
+        except ValueError as e:
+            # If super also doesn't know it, then it's truly unknown to AIGrammar too.
+            raise ValueError(f"Unknown operator or function: '{op_name}' in AIGrammar") from e
+
+# The is_operator_known method was also monkey-patched.
+# It should rely on get_arity.
+    def is_operator_known(self, op_name: str) -> bool:
+        try:
+            self.get_arity(op_name) # This will use AIGrammar's get_arity
+            return True
+        except ValueError:
+             # AIGrammar might also have constants or other symbols defined in primitives
+             # that are not "operators" with arity but are "known" symbols.
+            if op_name in self.primitives.get('custom_values', {}): return True
+            if op_name in self.primitives.get('named_lists', {}): return True
+            # Check custom sets values
+            for value_list in self.primitives.get('custom_sets', {}).values():
+                if op_name in value_list: return True
+            return False
