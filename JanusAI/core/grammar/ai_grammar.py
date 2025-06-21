@@ -224,3 +224,55 @@ class AIGrammar(ProgressiveGrammar):
             for value_list in self.primitives.get('custom_sets', {}).values():
                 if op_name in value_list: return True
             return False
+
+    def convert_ai_expression_to_sympy(self, expr_node: Expression) -> sp.Expr:
+        """Convert AI-specific expressions to SymPy."""
+        operator = expr_node.operator
+        operands = expr_node.operands
+
+        # Convert operands to SymPy first
+        sympy_operands = []
+        for op in operands:
+            if hasattr(op, 'symbolic'): # Handles Expression and Variable objects
+                sympy_operands.append(op.symbolic)
+            # elif hasattr(op, '_to_sympy'): # This would be redundant if op.symbolic exists
+            #     sympy_operands.append(op._to_sympy())
+            else:
+                # For raw constants or other types, attempt to sympify
+                try:
+                    sympy_operands.append(sp.sympify(op))
+                except sp.SympifyError:
+                    # If sympify fails, it might be a non-convertible type.
+                    # Depending on desired behavior, could raise error or use a placeholder.
+                    # For now, let's assume operands are expected to be convertible.
+                    raise TypeError(f"Operand '{op}' of type {type(op)} could not be converted to SymPy expression.")
+
+        # Handle AI-specific operators
+        if operator == 'attention':
+            return sp.Function('Attention')(*sympy_operands)
+        elif operator == 'embedding_lookup':
+            return sp.Function('Embedding')(*sympy_operands)
+        elif operator in ['relu', 'sigmoid', 'tanh', 'gelu']:
+            # Ensure operator name is capitalized for sp.Function
+            capitalized_operator = operator[0].upper() + operator[1:] if operator else ''
+            return sp.Function(capitalized_operator)(*sympy_operands)
+        elif operator == 'if_then_else':
+            if len(sympy_operands) == 3:
+                # condition, value_if_true, value_if_false
+                return sp.Piecewise((sympy_operands[1], sympy_operands[0]), (sympy_operands[2], True))
+            else:
+                raise ValueError(f"'if_then_else' operator expects 3 operands, got {len(sympy_operands)}")
+        elif operator == 'threshold':
+            if len(sympy_operands) == 2:
+                # value, threshold_value
+                # Returns 1 if value > threshold_value, else 0
+                return sp.Piecewise((sp.Integer(1), sympy_operands[0] > sympy_operands[1]), (sp.Integer(0), True))
+            else:
+                raise ValueError(f"'threshold' operator expects 2 operands, got {len(sympy_operands)}")
+        else:
+            # Fall back to generic function for other operators known to AIGrammar
+            # or any other operator not handled by Expression's primary _to_sympy.
+            # This allows extensibility if AIGrammar knows more ops.
+            # Ensure operator name is capitalized for sp.Function
+            capitalized_operator = operator[0].upper() + operator[1:] if operator else ''
+            return sp.Function(capitalized_operator)(*sympy_operands)

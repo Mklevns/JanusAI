@@ -108,6 +108,7 @@ class Expression:
         # It's important that _to_sympy can handle partially initialized operands
         # if operands are also Expression objects that rely on _to_sympy.
         # This typically means _to_sympy should recurse.
+        self._grammar_context = None # Initialize grammar context
         
         # Calculate symbolic representation first, as complexity might depend on its structure
         self._symbolic = self._to_sympy()
@@ -149,6 +150,15 @@ class Expression:
         Handles various operators including arithmetic, unary functions, and
         special cases like variables ('var') and constants ('const').
         """
+        # Check if we have a grammar context that can handle AI operators
+        if hasattr(self, '_grammar_context') and self._grammar_context is not None and \
+           hasattr(self._grammar_context, 'convert_ai_expression_to_sympy'):
+            try:
+                return self._grammar_context.convert_ai_expression_to_sympy(self)
+            except (NotImplementedError, AttributeError):
+                pass  # Fall back to original method
+
+        # Original _to_sympy implementation
         # Handle 'var' and 'const' special operators (leaf nodes or direct values)
         if self.operator == 'var':
             # Operand should be a variable name string or a Variable object
@@ -349,6 +359,13 @@ class Expression:
         """
         operands_repr = ", ".join([repr(op) for op in self.operands])
         return f"Expression(operator='{self.operator}', operands=[{operands_repr}])"
+
+    def set_grammar_context(self, grammar):
+        """Set grammar context for enhanced symbolic conversion."""
+        self._grammar_context = grammar
+        # Optionally, re-calculate symbolic representation if context changes
+        # self._symbolic = self._to_sympy()
+        # self._complexity = self._compute_complexity() # And complexity if it depends on symbolic form
 
 
 if __name__ == "__main__":
