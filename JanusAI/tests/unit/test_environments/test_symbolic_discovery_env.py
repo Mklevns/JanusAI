@@ -3,9 +3,9 @@ import numpy as np
 
 # Assuming paths are set up correctly for these imports
 # Add try-except for imports if running script directly vs through test runner might be an issue
-from janus.environments.base import SymbolicDiscoveryEnv, ExpressionNode, NodeType
-from janus.core.grammar import ProgressiveGrammar
-from janus.core.expression import Variable, Expression
+from JanusAI.environments.base import SymbolicDiscoveryEnv, ExpressionNode, NodeType
+from JanusAI.core.grammar import ProgressiveGrammar
+from JanusAI.core.expression import Variable, Expression
 
 class MockGrammar(ProgressiveGrammar):
     def __init__(self):
@@ -566,7 +566,7 @@ if __name__ == '__main__':
     unittest.main()
 
 import pytest
-from janus.environments.base import TreeState # Already imported SymbolicDiscoveryEnv, ExpressionNode, NodeType
+from JanusAI.environments.base import TreeState # Already imported SymbolicDiscoveryEnv, ExpressionNode, NodeType
 # ProgressiveGrammar, Variable, Expression already imported above or will be.
 
 # It's good practice to define a fixture for the environment setup

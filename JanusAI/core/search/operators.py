@@ -17,10 +17,10 @@ import logging
 if TYPE_CHECKING:
     from janus.core.search.config import ExpressionConfig
 
-from janus.core.grammar.base_grammar import BaseGrammar
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.expressions.symbolic_math import get_expression_complexity, expression_to_string
-from janus.utils.exceptions import GrammarError, OptimizationError
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.core.expressions.symbolic_math import get_expression_complexity, expression_to_string
+from JanusAI.utils.exceptions import GrammarError, OptimizationError
 
 
 class ExpressionGenerator:

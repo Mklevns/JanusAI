@@ -1,53 +1,33 @@
-# Init file for janus.ai_interpretability module
+# Init file for JanusAI.ai_interpretability module
 
 """
 Note: This package may depend on root-level modules not yet fully integrated
-into the 'janus' package structure, such as:
-- janus.core.grammar (formerly progressive_grammar_system.py)
-- hypothesis_policy_network
-- janus.config.models (formerly config_models.py)
-- custom_exceptions
-- etc.
-
-Ensure the project root directory is in PYTHONPATH when using this package
-if these dependencies are not co-located or installed as part of 'janus'.
+into the 'JanusAI' package structure.
+Ensure the project root directory is in PYTHONPATH.
 """
-
-# Import key components from submodules to make them available at this level, e.g.:
-# from .environments import AIInterpretabilityEnv, SymbolicDiscoveryEnv
-# from .grammars import NeuralGrammar
-# from .interpreters import AILawDiscovery
-# from .rewards import InterpretabilityReward, FidelityRewardCalculator
-# from .utils import ExperimentVisualizer, ModelHookManager
-
-# Or, users can import directly from submodules:
-# import janus.ai_interpretability.environments as environments
-# etc.
-
-# For now, keep this minimal. Users can import from submodules.
-# If specific classes are very commonly used, they can be exposed here.
 
 VERSION = "0.1.0" # Example version
 
-# Example of selectively exposing key classes:
-from .grammars import NeuralGrammar
-from .environments import (
+# Import key components from submodules to make them available at this level
+# For symbols within the ai_interpretability package, relative imports are fine.
+# For symbols outside, absolute imports are used.
+
+from JanusAI.ai_interpretability.grammars import NeuralGrammar
+from JanusAI.environments.ai_interpretability.neural_net_env import (
     AIBehaviorData,
     AIInterpretabilityEnv,
     LocalInterpretabilityEnv,
-    TransformerInterpretabilityEnv,
     SymbolicDiscoveryEnv,
     AIDiscoveryEnv
 )
-from .rewards import InterpretabilityReward, FidelityRewardCalculator
-from .interpreters import AILawDiscovery
-from .utils import (
-    ExperimentVisualizer,
-    ExpressionParser,
-    ModelHookManager,
-    register_hooks_for_layers,
-    math_utils # Expose the math_utils module itself
-)
+from JanusAI.environments.ai_interpretability.transformer_env import TransformerInterpretabilityEnv # Assuming it's here
+from JanusAI.ai_interpretability.rewards import InterpretabilityReward, FidelityRewardCalculator
+from JanusAI.ai_interpretability.interpreters import AILawDiscovery
+from JanusAI.ai_interpretability.symbolic.expression_parser import ExpressionParser
+from JanusAI.environments.ai_interpretability.model_hooks import ModelHookManager, register_hooks_for_layers
+from JanusAI.utils.visualization.plotting import ExperimentVisualizer
+# 'math_utils' was too vague and its previous import '.utils' was incorrect.
+# Users should import specific math utilities directly from JanusAI.utils.math
 
 __all__ = [
     "NeuralGrammar",
@@ -60,10 +40,9 @@ __all__ = [
     "InterpretabilityReward",
     "FidelityRewardCalculator",
     "AILawDiscovery",
-    "ExperimentVisualizer",
     "ExpressionParser",
     "ModelHookManager",
     "register_hooks_for_layers",
-    "math_utils",
+    "ExperimentVisualizer",
     "VERSION",
 ]

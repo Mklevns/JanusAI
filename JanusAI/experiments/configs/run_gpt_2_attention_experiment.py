@@ -17,14 +17,14 @@ from transformers import GPT2Model, GPT2Tokenizer
 from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
-from janus.experiments.registry import register_experiment
-from janus.experiments.base import BaseExperiment
-from janus.experiments.config import GPT2AttentionConfig as RegistryConfig
-from janus.ai_interpretability.evaluation.fidelity import FidelityCalculator
-from janus.core.grammar import EnhancedAIGrammar
-from janus.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.ml.training.ppo_trainer import PPOTrainer
+from JanusAI.experiments.registry import register_experiment
+from JanusAI.experiments.base import BaseExperiment
+from JanusAI.experiments.config import GPT2AttentionConfig as RegistryConfig
+from JanusAI.ai_interpretability.evaluation.fidelity import FidelityCalculator
+from JanusAI.core.grammar import EnhancedAIGrammar
+from JanusAI.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from JanusAI.ml.training.ppo_trainer import PPOTrainer
 
 # Device for computation
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

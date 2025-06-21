@@ -16,16 +16,16 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 
 # Import base symbolic environment
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode
+from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode
 
 # Import core expression and symbolic math utilities
-from janus.core.expressions.expression import Expression, Variable
-from janus.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
+from JanusAI.core.expressions.expression import Expression, Variable
+from JanusAI.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
 
 # Import physics-specific utilities
-from janus.physics.laws.conservation import ConservationDetector # For potential use in reward
+from JanusAI.physics.laws.conservation import ConservationDetector # For potential use in reward
 # Import PhysicsTask from the new task_distribution module
-from janus.physics.data.task_distribution import PhysicsTask
+from JanusAI.physics.data.task_distribution import PhysicsTask
 
 
 class PhysicsEnvironment(SymbolicDiscoveryEnv):

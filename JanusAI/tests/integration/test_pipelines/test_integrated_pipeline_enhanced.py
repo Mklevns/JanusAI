@@ -3,9 +3,9 @@ from types import SimpleNamespace
 from unittest.mock import patch, MagicMock
 
 import integrated_pipeline
-from janus.integration.pipeline import AdvancedJanusTrainer, JanusConfig
-from janus.core.grammar import ProgressiveGrammar
-from janus.core.expression import Variable
+from JanusAI.integration.pipeline import AdvancedJanusTrainer, JanusConfig
+from JanusAI.core.grammar import ProgressiveGrammar
+from JanusAI.core.expression import Variable
 
 class DummyEnv:
     def __init__(self, **kwargs):

@@ -5,13 +5,13 @@
 import numpy as np
 from typing import List, Dict, Any
 
-from janus.experiments.base import BaseExperiment
-from janus.experiments.registry import register_experiment
-from janus.config.models import ExperimentResult
-from janus.physics.environments.harmonic import HarmonicOscillatorEnv
-from janus.physics.algorithms import create_algorithm
-from janus.core.grammar import ProgressiveGrammar
-from janus.core.expression import Variable
+from JanusAI.experiments.base import BaseExperiment
+from JanusAI.experiments.registry import register_experiment
+from JanusAI.config.models import ExperimentResult
+from JanusAI.physics.environments.harmonic import HarmonicOscillatorEnv
+from JanusAI.physics.algorithms import create_algorithm
+from JanusAI.core.grammar import ProgressiveGrammar
+from JanusAI.core.expression import Variable
 
 
 @register_experiment(
