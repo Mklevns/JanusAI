@@ -41,21 +41,26 @@ class ValidationSuiteLibrary:
         """
         Populates the library with common validation suites.
         """
-        suites = []
-
-        # Basic Physics Discovery Suite
-        suites.append(ValidationSuite(
-            name="Basic Physics Discovery",
-            description="Evaluates discovery of fundamental mechanics laws.",
-            evaluation_tasks=[
-                "harmonic_oscillator_energy",
-                "Newton's Second Law", # Assuming this task exists in PhysicsTaskDistribution
-                "pendulum_small_angle",
-                "ideal_gas_law"
-            ],
-            success_criteria={"correct_discovery_rate": 0.7, "average_fidelity": 0.85},
-            eval_config_overrides={"n_eval_samples_per_task": 500, "n_task_instances_per_benchmark": 3}
-        ))
+        suites = [
+            ValidationSuite(
+                name="Basic Physics Discovery",
+                description="Evaluates discovery of fundamental mechanics laws.",
+                evaluation_tasks=[
+                    "harmonic_oscillator_energy",
+                    "Newton's Second Law",  # Assuming this task exists in PhysicsTaskDistribution
+                    "pendulum_small_angle",
+                    "ideal_gas_law",
+                ],
+                success_criteria={
+                    "correct_discovery_rate": 0.7,
+                    "average_fidelity": 0.85,
+                },
+                eval_config_overrides={
+                    "n_eval_samples_per_task": 500,
+                    "n_task_instances_per_benchmark": 3,
+                },
+            )
+        ]
 
         # Advanced Physics Discovery Suite
         suites.append(ValidationSuite(
