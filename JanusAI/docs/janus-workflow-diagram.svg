@@ -1,0 +1,180 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="600" y="30" text-anchor="middle" font-size="24" font-weight="bold" fill="#333">
+    JanusAI Multi-Agent Discovery Workflow
+  </text>
+  
+  <!-- Background sections -->
+  <rect x="20" y="60" width="1160" height="200" fill="#f0f8ff" stroke="#4682b4" stroke-width="2" rx="10"/>
+  <text x="30" y="85" font-size="16" font-weight="bold" fill="#4682b4">Agent Layer</text>
+  
+  <rect x="20" y="280" width="1160" height="150" fill="#f5fffa" stroke="#228b22" stroke-width="2" rx="10"/>
+  <text x="30" y="305" font-size="16" font-weight="bold" fill="#228b22">Communication Layer</text>
+  
+  <rect x="20" y="450" width="1160" height="200" fill="#fff5ee" stroke="#ff6347" stroke-width="2" rx="10"/>
+  <text x="30" y="475" font-size="16" font-weight="bold" fill="#ff6347">Knowledge Layer</text>
+  
+  <!-- Agents -->
+  <g id="explorer">
+    <rect x="80" y="120" width="120" height="80" fill="#87ceeb" stroke="#4682b4" stroke-width="2" rx="5"/>
+    <text x="140" y="150" text-anchor="middle" font-size="14" font-weight="bold">Explorer</text>
+    <text x="140" y="170" text-anchor="middle" font-size="12">Agent</text>
+    <text x="140" y="190" text-anchor="middle" font-size="10" fill="#666">High exploration</text>
+  </g>
+  
+  <g id="refiner">
+    <rect x="250" y="120" width="120" height="80" fill="#98fb98" stroke="#228b22" stroke-width="2" rx="5"/>
+    <text x="310" y="150" text-anchor="middle" font-size="14" font-weight="bold">Refiner</text>
+    <text x="310" y="170" text-anchor="middle" font-size="12">Agent</text>
+    <text x="310" y="190" text-anchor="middle" font-size="10" fill="#666">Improves existing</text>
+  </g>
+  
+  <g id="validator1">
+    <rect x="420" y="120" width="120" height="80" fill="#ffa07a" stroke="#ff6347" stroke-width="2" rx="5"/>
+    <text x="480" y="150" text-anchor="middle" font-size="14" font-weight="bold">Validator 1</text>
+    <text x="480" y="170" text-anchor="middle" font-size="12">Agent</text>
+    <text x="480" y="190" text-anchor="middle" font-size="10" fill="#666">Verifies claims</text>
+  </g>
+  
+  <g id="validator2">
+    <rect x="590" y="120" width="120" height="80" fill="#ffa07a" stroke="#ff6347" stroke-width="2" rx="5"/>
+    <text x="650" y="150" text-anchor="middle" font-size="14" font-weight="bold">Validator 2</text>
+    <text x="650" y="170" text-anchor="middle" font-size="12">Agent</text>
+    <text x="650" y="190" text-anchor="middle" font-size="10" fill="#666">Verifies claims</text>
+  </g>
+  
+  <!-- Message Bus -->
+  <g id="messagebus">
+    <rect x="300" y="320" width="600" height="80" fill="#e6e6fa" stroke="#9370db" stroke-width="2" rx="5"/>
+    <text x="600" y="345" text-anchor="middle" font-size="16" font-weight="bold">Message Bus</text>
+    
+    <!-- Tier 1 Queue -->
+    <rect x="320" y="360" width="250" height="30" fill="#ffd700" stroke="#daa520" stroke-width="1" rx="3"/>
+    <text x="445" y="380" text-anchor="middle" font-size="12">Tier 1: Strategic (Priority)</text>
+    
+    <!-- Tier 2 Queue -->
+    <rect x="630" y="360" width="250" height="30" fill="#87ceeb" stroke="#4682b4" stroke-width="1" rx="3"/>
+    <text x="755" y="380" text-anchor="middle" font-size="12">Tier 2: Tactical (Bounded)</text>
+  </g>
+  
+  <!-- Knowledge Base -->
+  <g id="knowledgebase">
+    <rect x="300" y="500" width="600" height="120" fill="#ffe4e1" stroke="#dc143c" stroke-width="2" rx="5"/>
+    <text x="600" y="525" text-anchor="middle" font-size="16" font-weight="bold">Shared Knowledge Base</text>
+    
+    <!-- Pending Validations -->
+    <rect x="320" y="540" width="250" height="30" fill="#ffffe0" stroke="#daa520" stroke-width="1" rx="3"/>
+    <text x="445" y="560" text-anchor="middle" font-size="12">Pending Validations</text>
+    
+    <!-- Confirmed Discoveries -->
+    <rect x="630" y="540" width="250" height="30" fill="#98fb98" stroke="#228b22" stroke-width="1" rx="3"/>
+    <text x="755" y="560" text-anchor="middle" font-size="12">Confirmed Discoveries</text>
+    
+    <!-- Version History -->
+    <rect x="475" y="580" width="250" height="30" fill="#e6e6fa" stroke="#9370db" stroke-width="1" rx="3"/>
+    <text x="600" y="600" text-anchor="middle" font-size="12">Version History</text>
+  </g>
+  
+  <!-- Workflow Arrows -->
+  <!-- Step 1: Explorer discovers -->
+  <g id="step1">
+    <path d="M 140 200 L 140 240 L 400 240 L 400 320" stroke="#4682b4" stroke-width="2" fill="none" marker-end="url(#arrowblue)"/>
+    <circle cx="50" cy="230" r="20" fill="#4682b4"/>
+    <text x="50" y="237" text-anchor="middle" font-size="16" font-weight="bold" fill="white">1</text>
+    <text x="270" y="235" font-size="12" fill="#4682b4">propose_discovery()</text>
+  </g>
+  
+  <!-- Step 2: Validation Request -->
+  <g id="step2">
+    <path d="M 445 400 L 445 430 L 445 500" stroke="#daa520" stroke-width="2" fill="none" marker-end="url(#arrowgold)"/>
+    <circle cx="50" cy="430" r="20" fill="#daa520"/>
+    <text x="50" y="437" text-anchor="middle" font-size="16" font-weight="bold" fill="white">2</text>
+    <text x="480" y="440" font-size="12" fill="#daa520">VALIDATION_REQUEST</text>
+  </g>
+  
+  <!-- Step 3: Validators get messages -->
+  <g id="step3">
+    <path d="M 480 320 L 480 200" stroke="#ff6347" stroke-width="2" fill="none" marker-end="url(#arrowred)"/>
+    <path d="M 650 320 L 650 200" stroke="#ff6347" stroke-width="2" fill="none" marker-end="url(#arrowred)"/>
+    <circle cx="950" cy="260" r="20" fill="#ff6347"/>
+    <text x="950" y="267" text-anchor="middle" font-size="16" font-weight="bold" fill="white">3</text>
+    <text x="830" y="260" font-size="12" fill="#ff6347">get_messages()</text>
+  </g>
+  
+  <!-- Step 4: Validators vote -->
+  <g id="step4">
+    <path d="M 480 200 L 480 260 L 550 260 L 550 500" stroke="#ff6347" stroke-width="2" fill="none" marker-end="url(#arrowred)"/>
+    <path d="M 650 200 L 650 260 L 580 260 L 580 500" stroke="#ff6347" stroke-width="2" fill="none" marker-end="url(#arrowred)"/>
+    <circle cx="950" cy="380" r="20" fill="#ff6347"/>
+    <text x="950" y="387" text-anchor="middle" font-size="16" font-weight="bold" fill="white">4</text>
+    <text x="750" y="380" font-size="12" fill="#ff6347">vote_on_discovery()</text>
+  </g>
+  
+  <!-- Step 5: Consensus reached -->
+  <g id="step5">
+    <path d="M 570 540 L 630 540" stroke="#228b22" stroke-width="3" fill="none" marker-end="url(#arrowgreen)"/>
+    <circle cx="950" cy="540" r="20" fill="#228b22"/>
+    <text x="950" y="547" text-anchor="middle" font-size="16" font-weight="bold" fill="white">5</text>
+    <text x="1050" y="540" font-size="12" fill="#228b22">Consensus!</text>
+  </g>
+  
+  <!-- Step 6: Discovery Pointer broadcast -->
+  <g id="step6">
+    <path d="M 755 500 L 755 400" stroke="#228b22" stroke-width="2" fill="none" marker-end="url(#arrowgreen)"/>
+    <circle cx="950" cy="450" r="20" fill="#228b22"/>
+    <text x="950" y="457" text-anchor="middle" font-size="16" font-weight="bold" fill="white">6</text>
+    <text x="820" y="450" font-size="12" fill="#228b22">DISCOVERY_POINTER</text>
+  </g>
+  
+  <!-- Tactical Communication (continuous) -->
+  <g id="tactical">
+    <path d="M 310 200 L 310 230 L 755 230 L 755 360" stroke="#87ceeb" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowlightblue)"/>
+    <text x="500" y="225" font-size="11" fill="#87ceeb" font-style="italic">Tactical vectors (continuous)</text>
+  </g>
+  
+  <!-- Legend -->
+  <g id="legend" transform="translate(800, 100)">
+    <rect x="0" y="0" width="180" height="120" fill="white" stroke="#666" stroke-width="1" rx="5"/>
+    <text x="90" y="20" text-anchor="middle" font-size="14" font-weight="bold">Message Types</text>
+    
+    <line x1="10" y1="40" x2="40" y2="40" stroke="#daa520" stroke-width="2"/>
+    <text x="45" y="45" font-size="12">Tier 1 Strategic</text>
+    
+    <line x1="10" y1="60" x2="40" y2="60" stroke="#87ceeb" stroke-width="2" stroke-dasharray="5,5"/>
+    <text x="45" y="65" font-size="12">Tier 2 Tactical</text>
+    
+    <line x1="10" y1="80" x2="40" y2="80" stroke="#228b22" stroke-width="2"/>
+    <text x="45" y="85" font-size="12">Confirmed</text>
+    
+    <line x1="10" y1="100" x2="40" y2="100" stroke="#ff6347" stroke-width="2"/>
+    <text x="45" y="105" font-size="12">Validation</text>
+  </g>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#4682b4"/>
+    </marker>
+    <marker id="arrowgold" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#daa520"/>
+    </marker>
+    <marker id="arrowred" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#ff6347"/>
+    </marker>
+    <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#228b22"/>
+    </marker>
+    <marker id="arrowlightblue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#87ceeb"/>
+    </marker>
+  </defs>
+  
+  <!-- Info box -->
+  <g id="infobox" transform="translate(20, 680)">
+    <rect x="0" y="0" width="1160" height="100" fill="#f9f9f9" stroke="#999" stroke-width="1" rx="5"/>
+    <text x="10" y="20" font-size="14" font-weight="bold">Workflow Summary:</text>
+    <text x="10" y="40" font-size="12">1. Explorer discovers expression → 2. System creates validation request → 3. Validators receive request →</text>
+    <text x="10" y="60" font-size="12">4. Validators vote with evidence → 5. Consensus triggers confirmation → 6. Discovery pointer broadcast to all agents</text>
+    <text x="10" y="85" font-size="11" fill="#666" font-style="italic">Note: Tactical communication (Tier 2) happens continuously for real-time coordination between agents</text>
+  </g>
+</svg>

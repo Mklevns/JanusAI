@@ -1,163 +1,447 @@
-#!/usr/bin/env python3
 """
-Quick Syntax Fix for pipeline.py
-==============================
+Integrated Training Pipeline for Janus
+=====================================
 
-Specifically fixes the indentation error on line 116 of pipeline.py
-
-Usage:
-    python quick_syntax_fix.py
+Integrates various components into cohesive, end-to-end discovery 
+and interpretability pipelines.
 """
 
-import sys
+import numpy as np
+import torch
+from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
+import time
+import logging
+
+from janus.core.grammar import ProgressiveGrammar
+from janus.core.expressions import Variable
+from janus.environments.base import SymbolicDiscoveryEnv
+from janus.ml.networks import HypothesisNet
+from janus.ml.training import PPOTrainer
+from janus.config.models import JanusConfig
+from janus.utils.logging import ExperimentLogger
+
+# Optional imports
+try:
+    import wandb
+    HAS_WANDB = True
+except ImportError:
+    HAS_WANDB = False
+    
+try:
+    import ray
+    HAS_RAY = True
+except ImportError:
+    HAS_RAY = False
+
+logger = logging.getLogger(__name__)
 
 
-def fix_pipeline_syntax():
-    """Fix the specific syntax error in pipeline.py."""
-    pipeline_file = Path("src/janus/integration/pipeline.py")
+class JanusTrainer:
+    """
+    Base trainer that orchestrates the training pipeline for Janus.
+    """
     
-    if not pipeline_file.exists():
-        print(f"❌ {pipeline_file} not found")
-        return False
+    def __init__(self, config: JanusConfig):
+        self.config = config
+        
+        # Setup directories
+        self._setup_directories()
+        
+        # Initialize components
+        self.grammar = ProgressiveGrammar()
+        self.variables = []
+        self.env = None
+        self.trainer = None
+        
+        # Initialize logging
+        self.logger = ExperimentLogger(
+            experiment_name=f"janus_{config.training_mode}_{int(time.time())}",
+            log_dir=config.results_dir
+        )
+        
+        # Initialize W&B if configured
+        if config.wandb_project and HAS_WANDB:
+            wandb.init(
+                project=config.wandb_project,
+                config=config.model_dump(),
+                name=f"janus_{config.training_mode}_{int(time.time())}"
+            )
     
-    try:
-        with open(pipeline_file, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
+    def _setup_directories(self):
+        """Create necessary directories."""
+        for dir_path in [self.config.data_dir, 
+                        self.config.checkpoint_dir, 
+                        self.config.results_dir]:
+            Path(dir_path).mkdir(parents=True, exist_ok=True)
+    
+    def prepare_data(self, 
+                    data_path: Optional[str] = None,
+                    generate_synthetic: bool = True) -> np.ndarray:
+        """Prepare training data."""
         
-        print(f"📄 Checking {len(lines)} lines in pipeline.py...")
+        if data_path and Path(data_path).exists():
+            # Load real data
+            data = np.load(data_path)
+            logger.info(f"Loaded data from {data_path}: shape {data.shape}")
         
-        # Check line 116 specifically (index 115)
-        if len(lines) >= 116:
-            line_116 = lines[115]
-            print(f"Line 116: '{line_116.rstrip()}'")
-            
-            # Check for common indentation issues
-            fixed = False
-            
-            # Remove any trailing whitespace
-            lines = [line.rstrip() + '\n' if line.strip() else line for line in lines]
-            
-            # Fix mixed tabs/spaces
-            for i, line in enumerate(lines):
-                if '\t' in line:
-                    lines[i] = line.replace('\t', '    ')
-                    print(f"Fixed tabs on line {i+1}")
-                    fixed = True
-            
-            # Check for indentation consistency around line 116
-            for i in range(max(0, 110), min(len(lines), 125)):
-                line = lines[i]
-                if line.strip() and not line.strip().startswith('#'):
-                    # Count leading spaces
-                    leading_spaces = len(line) - len(line.lstrip())
-                    
-                    # Ensure indentation is multiple of 4
-                    if leading_spaces % 4 != 0 and leading_spaces > 0:
-                        correct_spaces = ((leading_spaces + 2) // 4) * 4
-                        lines[i] = ' ' * correct_spaces + line.lstrip()
-                        print(f"Fixed indentation on line {i+1}: {leading_spaces} → {correct_spaces} spaces")
-                        fixed = True
-            
-            # Look for specific problematic patterns
-            for i in range(len(lines)):
-                line = lines[i]
-                
-                # Fix common Python syntax issues
-                if line.strip().startswith('except ImportError as e:') and i + 1 < len(lines):
-                    next_line = lines[i + 1]
-                    if next_line.strip() and not next_line.startswith('    '):
-                        # Next line after except should be indented
-                        lines[i + 1] = '    ' + next_line.lstrip()
-                        print(f"Fixed except block indentation on line {i+2}")
-                        fixed = True
-                
-                # Fix class method indentation
-                if line.strip().startswith('def ') and not line.startswith('    def '):
-                    if i > 0 and ('class ' in lines[i-1] or lines[i-1].strip().endswith(':')):
-                        lines[i] = '    ' + line.lstrip()
-                        print(f"Fixed method indentation on line {i+1}")
-                        fixed = True
-            
-            # Try to compile to catch syntax errors
-            content = ''.join(lines)
-            try:
-                compile(content, str(pipeline_file), 'exec')
-                print("✅ Code compiles successfully!")
-                
-                if fixed:
-                    # Write the fixed version
-                    with open(pipeline_file, 'w', encoding='utf-8') as f:
-                        f.writelines(lines)
-                    print("✅ Fixed and saved pipeline.py")
-                
-                return True
-                
-            except SyntaxError as se:
-                print(f"❌ Still has syntax error: {se}")
-                print(f"   Error on line {se.lineno}: {se.text}")
-                
-                # Try to fix the specific error
-                if se.lineno and se.lineno <= len(lines):
-                    error_line = lines[se.lineno - 1]
-                    print(f"   Problematic line: '{error_line.rstrip()}'")
-                    
-                    # Common fixes for specific syntax errors
-                    if "unindent does not match any outer indentation level" in str(se):
-                        # Find the correct indentation level
-                        for j in range(se.lineno - 2, -1, -1):
-                            if lines[j].strip() and not lines[j].strip().startswith('#'):
-                                prev_indent = len(lines[j]) - len(lines[j].lstrip())
-                                break
-                        else:
-                            prev_indent = 0
-                        
-                        # Fix the indentation
-                        lines[se.lineno - 1] = ' ' * prev_indent + error_line.lstrip()
-                        print(f"   Fixed indentation to {prev_indent} spaces")
-                        
-                        # Write and test again
-                        with open(pipeline_file, 'w', encoding='utf-8') as f:
-                            f.writelines(lines)
-                        
-                        # Test compilation again
-                        content = ''.join(lines)
-                        try:
-                            compile(content, str(pipeline_file), 'exec')
-                            print("✅ Fixed! Code now compiles successfully!")
-                            return True
-                        except SyntaxError:
-                            print("❌ Still has syntax errors")
-                            return False
-                
-                return False
+        elif generate_synthetic:
+            # Generate synthetic physics data
+            data = self._generate_synthetic_data()
+            logger.info(f"Generated synthetic {self.config.target_phenomena} data")
         
         else:
-            print("❌ File has fewer than 116 lines")
-            return False
+            raise ValueError("No data provided")
+        
+        # Discover variables from data
+        logger.info("Discovering variables...")
+        self.variables = self.grammar.discover_variables(data)
+        logger.info(f"Discovered {len(self.variables)} variables")
+        
+        return data
+    
+    def _generate_synthetic_data(self) -> np.ndarray:
+        """Generate synthetic physics data based on target phenomena."""
+        
+        n_samples = 2000
+        
+        if self.config.target_phenomena == "harmonic_oscillator":
+            t = np.linspace(0, 20, n_samples)
+            x = np.sin(2 * np.pi * 0.5 * t) + 0.05 * np.random.randn(n_samples)
+            v = 2 * np.pi * 0.5 * np.cos(2 * np.pi * 0.5 * t) + 0.05 * np.random.randn(n_samples)
+            energy = 0.5 * (x**2 + v**2)
+            data = np.column_stack([x, v, energy])
             
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return False
-
-
-def main():
-    """Main function."""
-    print("🔧 Quick Syntax Fix for pipeline.py")
-    print("=" * 40)
+        elif self.config.target_phenomena == "pendulum":
+            t = np.linspace(0, 20, n_samples)
+            theta = 0.2 * np.sin(np.sqrt(9.81) * t) + 0.02 * np.random.randn(n_samples)
+            omega = 0.2 * np.sqrt(9.81) * np.cos(np.sqrt(9.81) * t) + 0.02 * np.random.randn(n_samples)
+            energy = 0.5 * omega**2 + 9.81 * (1 - np.cos(theta))
+            data = np.column_stack([theta, omega, energy])
+            
+        elif self.config.target_phenomena == "kepler":
+            # Circular orbit
+            t = np.linspace(0, 10, n_samples)
+            r = 1.0 + 0.01 * np.random.randn(n_samples)
+            theta = t + 0.01 * np.random.randn(n_samples)
+            vr = 0.01 * np.random.randn(n_samples)
+            vtheta = 1.0 / r + 0.01 * np.random.randn(n_samples)
+            energy = 0.5 * (vr**2 + r**2 * vtheta**2) - 1.0 / r
+            angular_momentum = r**2 * vtheta
+            data = np.column_stack([r, theta, vr, vtheta, energy, angular_momentum])
+            
+        else:
+            # Default: simple polynomial data
+            x = np.linspace(-2, 2, n_samples)
+            y = 2 * x**2 + 3 * x + 1 + 0.1 * np.random.randn(n_samples)
+            data = np.column_stack([x, y])
+        
+        # Save generated data
+        save_path = Path(self.config.data_dir) / f"{self.config.target_phenomena}_synthetic.npy"
+        np.save(save_path, data)
+        
+        return data
     
-    if fix_pipeline_syntax():
-        print("\n🎉 Success! Try running the validation test again:")
-        print("   python simple_validation_test.py")
+    def create_environment(self, data: np.ndarray) -> SymbolicDiscoveryEnv:
+        """Create the discovery environment."""
+        
+        reward_config = self.config.reward_config or {
+            'completion_bonus': 0.1,
+            'mse_weight': -1.0,
+            'complexity_penalty': -0.01,
+            'depth_penalty': -0.001
+        }
+        
+        env_config = {
+            'grammar': self.grammar,
+            'target_data': data,
+            'variables': self.variables,
+            'max_depth': self.config.max_depth,
+            'max_complexity': self.config.max_complexity,
+            'reward_config': reward_config.model_dump() if hasattr(reward_config, 'model_dump') else reward_config
+        }
+        
+        # Create environment
+        env = SymbolicDiscoveryEnv(**env_config)
+        
+        return env
+    
+    def create_trainer(self):
+        """Create the trainer."""
+        
+        # Determine observation dimension
+        obs_dim = self.env.observation_space.shape[0]
+        
+        # Create policy network
+        policy = HypothesisNet(
+            observation_dim=obs_dim,
+            action_dim=self.env.action_space.n,
+            hidden_dim=256,
+            encoder_type='transformer',
+            grammar=self.grammar
+        )
+        
+        # Create trainer
+        trainer = PPOTrainer(policy, self.env)
+        
+        return trainer
+    
+    def train(self):
+        """Main training loop."""
+        
+        logger.info(f"Starting {self.config.training_mode} training...")
+        logger.info(f"Total timesteps: {self.config.total_timesteps}")
+        
+        # Run training
+        self.trainer.train(
+            total_timesteps=self.config.total_timesteps,
+            rollout_length=self.config.ppo_rollout_length,
+            n_epochs=self.config.ppo_n_epochs,
+            log_interval=self.config.log_interval
+        )
+        
+        # Save final model
+        self._save_checkpoint("final")
+    
+    def _save_checkpoint(self, name: str):
+        """Save a checkpoint."""
+        checkpoint_path = Path(self.config.checkpoint_dir) / f"{name}_model.pt"
+        
+        checkpoint = {
+            'policy_state_dict': self.trainer.policy.state_dict(),
+            'grammar_state': self.grammar.export_grammar_state(),
+            'config': self.config.model_dump(),
+            'variables': [(v.name, v.index, v.properties) for v in self.variables]
+        }
+        
+        torch.save(checkpoint, checkpoint_path)
+        logger.info(f"Model saved to {checkpoint_path}")
+    
+    def load_checkpoint(self, checkpoint_path: str):
+        """Load a checkpoint."""
+        checkpoint = torch.load(checkpoint_path)
+        
+        if self.trainer and self.trainer.policy:
+            self.trainer.policy.load_state_dict(checkpoint['policy_state_dict'])
+        
+        if 'grammar_state' in checkpoint:
+            self.grammar.import_grammar_state(checkpoint['grammar_state'])
+        
+        logger.info(f"Loaded checkpoint from {checkpoint_path}")
+
+
+class AdvancedJanusTrainer(JanusTrainer):
+    """
+    Advanced trainer with enhanced features for complex training scenarios.
+    """
+    
+    def __init__(self, config: JanusConfig):
+        super().__init__(config)
+        
+        # Advanced components placeholders
+        self.curriculum_manager = None
+        self.distributed_trainer = None
+        
+        # Initialize based on mode
+        self._initialize_advanced_features()
+    
+    def _initialize_advanced_features(self):
+        """Initialize advanced training features."""
+        
+        # Setup distributed training if available
+        if self.config.training_mode == "distributed" and HAS_RAY:
+            if not ray.is_initialized():
+                ray.init(num_cpus=self.config.num_workers * 2, 
+                        num_gpus=self.config.num_gpus)
+        
+        # Setup curriculum learning if enabled
+        if self.config.use_curriculum:
+            try:
+                from janus.environments.enhanced import CurriculumManager
+                self.curriculum_manager = CurriculumManager(
+                    stages=self.config.curriculum_stages
+                )
+            except ImportError:
+                logger.warning("CurriculumManager not available")
+    
+    def create_environment(self, data: np.ndarray) -> SymbolicDiscoveryEnv:
+        """Create enhanced environment for advanced training."""
+        
+        # Try to use enhanced environment
+        try:
+            from janus.environments.enhanced import EnhancedSymbolicDiscoveryEnv
+            
+            reward_config = self.config.reward_config or {
+                'completion_bonus': 0.1,
+                'mse_weight': -1.0,
+                'complexity_penalty': -0.01,
+                'depth_penalty': -0.001
+            }
+            
+            env_config = {
+                'grammar': self.grammar,
+                'target_data': data,
+                'variables': self.variables,
+                'max_depth': self.config.max_depth,
+                'max_complexity': self.config.max_complexity,
+                'reward_config': reward_config.model_dump() if hasattr(reward_config, 'model_dump') else reward_config
+            }
+            
+            env = EnhancedSymbolicDiscoveryEnv(**env_config)
+            logger.info("Using EnhancedSymbolicDiscoveryEnv")
+            
+        except ImportError:
+            logger.warning("EnhancedSymbolicDiscoveryEnv not available, using standard environment")
+            env = super().create_environment(data)
+        
+        # Wrap with curriculum if enabled
+        if self.curriculum_manager:
+            env = self.curriculum_manager.wrap_environment(env)
+            
+        return env
+    
+    def train(self):
+        """Advanced training loop with phases."""
+        
+        if self.config.training_mode == "advanced":
+            self._train_advanced()
+        else:
+            super().train()
+    
+    def _train_advanced(self):
+        """Advanced training with multiple phases."""
+        
+        timesteps_per_phase = self.config.total_timesteps // 4
+        
+        # Phase 1: Initial exploration
+        logger.info("Phase 1: Initial Exploration")
+        self.trainer.train(
+            total_timesteps=timesteps_per_phase,
+            rollout_length=1024,
+            n_epochs=5,
+            log_interval=self.config.log_interval
+        )
+        
+        # Phase 2: Focused training
+        logger.info("Phase 2: Focused Training")
+        self.trainer.train(
+            total_timesteps=timesteps_per_phase,
+            rollout_length=2048,
+            n_epochs=10,
+            log_interval=self.config.log_interval
+        )
+        
+        # Phase 3: Fine-tuning
+        logger.info("Phase 3: Fine-tuning")
+        self.trainer.train(
+            total_timesteps=timesteps_per_phase,
+            rollout_length=4096,
+            n_epochs=15,
+            log_interval=self.config.log_interval
+        )
+        
+        # Phase 4: Final optimization
+        logger.info("Phase 4: Final Optimization")
+        self.trainer.train(
+            total_timesteps=timesteps_per_phase,
+            rollout_length=4096,
+            n_epochs=20,
+            log_interval=self.config.log_interval
+        )
+        
+        # Save final model
+        self._save_checkpoint("final_advanced")
+        
+        # Generate final report
+        self._generate_final_report()
+    
+    def _generate_final_report(self):
+        """Generate a final training report."""
+        
+        report = {
+            'training_mode': self.config.training_mode,
+            'total_timesteps': self.config.total_timesteps,
+            'target_phenomena': self.config.target_phenomena,
+            'final_reward': self.trainer.episode_rewards[-1] if self.trainer.episode_rewards else 0,
+            'num_variables': len(self.variables),
+            'max_expression_depth': self.config.max_depth,
+            'max_expression_complexity': self.config.max_complexity
+        }
+        
+        # Save report
+        report_path = Path(self.config.results_dir) / "final_report.json"
+        import json
+        with open(report_path, 'w') as f:
+            json.dump(report, f, indent=2)
+        
+        logger.info(f"Final report saved to {report_path}")
+        
+        # Log to W&B if available
+        if self.config.wandb_project and HAS_WANDB:
+            wandb.log(report)
+            wandb.finish()
+    
+    def run_experiment_suite(self):
+        """Run validation experiments."""
+        
+        logger.info("Running experiment suite...")
+        
+        # Import experiment runner
+        try:
+            from janus.experiments.runner import ExperimentRunner
+            
+            runner = ExperimentRunner(
+                base_dir=self.config.results_dir,
+                use_wandb=bool(self.config.wandb_project),
+                strict_mode=self.config.strict_mode
+            )
+            
+            # Run basic validation
+            from janus.experiments.configs import HarmonicOscillatorConfig
+            config = HarmonicOscillatorConfig()
+            
+            results = runner.run_single_experiment(config)
+            logger.info(f"Validation results: {results}")
+            
+        except ImportError as e:
+            logger.warning(f"Could not run experiment suite: {e}")
+
+
+def create_trainer(config: JanusConfig) -> JanusTrainer:
+    """Factory function to create appropriate trainer based on config."""
+    
+    if config.training_mode == "advanced":
+        return AdvancedJanusTrainer(config)
     else:
-        print("\n❌ Could not fix automatically. You may need to:")
-        print("1. Check src/janus/integration/pipeline.py manually")
-        print("2. Look for indentation issues around line 116")
-        print("3. Ensure consistent use of spaces (not tabs)")
-        return 1
+        return JanusTrainer(config)
+
+
+def run_training_pipeline(config: JanusConfig):
+    """Run the complete training pipeline."""
     
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+    # Create trainer
+    trainer = create_trainer(config)
+    
+    # Prepare data
+    data = trainer.prepare_data(generate_synthetic=True)
+    
+    # Create environment
+    trainer.env = trainer.create_environment(data)
+    
+    # Create trainer
+    trainer.trainer = trainer.create_trainer()
+    
+    # Run training
+    trainer.train()
+    
+    # Run validation if configured
+    if config.run_validation_suite and hasattr(trainer, 'run_experiment_suite'):
+        trainer.run_experiment_suite()
+    
+    logger.info("Training pipeline complete!")
+    
+    # Cleanup
+    if HAS_RAY and ray.is_initialized():
+        ray.shutdown()
+    
+    return trainer
