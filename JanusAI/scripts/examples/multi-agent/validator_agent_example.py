@@ -16,7 +16,7 @@ from typing import Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 import logging
 
-from schemas import Discovery, Message, MessageType, AgentRole
+from schemas import Discovery, MessageType, AgentRole
 from knowledge import MessageBus, SharedKnowledgeBase
 
 logger = logging.getLogger(__name__)

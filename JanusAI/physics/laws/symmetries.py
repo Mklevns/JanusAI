@@ -3,8 +3,7 @@
 
 
 import numpy as np
-import sympy
-from typing import Callable, List, Dict, Any, Tuple, Optional
+from typing import Callable, List, Dict, Any, Optional
 
 class PhysicsSymmetryDetector:
     def __init__(self, tolerance: float = 1e-5, confidence_threshold: float = 0.9):

@@ -1,8 +1,7 @@
 """Progressive Grammar core components."""
 
 import numpy as np
-import sympy as sp
-from typing import Dict, List, Tuple, Optional, Set, Any, TypeVar, Generic, Union # Added Generic
+from typing import Dict, List, Optional, Set, Any, Union # Added Generic
 from collections import defaultdict
 import random
 import logging

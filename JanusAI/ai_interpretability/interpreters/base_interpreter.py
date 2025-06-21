@@ -291,5 +291,3 @@ class AILawDiscovery:
 # Note: The example usage block (if __name__ == "__main__":) from the original
 # janus_ai_interpretability.py is not moved here as this file is intended to be a module.
 # Such examples should go into a separate examples script or test files.
-
-```

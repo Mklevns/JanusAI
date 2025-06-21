@@ -268,5 +268,3 @@ if __name__ == '__main__':
     for h in handles: # Clean up
         h.remove()
     print("Utility function hooks removed.")
-
-```

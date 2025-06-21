@@ -3,7 +3,6 @@
 
 import click
 import logging
-from typing import List, Dict, Any
 import pandas as pd
 
 from janus_ai.experiments.benchmarks import BenchmarkSuite

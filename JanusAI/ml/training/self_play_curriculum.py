@@ -8,15 +8,14 @@ creating an open-ended curriculum for physics discovery.
 
 import torch
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, field
+from typing import Dict, List, Any
+from dataclasses import dataclass
 import wandb
 import json
 import time
 from pathlib import Path
 from collections import deque
 
-from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import BaseCallback
 
 from janus_ai.ml.agents.task_setter import TaskSetterAgent, TaskSetterConfig

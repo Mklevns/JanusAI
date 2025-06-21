@@ -5,14 +5,10 @@ Combines hierarchical RL, self-play, meta-learning, and multi-agent collaboratio
 """
 
 import torch
-import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Tuple, Any
 import logging
-from dataclasses import dataclass
-import json
 
 # Import Janus components
-from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
 from janus_ai.ml.training.discovery_self_play import DiscoverySelfPlaySystem, NeuralDiscoveryAgent
 from janus_ai.ml.training.advanced_meta_learning import MetaLearner, AdvancedMetaTrainer
 from janus_ai.environments.hierarchical_discovery_env import HierarchicalDiscoveryEnv

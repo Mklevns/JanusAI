@@ -10,22 +10,18 @@ Author: JanusAI Team
 Date: 2024
 """
 
-import torch
 import torch.nn as nn
 import numpy as np
 import logging
 from datetime import datetime
-from typing import List, Dict, Any
 import time
 
 # Import all JanusAI components
-from schemas import AgentRole, MessageType, Discovery, Message
+from schemas import AgentRole, MessageType, Message
 from knowledge import MessageBus, SharedKnowledgeBase
 from discovery_agent import (
     DiscoveryAgent, 
-    DualMemorySystem,
-    CommunicationEncoder,
-    CommunicationAggregator
+    DualMemorySystem
 )
 
 # Set up logging

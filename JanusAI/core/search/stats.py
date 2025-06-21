@@ -8,9 +8,9 @@ reporting capabilities for genetic algorithm runs.
 
 import time
 import numpy as np
-from typing import List, Dict, Any, Optional, Union, Set
+from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass, field
-from collections import defaultdict, deque
+from collections import deque
 import logging
 import hashlib
 

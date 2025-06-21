@@ -10,7 +10,7 @@ of epistemic uncertainty, which drives exploration.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple, Dict
 import numpy as np
 from collections import deque
 

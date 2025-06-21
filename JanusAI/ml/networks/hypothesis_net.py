@@ -10,11 +10,9 @@ This file contains the core neural network architectures.
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.distributions import Categorical
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any, Union, TypedDict
-from dataclasses import dataclass
 
 # Internal project imports based on new structure
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv, safe_env_reset

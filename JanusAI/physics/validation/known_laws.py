@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 
 # Import Expression and Variable for comparison with discovered laws
 from janus_ai.core.expressions.expression import Expression, Variable
-from janus_ai.core.expressions.symbolic_math import get_variables_from_expression, are_expressions_equivalent_sympy
+from janus_ai.core.expressions.symbolic_math import are_expressions_equivalent_sympy
 
 
 @dataclass
@@ -161,7 +161,8 @@ class KnownLawLibrary:
 if __name__ == "__main__":
     # Mock evaluate_expression_on_data and are_expressions_equivalent_sympy if not fully available
     try:
-        from janus.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq
+        pass
+        # from janus.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq
     except ImportError:
         print("Using mock are_expressions_equivalent_sympy for known_laws.py test.")
         def are_expressions_equivalent_sympy(expr1: sp.Expr, expr2: sp.Expr, symbols: List[sp.Symbol], tolerance: float) -> bool:

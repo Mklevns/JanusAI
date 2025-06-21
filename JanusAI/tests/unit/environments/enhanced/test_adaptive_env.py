@@ -2,7 +2,6 @@
 Tests for environments/enhanced/adaptive_env.py
 """
 import pytest
-import numpy as np
 from collections import deque
 
 from environments.enhanced.adaptive_env import AdaptiveTrainingController

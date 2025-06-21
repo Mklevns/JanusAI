@@ -18,16 +18,14 @@ Key improvements:
 
 import time
 import numpy as np
-import warnings
-from typing import List, Optional, Callable, Tuple, Dict, Any, Union, TYPE_CHECKING
+from typing import List, Optional, Callable, Tuple, Dict, Any, TYPE_CHECKING
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from collections import OrderedDict
 import multiprocessing as mp
-from functools import lru_cache
 import logging
 
 if TYPE_CHECKING:
-    from janus.core.search.config import ExpressionConfig
+    pass
 
 try:
     from tqdm import tqdm
@@ -37,8 +35,8 @@ except ImportError:
     tqdm = lambda x, **kwargs: x  # Fallback
 
 try:
-    import joblib
-    HAS_JOBLIB = True
+    # import joblib # Commented out as it's unused
+    HAS_JOBLIB = False # Set to False if not importing
 except ImportError:
     HAS_JOBLIB = False
 
@@ -71,8 +69,7 @@ def _evaluate_expression_fitness_worker(
     """
     try:
         from janus.core.expressions.symbolic_math import (
-            evaluate_expression_on_data, 
-            get_expression_complexity
+            evaluate_expression_on_data
         )
         
         # Evaluate expression on data
@@ -91,7 +88,6 @@ def _evaluate_expression_fitness_worker(
             # We need to reconstruct the expression for complexity calculation
             # This is a limitation of the parallel approach, but still better than pickling
             try:
-                import sympy as sp
                 from janus.core.expressions.symbolic_math import create_sympy_expression
                 sympy_expr = create_sympy_expression(expr_str, variable_names)
                 if sympy_expr is not None:
@@ -119,15 +115,14 @@ from janus_ai.core.expressions.symbolic_math import (
 )
 from janus_ai.utils.exceptions import (
     JanusError, 
-    GrammarError, 
     DataValidationError,
     OptimizationError,
     UnsupportedOperationError
 )
 
 # Import new modular components
-from janus_ai.core.search.config import GAConfig, ExpressionConfig
-from janus_ai.core.search.stats import StatsTracker, SearchStats, GenerationStats
+from janus_ai.core.search.config import GAConfig
+from janus_ai.core.search.stats import StatsTracker, SearchStats
 from janus_ai.core.search.selection import create_selection_strategy
 from janus_ai.core.search.operators import (
     ExpressionGenerator, 

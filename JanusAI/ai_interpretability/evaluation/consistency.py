@@ -8,7 +8,6 @@ These metrics are used to quantify the quality of symbolic explanations for AI m
 """
 
 import numpy as np
-import torch
 import torch.nn as nn
 import sympy as sp
 from typing import Any, Dict, List, Optional, Union
@@ -269,9 +268,9 @@ if __name__ == "__main__":
     # Mock symbolic_math, Expression, Variable, HypothesisNet for testing
     try:
         from janus_ai.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
-        from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
-        from janus_ai.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
-        from janus_ai.utils.math.operations import calculate_expression_complexity as real_calc_expr_comp
+        # from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
+        # from janus_ai.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
+        # from janus_ai.utils.math.operations import calculate_expression_complexity as real_calc_expr_comp
     except ImportError:
         print("Using mock dependencies for consistency.py test.")
         @dataclass(eq=True, frozen=False)

@@ -8,11 +8,10 @@ to discover physical laws more efficiently than random search.
 
 import numpy as np
 import matplotlib.pyplot as plt
-import torch
 from pathlib import Path
 import json
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from janus.ml.training.enhanced_ppo_trainer import (
     EnhancedPPOTrainer, 
@@ -20,8 +19,6 @@ from janus.ml.training.enhanced_ppo_trainer import (
 )
 from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
 from janus.physics.data.generators import PhysicsTaskDistribution
-from janus.ml.networks.dynamics_ensemble import DynamicsEnsemble
-from janus.utils.ai.llm_exploration import ExplorationContext
 
 
 class ExplorationDemo:

@@ -21,14 +21,12 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, field
+from typing import Dict, List, Any
+from dataclasses import dataclass
 import logging
-from datetime import datetime
 import wandb
 from tqdm import tqdm
 import json
-import pickle
 from pathlib import Path
 
 # Import improved components
@@ -42,8 +40,7 @@ from integration.improved_learned_comm import (
     CompositionalEmbeddings,
     plot_communication_analysis
 )
-from JanusAI.integration.schemas import AgentRole, Discovery
-from JanusAI.integration.knowledge import SharedKnowledgeBase, MessageBus
+from JanusAI.integration.schemas import AgentRole
 
 logger = logging.getLogger(__name__)
 

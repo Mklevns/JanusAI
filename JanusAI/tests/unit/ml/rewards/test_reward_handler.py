@@ -8,7 +8,6 @@ Comprehensive tests for RewardHandler and related components.
 
 import unittest
 import numpy as np
-from unittest.mock import Mock, patch
 import tempfile
 import json
 

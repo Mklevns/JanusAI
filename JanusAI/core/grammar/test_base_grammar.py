@@ -5,14 +5,12 @@ and grammar evolution.
 """
 import pytest
 import numpy as np
-import sympy as sp
-from unittest.mock import MagicMock, patch, PropertyMock
-from sklearn.decomposition import FastICA
+from unittest.mock import patch
 
 # BaseGrammar is now ProgressiveGrammar for the purpose of these tests
 from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated, BaseGrammar replaced
 from janus_ai.core.grammar.denoiser import NoisyObservationProcessor # Updated
-from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.expression import Variable
 
 
 class TestBaseGrammar: # This class name might be misleading now.

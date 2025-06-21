@@ -4,7 +4,7 @@
 import numpy as np
 import sympy as sp
 import torch # Added for _attention_op, _embedding_op
-from typing import Dict, List, Tuple, Optional, Set, Any, Union # Added Union
+from typing import List, Optional, Any # Added Union
 import logging # Added for _validate_expression
 
 from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar

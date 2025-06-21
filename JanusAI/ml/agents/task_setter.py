@@ -8,14 +8,11 @@ creating an open-ended curriculum through adversarial self-play.
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple
 from dataclasses import dataclass
 
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.policies import ActorCriticPolicy
 from gymnasium import spaces
 
 from janus_ai.physics.data.generators import PhysicsTask

@@ -11,7 +11,6 @@ from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
 # Import ExperimentConfig for type hinting
-from janus.experiments.configs.experiment_config import ExperimentConfig
 
 
 @dataclass

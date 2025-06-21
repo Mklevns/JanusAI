@@ -5,9 +5,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, field
-from collections import defaultdict, deque
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
+from collections import defaultdict
 import copy
 import types
 import sympy as sp
@@ -15,7 +15,6 @@ from pathlib import Path
 
 # Updated imports based on the new structure
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus_ai.ml.networks.hypothesis_net import HypothesisNet
 from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from janus_ai.core.expressions.expression import Variable
 from janus_ai.utils.math.operations import calculate_symbolic_accuracy

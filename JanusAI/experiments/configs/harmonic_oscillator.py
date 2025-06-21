@@ -3,7 +3,6 @@
 """Harmonic oscillator discovery experiment."""
 
 import numpy as np
-from typing import List, Dict, Any
 
 from janus_ai.experiments.base import BaseExperiment
 from janus_ai.experiments.registry import register_experiment
@@ -99,7 +98,6 @@ class HarmonicOscillatorDiscovery(BaseExperiment):
         
     def _run_genetic_discovery(self) -> ExperimentResult:
         """Run genetic algorithm discovery."""
-        from janus.physics.algorithms.genetic import SymbolicRegressor
         
         # Fit regressor
         best_expr = self.algorithm.fit(

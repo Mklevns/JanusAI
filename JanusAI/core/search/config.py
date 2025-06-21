@@ -6,8 +6,7 @@ parameters, replacing scattered initialization parameters.
 """
 
 from dataclasses import dataclass
-from typing import Optional, Callable, List, Any, Tuple
-import numpy as np
+from typing import Optional, List, Tuple
 
 
 @dataclass

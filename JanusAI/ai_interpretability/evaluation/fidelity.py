@@ -8,10 +8,9 @@ capture the behavior of attention heads in transformers.
 import numpy as np
 import torch
 import sympy as sp
-from typing import Any, Dict, Optional, Union, Tuple, List
-from sklearn.metrics import mean_squared_error, r2_score
+from typing import Any, Dict, List
+from sklearn.metrics import r2_score
 from scipy.stats import pearsonr, spearmanr
-import warnings
 
 
 class FidelityCalculator:
@@ -349,7 +348,7 @@ def integrate_fidelity_into_interpretability_reward():
     return _calculate_fidelity
 
 
-# Example usage for testing
+# Example usage for testing the FidelityCalculator
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.INFO)

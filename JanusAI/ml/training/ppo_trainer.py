@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Categorical
-from typing import Dict, List, Optional, Tuple, Deque, Any
+from typing import Dict, List, Optional, Deque, Any
 from collections import deque
 from dataclasses import dataclass, field
 

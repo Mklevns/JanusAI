@@ -9,11 +9,8 @@ from janus_ai.cli.commands.visualize import visualize
 
 import click
 import logging
-from pathlib import Path
-from typing import Optional
 
 from janus_ai.cli.commands import discover, train, evaluate, visualize, benchmark
-from janus_ai.config.loader import load_config
 from janus_ai.utils.logging import setup_logging
 
 logger = logging.getLogger(__name__)

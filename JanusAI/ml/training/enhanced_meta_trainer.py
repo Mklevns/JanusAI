@@ -7,11 +7,10 @@ MetaLearningPolicy's attention mechanisms and auxiliary outputs.
 """
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, field
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass
 from collections import defaultdict
 import wandb
 from pathlib import Path

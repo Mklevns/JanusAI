@@ -6,11 +6,9 @@ Updated to use separated X_data and y_data for cleaner implementation.
 """
 
 import numpy as np
-import torch
 import torch.nn as nn
-from typing import Dict, List, Tuple, Optional, Any, Callable
+from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass
-import sympy as sp
 
 from janus_ai.core.expressions.expression import Expression, Variable
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv

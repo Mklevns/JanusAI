@@ -23,7 +23,6 @@ from janus.core.grammar.enhanced_ai_grammar import EnhancedAIGrammar, AttentionV
 from janus.ml.rewards.interpretability_reward import InterpretabilityReward, patch_interpretability_reward_methods
 from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
 from janus.ml.training.ppo_trainer import PPOTrainer
-from janus.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

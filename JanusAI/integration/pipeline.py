@@ -8,13 +8,12 @@ and interpretability pipelines.
 
 import numpy as np
 import torch
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Optional
 from pathlib import Path
 import time
 import logging
 
 from janus.core.grammar import ProgressiveGrammar
-from janus.core.expressions import Variable
 from janus.environments.base import SymbolicDiscoveryEnv
 from janus.ml.networks import HypothesisNet
 from janus.ml.training import PPOTrainer

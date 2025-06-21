@@ -9,7 +9,7 @@ if str(project_root) not in sys.path:
 
 # --- Diagnostic Import for sklearn ---
 try:
-    import sklearn.metrics
+    # import sklearn.metrics # Commented out as unused
     print("Successfully imported sklearn.metrics in conftest.py")
 except ImportError as e:
     print(f"ERROR: Failed to import sklearn.metrics in conftest.py: {e}")

@@ -29,12 +29,9 @@ from typing import List # Added for type hinting
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from janus_ai.core.grammar import ProgressiveGrammar
-from janus_ai.core.expressions.expression import Variable # Variable is in .expression module
 # from janus_ai.ai_interpretability.environments import SymbolicDiscoveryEnv, CurriculumManager # Commented out old CurriculumManager
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv # Keep SymbolicDiscoveryEnv, moved to base
-from janus_ai.physics.data.dynamic_task_distribution import DynamicPhysicsTaskDistribution
 from janus_ai.ml.training.self_play_curriculum import SelfPlayCurriculumTrainer, SelfPlayConfig
-from janus_ai.ml.networks.hypothesis_net import HypothesisNet, PPOTrainer # Assuming this is the new location
 from physics_discovery_extensions import SymbolicRegressor, ConservationDetector # External, leave as is
 from experiment_runner import ( # External or local, leave as is
     ExperimentRunner, ExperimentConfig, ExperimentResult,
@@ -42,7 +39,7 @@ from experiment_runner import ( # External or local, leave as is
 )
 from janus_ai.utils.visualization.plotting import ExperimentVisualizer # Moved
 from janus_ai.experiments.analysis.statistical_tests import perform_statistical_tests # Moved
-from utils import calculate_symbolic_accuracy, _count_operations # Local, leave as is
+from utils import calculate_symbolic_accuracy # Local, leave as is
 from integrated_pipeline import JanusConfig, SyntheticDataParamsConfig, RewardConfig # Local, leave as is
 from janus_ai.utils.general_utils import safe_env_reset # Moved
 

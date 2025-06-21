@@ -22,7 +22,7 @@ import threading
 import time
 from collections import defaultdict, deque
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 # Import data structures from schemas module
 from janus_ai.schemas import AgentRole, MessageType, Discovery, Message

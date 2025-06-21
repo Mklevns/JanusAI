@@ -8,7 +8,6 @@ No configuration needed - just run: python scripts/quickstart.py
 
 import sys
 import os
-import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -53,8 +52,8 @@ except ImportError:
     DEVICE = "cpu"
 
 try:
-    import openai
-    HAS_OPENAI = True
+    # import openai # Commented out as unused
+    HAS_OPENAI = False # Set to False if not importing
 except ImportError:
     HAS_OPENAI = False
 

@@ -12,8 +12,7 @@ import logging
 # Import Janus components
 from janus_ai.memory.dual_memory_system import (
 
-    DualMemorySystem, Discovery, IntermediateResult,
-    EmbeddingGenerator
+    DualMemorySystem, EmbeddingGenerator
 )
 from janus_ai.memory.memory_integration import (
 
@@ -24,7 +23,6 @@ from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOCon
 
 from janus_ai.ml.networks.policy_networks import TransformerPolicy
 
-from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
 
 from janus_ai.grammar.ai_grammar import AIGrammar
 

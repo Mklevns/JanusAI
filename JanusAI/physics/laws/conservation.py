@@ -19,7 +19,7 @@ from typing import List, Dict, Any, Optional, Union
 import time # For timestamp in history
 
 # Import Expression and Variable for symbolic evaluation, from their new location
-from janus.core.expressions.expression import Expression, Variable
+from janus.core.expressions.expression import Variable
 # Import evaluation utility from symbolic_math
 from janus.core.expressions.symbolic_math import evaluate_expression_on_data
 
@@ -284,7 +284,8 @@ if __name__ == '__main__':
 
     # Mock `evaluate_expression_on_data` and `Variable` if not fully available
     try:
-        from janus.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
+        pass
+        # from janus.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
     except ImportError:
         print("Using mock evaluate_expression_on_data for testing ConservationBiasedReward. Please ensure real utility exists.")
         def evaluate_expression_on_data(expr_str: str, data_dict: Dict[str, np.ndarray]) -> np.ndarray:

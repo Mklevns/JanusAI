@@ -6,7 +6,6 @@ and edge cases like division by zero.
 import pytest
 import numpy as np
 import sympy as sp
-from unittest.mock import MagicMock, patch
 
 from janus_ai.core.expressions.expression import Expression, Variable
 from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data

@@ -10,7 +10,7 @@ grammar constraints and maintain expression validity.
 import copy
 import random
 import numpy as np
-from typing import List, Optional, Tuple, Dict, Any, Callable, TYPE_CHECKING
+from typing import List, Optional, Tuple, Dict, TYPE_CHECKING
 from abc import ABC, abstractmethod
 import logging
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 from janus_ai.core.expressions.expression import Expression, Variable
 from janus_ai.core.expressions.symbolic_math import get_expression_complexity, expression_to_string
-from janus_ai.utils.exceptions import GrammarError, OptimizationError
+from janus_ai.utils.exceptions import GrammarError
 
 
 class ExpressionGenerator:

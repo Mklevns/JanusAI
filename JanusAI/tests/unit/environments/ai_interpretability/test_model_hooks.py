@@ -5,7 +5,7 @@ import pytest
 import torch
 import torch.nn as nn
 import numpy as np
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
 from environments.ai_interpretability.model_hooks import ModelHookManager, register_hooks_for_layers
 

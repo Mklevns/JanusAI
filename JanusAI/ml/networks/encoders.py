@@ -8,7 +8,6 @@ import math
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
