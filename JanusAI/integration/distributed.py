@@ -18,7 +18,7 @@ from typing import Dict, List, Any, Tuple
 # --- Internal Janus Imports (adjusted for new structure) ---
 # Import the DistributedJanusTrainer from its new location
 from JanusAI.experiments.runner.distributed_runner import DistributedJanusTrainer
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar # Assuming this is the new path
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from JanusAI.core.expressions.expression import Variable # Assuming this is the new path
 from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv # Assuming this is the new path
 

@@ -33,10 +33,10 @@ from JanusAI.physics.algorithms.genetic import (
     SymbolicRegressor, FitnessCache, _evaluate_expression_fitness_worker
 )
 from JanusAI.core.expressions.expression import Expression, Variable
-from JanusAI.core.grammar.base_grammar import BaseGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 
 
-class MockGrammar(BaseGrammar):
+class MockGrammar(BaseGrammar): # Now correctly inherits from aliased ProgressiveGrammar
     """Mock grammar for testing."""
     
     def __init__(self):

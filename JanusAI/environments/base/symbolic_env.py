@@ -15,7 +15,9 @@ import warnings
 from enum import Enum, auto
 
 # Import necessary modules (adjust paths as needed)
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar, AIGrammar
+
+
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from JanusAI.core.expressions.expression import Expression, Variable
 from JanusAI.utils.math.operations import calculate_expression_complexity
 from JanusAI.core.expressions.symbolic_math import evaluate_expression_on_data
@@ -121,8 +123,8 @@ class SymbolicDiscoveryEnv(gym.Env):
         max_nodes: int = 50,
         action_space_size: Optional[int] = None,
         provide_tree_structure: bool = False,
-        task_type: str = 'symbolic_regression' # Added task_type argument
-    ):
+        task_type: Optional[str] = None  # Added task_type
+    
         """
         Initialize the symbolic discovery environment.
         
@@ -155,7 +157,14 @@ class SymbolicDiscoveryEnv(gym.Env):
         self.max_complexity = max_complexity
         self.max_nodes = max_nodes
         self.provide_tree_structure = provide_tree_structure
-        self.task_type = task_type # Store task_type
+        self.task_type = task_type if task_type else "symbolic_regression" # Default task_type
+
+        # Task-specific data holders (initialized to None)
+        self.task_data: Optional[Dict[str, Any]] = None
+        self.target_attention: Optional[np.ndarray] = None
+        self.query_vectors: Optional[np.ndarray] = None
+        self.key_vectors: Optional[np.ndarray] = None
+
         
         # Reward configuration with defaults
         self.reward_config = reward_config or {}
@@ -252,6 +261,39 @@ class SymbolicDiscoveryEnv(gym.Env):
         # Initialize new episode
         self.current_state = TreeState()
         self.episode_steps = 0
+
+        # Process options for task_data and potentially task_type
+        if options:
+            self.task_data = options.get('task_data', self.task_data)
+            # Allow overriding task_type via options if needed, otherwise keeps __init__ value
+            self.task_type = options.get('task_type', self.task_type)
+
+        # Handle task-specific setup
+        if self.task_type == 'attention_pattern':
+            if self.task_data:
+                self.target_attention = self.task_data.get('attention_matrix')
+                self.query_vectors = self.task_data.get('queries')
+                self.key_vectors = self.task_data.get('keys')
+
+                if self.target_attention is None or self.query_vectors is None or self.key_vectors is None:
+                    warnings.warn(
+                        "SymbolicDiscoveryEnv: 'attention_pattern' task type selected, but "
+                        "'attention_matrix', 'queries', or 'keys' missing in task_data."
+                    )
+            else:
+                warnings.warn(
+                    "SymbolicDiscoveryEnv: 'attention_pattern' task type selected, "
+                    "but no task_data provided in options or set previously."
+                )
+        elif self.task_type == 'symbolic_regression':
+            # For symbolic regression, X_data and y_data are primary.
+            # Ensure they are correctly set up if they can change per episode via options.
+            if self.task_data: # If task_data can also update X_data/y_data for SR
+                self.X_data = self.task_data.get('X_data', self.X_data)
+                self.y_data = self.task_data.get('y_data', self.y_data)
+                # Potentially re-validate inputs if X_data/y_data can change
+                # self._validate_inputs()
+        # Add other task_type handlers here if necessary
         
         # Get initial observation
         obs = self._get_observation()

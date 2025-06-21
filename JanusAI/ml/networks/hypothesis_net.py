@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 # Internal project imports based on new structure
 from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv, safe_env_reset
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from JanusAI.core.expressions.expression import Variable
 from JanusAI.utils.general_utils import safe_import # Assuming this new utility file will be created
 

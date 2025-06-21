@@ -13,7 +13,7 @@ import time
 from typing import Any, Dict, List, Optional, Tuple, Type, Callable
 
 # Import core components
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from JanusAI.core.expressions.expression import Variable, Expression
 
 # Import environment and policy (assuming specific types like SymbolicDiscoveryEnv and HypothesisNet)

@@ -110,7 +110,7 @@ def _evaluate_expression_fitness_worker(
         return -1e6
 
 # Import Janus components
-from JanusAI.core.grammar.base_grammar import BaseGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 from JanusAI.core.expressions.expression import Expression, Variable
 from JanusAI.core.expressions.symbolic_math import (
     evaluate_expression_on_data, 
