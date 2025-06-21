@@ -16,7 +16,7 @@ from pathlib import Path
 # Updated imports based on the new structure
 from JanusAI.environments.base.symbolic_env import SymbolicDiscoveryEnv
 from JanusAI.ml.networks.hypothesis_net import HypothesisNet
-from JanusAI.core.grammar.base_grammar import ProgressiveGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
 from JanusAI.core.expressions.expression import Variable
 from JanusAI.utils.math.operations import calculate_symbolic_accuracy
 from JanusAI.environments.base.symbolic_env import safe_env_reset

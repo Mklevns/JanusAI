@@ -17,7 +17,7 @@ import logging
 if TYPE_CHECKING:
     from janus.core.search.config import ExpressionConfig
 
-from JanusAI.core.grammar.base_grammar import BaseGrammar
+from JanusAI.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 from JanusAI.core.expressions.expression import Expression, Variable
 from JanusAI.core.expressions.symbolic_math import get_expression_complexity, expression_to_string
 from JanusAI.utils.exceptions import GrammarError, OptimizationError
