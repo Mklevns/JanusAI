@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from typing import Optional, Callable, Any
 from typing import Dict, List, Any, Callable, Tuple
 
 # Define a type for the hook handle for better type hinting
