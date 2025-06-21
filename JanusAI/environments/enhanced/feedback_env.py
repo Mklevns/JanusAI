@@ -193,8 +193,8 @@ class EnhancedObservationEncoder:
         reward_vec = list(self.reward_history) + [0] * (self.history_length - len(self.reward_history))
 
         # Simple statistics for expression history (e.g., mean complexity, mean length)
-        expr_lengths = [len(e) for e in self.expression_history if e]
-        if not expr_lengths: expr_lengths = [0]
+        expr_lengths = [len(e) for e in self.expression_history if e] or [0]
+
 
         expr_features = np.array([
             np.mean(expr_lengths),
