@@ -117,14 +117,15 @@ class AsyncExpressionEvaluator:
                 self.cache.popitem(last=False)
 
             try:
-                # Parse expression
-                # create_expression will validate by default and return None if invalid
-                expr = self.grammar.create_expression('var', [expr_str]) 
+                # Parse expression string into a Janus Expression object
+                # This uses the new method in ProgressiveGrammar (and AIGrammar if inherited)
+                expr = self.grammar.parse_expression_string(expr_str)
                 
                 if expr is None:
-                    # Log the error for debugging (assuming logger is set up)
-                    # print(f"Validation failed for expression string: {expr_str}")
-                    raise ValueError(f"Expression validation failed for: {expr_str}")
+                    # This means parsing or subsequent validation within create_expression failed.
+                    # Logging for this is handled within parse_expression_string or _convert_sympy_to_janus_expression.
+                    # print(f"Failed to parse or validate expression string: {expr_str}")
+                    raise ValueError(f"Failed to parse or validate expression: '{expr_str}'")
 
                 # Evaluate on data
                 predictions = []

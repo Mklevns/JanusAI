@@ -421,6 +421,211 @@ class ProgressiveGrammar:
                 return True
             return False
 
+    # --- SymPy to Janus Expression Conversion ---
+    _SYMPY_TO_JANUS_OP_MAP = {
+        # Arithmetic
+        sp.Add: '+',
+        sp.Mul: '*',
+        sp.Pow: '**',
+        # Note: Division is handled by Pow(expr, -1) or Mul(expr, Pow(other, -1)) in SymPy
+        # Unary
+        sp.sin: 'sin',
+        sp.cos: 'cos',
+        sp.tan: 'tan', # Assuming 'tan' is a known unary_op
+        sp.exp: 'exp',
+        sp.log: 'log',
+        sp.sqrt: 'sqrt',
+        # For unary minus, SymPy often represents -x as Mul(-1, x)
+        # We'll handle specific instances like sp.core.numbers.NegativeOne in the conversion logic.
+        # Calculus - SymPy functions are sp.Derivative and sp.Integral
+        sp.Derivative: 'diff', # Derivative maps to 'diff'
+        sp.Integral: 'int',   # Integral maps to 'int'
+    }
+
+    def _get_janus_operator(self, sympy_func_class: Any) -> Optional[str]:
+        """Maps a SymPy function class to a Janus operator string."""
+        return self._SYMPY_TO_JANUS_OP_MAP.get(sympy_func_class)
+
+    def _convert_sympy_to_janus_expression(self, sympy_expr: sp.Expr) -> Optional[Expression]:
+        """
+        Recursively converts a SymPy expression tree to a Janus Expression tree.
+        """
+        import sympy as sp # Ensure sympy is imported locally if not already available at module level for sp.core types
+
+        # Base Case 1: Symbol (Variable)
+        if isinstance(sympy_expr, sp.Symbol):
+            var_name = sympy_expr.name
+            if var_name in self.variables:
+                # Use create_expression to form a 'var' expression
+                # Operands for 'var' should be the variable name string
+                return self.create_expression('var', [var_name], validate=True)
+            else:
+                logging.warning(f"Unknown variable symbol '{var_name}' encountered during SymPy conversion.")
+                return None
+
+        # Base Case 2: Number (Constant)
+        elif isinstance(sympy_expr, (sp.Number, sp.Integer, sp.Float)):
+            # Use create_expression for 'const'
+            return self.create_expression('const', [sympy_expr.evalf()], validate=True)
+
+        # Recursive Cases: Operations (Add, Mul, Pow, Functions)
+        janus_operands = []
+
+        # Handle unary minus: Mul(-1, expr)
+        if isinstance(sympy_expr, sp.Mul) and len(sympy_expr.args) == 2 and sympy_expr.args[0] == sp.core.numbers.NegativeOne:
+            operand_expr = self._convert_sympy_to_janus_expression(sympy_expr.args[1])
+            if operand_expr is None:
+                return None
+            # Check if 'neg' is a known unary operator
+            if 'neg' in self.primitives['unary_ops']:
+                 return self.create_expression('neg', [operand_expr], validate=True)
+            else: # Fallback to creating Mul(-1, operand) if 'neg' is not explicitly supported
+                 neg_one_expr = self.create_expression('const', [-1.0], validate=True)
+                 if neg_one_expr is None: return None # Should not happen for -1.0
+                 return self.create_expression('*', [neg_one_expr, operand_expr], validate=True)
+
+
+        # Handle division: Pow(expr, -1) for inv, or Mul(expr, Pow(other, -1)) for div
+        if isinstance(sympy_expr, sp.Pow) and len(sympy_expr.args) == 2 and sympy_expr.args[1] == sp.core.numbers.NegativeOne:
+            # This is expr**-1, which is inv(expr)
+            base_expr = self._convert_sympy_to_janus_expression(sympy_expr.args[0])
+            if base_expr is None:
+                return None
+            # Check if 'inv' is a known unary operator
+            if 'inv' in self.primitives['unary_ops']:
+                return self.create_expression('inv', [base_expr], validate=True)
+            else: # Fallback to creating Pow(base, -1) if 'inv' is not explicit
+                neg_one_expr = self.create_expression('const', [-1.0], validate=True)
+                if neg_one_expr is None: return None
+                return self.create_expression('**', [base_expr, neg_one_expr], validate=True)
+
+        if isinstance(sympy_expr, sp.Mul) and any(isinstance(arg, sp.Pow) and arg.args[1] == sp.core.numbers.NegativeOne for arg in sympy_expr.args):
+            # Likely a division, e.g., a * b**-1  or a * (1/b)
+            # This needs careful decomposition into a '/' operator if available, or kept as Mul/Pow
+            # For simplicity, we'll try to map general Mul, Add, Pow first.
+            # If a specific '/' operator is desired, this logic needs to be more sophisticated
+            # to identify it from Mul(expr, Pow(denominator, -1)).
+            pass # Let general Mul/Pow handling take care of it for now.
+
+        # General operations (Add, Mul, Pow, Functions)
+        sympy_op_class = sympy_expr.func
+        janus_op_str = self._get_janus_operator(sympy_op_class)
+
+        if janus_op_str is None:
+            # Handle special SymPy classes not in the map directly, e.g. Derivative, Integral
+            if isinstance(sympy_expr, sp.Derivative):
+                janus_op_str = 'diff'
+                # Operands for 'diff' are (expression_to_diff, variable_to_diff_wrt)
+                # sympy_expr.args[0] is the expression, sympy_expr.args[1:] are (var, order) tuples
+                # Assuming single variable, first order differentiation for now
+                if len(sympy_expr.variables) == 1:
+                    expr_to_diff_sympy = sympy_expr.expr
+                    var_to_diff_sympy = sympy_expr.variables[0]
+
+                    janus_expr_to_diff = self._convert_sympy_to_janus_expression(expr_to_diff_sympy)
+                    # The variable for differentiation needs to be a Janus Variable instance, not an Expression
+                    if isinstance(var_to_diff_sympy, sp.Symbol) and var_to_diff_sympy.name in self.variables:
+                        janus_var_to_diff = self.variables[var_to_diff_sympy.name]
+                    else:
+                        logging.warning(f"Derivative variable '{var_to_diff_sympy}' is not a known Janus variable.")
+                        return None
+
+                    if janus_expr_to_diff is None or janus_var_to_diff is None:
+                        return None
+                    janus_operands = [janus_expr_to_diff, janus_var_to_diff]
+                else:
+                    logging.warning(f"Multi-variable or higher-order derivative '{sympy_expr}' not supported for SymPy conversion.")
+                    return None
+            elif isinstance(sympy_expr, sp.Integral):
+                janus_op_str = 'int'
+                # sympy_expr.args[0] is the integrand
+                # sympy_expr.args[1] is a tuple like (x,) or (x, a, b) for definite
+                # Assuming indefinite integral: (integrand, variable)
+                if len(sympy_expr.variables) == 1:
+                    integrand_sympy = sympy_expr.function
+                    var_to_int_sympy = sympy_expr.variables[0]
+
+                    janus_integrand = self._convert_sympy_to_janus_expression(integrand_sympy)
+                     # The variable for integration needs to be a Janus Variable instance
+                    if isinstance(var_to_int_sympy, sp.Symbol) and var_to_int_sympy.name in self.variables:
+                        janus_var_to_int = self.variables[var_to_int_sympy.name]
+                    else:
+                        logging.warning(f"Integral variable '{var_to_int_sympy}' is not a known Janus variable.")
+                        return None
+
+                    if janus_integrand is None or janus_var_to_int is None:
+                        return None
+                    janus_operands = [janus_integrand, janus_var_to_int]
+                else:
+                    logging.warning(f"Definite or multi-variable integral '{sympy_expr}' not supported for SymPy conversion.")
+                    return None
+            else:
+                # Could be a custom function known to AIGrammar or a learned function
+                # For ProgressiveGrammar, this is likely an unknown function
+                # If the grammar is AIGrammar, it might have specific handling
+                if hasattr(self, 'is_ai_operator_known') and self.is_ai_operator_known(str(sympy_op_class).lower()):
+                    janus_op_str = str(sympy_op_class).lower()
+                elif str(sympy_op_class) in self.learned_functions: # Check learned functions by name
+                    janus_op_str = str(sympy_op_class)
+                else:
+                    logging.warning(f"Unknown SymPy function/operator '{sympy_op_class}' during conversion.")
+                    return None
+
+        # If janus_operands were not already populated by diff/int handling:
+        if not janus_operands:
+            for arg in sympy_expr.args:
+                janus_operand = self._convert_sympy_to_janus_expression(arg)
+                if janus_operand is None:
+                    return None # Failed to convert one of the operands
+                janus_operands.append(janus_operand)
+
+        # Create the Janus Expression
+        # The `create_expression` method will also set the grammar context if needed
+        # and perform validation.
+        created_expr = self.create_expression(janus_op_str, janus_operands, validate=True)
+        if created_expr and hasattr(self, 'set_grammar_context'): # AIGrammar might have specific context needs
+            created_expr.set_grammar_context(self)
+        return created_expr
+
+    def parse_expression_string(self, expr_str: str) -> Optional[Expression]:
+        """
+        Parses an expression string into a Janus Expression object.
+        1. Converts the string to a SymPy expression.
+        2. Converts the SymPy expression to a Janus Expression tree.
+        """
+        import sympy as sp
+        from janus_ai.core.expressions.symbolic_math import create_sympy_expression as parse_to_sympy
+
+        if not expr_str:
+            logging.warning("Empty expression string provided to parse_expression_string.")
+            return None
+
+        # Create a list of known variable names for the parser
+        # This helps create_sympy_expression to correctly identify symbols.
+        known_var_names = list(self.variables.keys())
+
+        try:
+            sympy_tree = parse_to_sympy(expr_str, known_var_names)
+        except Exception as e: # Catch parsing errors from create_sympy_expression
+            logging.error(f"Failed to parse expression string '{expr_str}' to SymPy: {e}")
+            return None
+
+        if sympy_tree is None:
+            return None
+
+        # Now, convert the SymPy tree to our internal Expression representation
+        janus_expr = self._convert_sympy_to_janus_expression(sympy_tree)
+
+        # Ensure the grammar context is set on the root expression,
+        # especially if it's an AIGrammar instance.
+        if janus_expr and hasattr(self, 'set_grammar_context'): # Check if self is AIGrammar or similar
+             janus_expr.set_grammar_context(self)
+        elif janus_expr and hasattr(janus_expr, 'set_grammar_context'): # Check if expr object has the method
+             janus_expr.set_grammar_context(self)
+
+
+        return janus_expr
+
 # It's good practice to move the __main__ block or ensure it correctly imports
 # if this file is run directly. For now, it's removed from the class file.
 # The monkey patching of ProgressiveGrammar.get_arity and is_operator_known
