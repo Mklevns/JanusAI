@@ -98,6 +98,7 @@ class HarmonicOscillatorDiscovery(BaseExperiment):
         
     def _run_genetic_discovery(self) -> ExperimentResult:
         """Run genetic algorithm discovery."""
+
         
         # Fit regressor
         best_expr = self.algorithm.fit(
@@ -123,8 +124,8 @@ class HarmonicOscillatorDiscovery(BaseExperiment):
         
     def _run_rl_discovery(self) -> ExperimentResult:
         """Run reinforcement learning discovery."""
-        from janus.core.symbolic_discovery import SymbolicDiscoveryEnv
-        from janus.core.hypothesis_network import HypothesisNet, PPOTrainer
+        from janus_ai.core.symbolic_discovery import SymbolicDiscoveryEnv
+        from janus_ai.core.hypothesis_network import HypothesisNet, PPOTrainer
         
         # Create RL environment
         discovery_env = SymbolicDiscoveryEnv(

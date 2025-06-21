@@ -475,11 +475,13 @@ if __name__ == "__main__":
 
     # Mock for symbolic_math utilities (get_variables_from_expression, evaluate_expression_on_data)
     try:
+
         pass
         # from janus.core.expressions.symbolic_math import (
         #     get_variables_from_expression as real_get_vars,
         #     evaluate_expression_on_data as real_eval_on_data
         # )
+
     except ImportError:
         print("Using mock symbolic_math utilities for intrinsic_rewards.py test.")
         def get_variables_from_expression(expr_str: str, all_variables: List[Variable]) -> List[Variable]:
@@ -492,11 +494,13 @@ if __name__ == "__main__":
 
     # Mock for math.operations utilities (calculate_symbolic_accuracy, calculate_expression_complexity)
     try:
+
         pass
         # from janus.utils.math.operations import (
         #     calculate_symbolic_accuracy as real_calc_sym_acc,
         #     calculate_expression_complexity as real_calc_expr_comp
         # )
+
     except ImportError:
         print("Using mock math.operations utilities for intrinsic_rewards.py test.")
         def calculate_symbolic_accuracy(expr_str: str, ground_truth_dict: Dict[str, Any], var_symbols: List[str]) -> float:

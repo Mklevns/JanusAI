@@ -24,6 +24,7 @@ from janus.ml.rewards.interpretability_reward import InterpretabilityReward, pat
 from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
 from janus.ml.training.ppo_trainer import PPOTrainer
 
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

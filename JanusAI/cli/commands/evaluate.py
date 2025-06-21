@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 
 # Assuming ExperimentRunner and ExperimentResult might be needed for context or direct use
 # For now, we'll focus on loading data ExperimentRunner would have saved.
-# from janus.experiments.runner.base_runner import ExperimentRunner, ExperimentResult
+# from janus_ai.experiments.runner.base_runner import ExperimentRunner, ExperimentResult
 
 def load_all_results_from_dir(results_dir: Path) -> List[Dict[str, Any]]:
     """Loads all experiment result summaries (JSON) or pickles from a directory."""

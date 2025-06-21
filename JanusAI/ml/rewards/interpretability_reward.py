@@ -11,9 +11,9 @@ import numpy as np
 import torch.nn as nn
 from typing import Any, Dict, List, Optional
 
-from janus.ml.rewards.base_reward import BaseReward
-from janus.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
-from janus.ai_interpretability.evaluation.consistency import InterpretabilityEvaluator
+from janus_ai.ml.rewards.base_reward import BaseReward
+from janus_ai.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
+from janus_ai.ai_interpretability.evaluation.consistency import InterpretabilityEvaluator
 
 class InterpretabilityReward(BaseReward):
     """
@@ -153,7 +153,7 @@ def patch_interpretability_reward_methods():
     def _calculate_fidelity(self, expression: Any, ai_model: Any, test_data: Any) -> float:
         """Updated _calculate_fidelity method using FidelityCalculator."""
         if not hasattr(self, '_fidelity_calculator'):
-            from janus.ai_interpretability.evaluation.fidelity import FidelityCalculator
+            from janus_ai.ai_interpretability.evaluation.fidelity import FidelityCalculator
             self._fidelity_calculator = FidelityCalculator()
         
         # Convert test_data to expected format

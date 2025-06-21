@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 # If TreeLSTMCell is available in your codebase, import it; else define or remove TreeLSTMEncoder
 try:
-    from janus.ml.networks.tree_lstm import TreeLSTMCell
+    from janus_ai.ml.networks.tree_lstm import TreeLSTMCell
 except ImportError:
     TreeLSTMCell = None
 

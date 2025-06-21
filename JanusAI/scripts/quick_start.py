@@ -23,11 +23,11 @@ try:
     sys.path.insert(0, project_root)
 
     # Now, try the imports
-    from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-    from janus.physics.data.generators import PhysicsTaskDistribution
+    from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+    from janus_ai.physics.data.generators import PhysicsTaskDistribution
     # Assuming EnhancedPPOTrainer exists, if not, this will need to be adjusted
-    from janus.ml.training.ppo_trainer import PPOTrainer as EnhancedPPOTrainer
-    from janus.config.models import PPOConfig as EnhancedPPOConfig
+    from janus_ai.ml.training.ppo_trainer import PPOTrainer as EnhancedPPOTrainer
+    from janus_ai.config.models import PPOConfig as EnhancedPPOConfig
     from stable_baselines3.common.callbacks import BaseCallback
 
 except ImportError as e:

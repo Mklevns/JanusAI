@@ -13,12 +13,13 @@ import json
 import time
 from typing import Dict, List
 
-from janus.ml.training.enhanced_ppo_trainer import (
+from janus_ai.ml.training.enhanced_ppo_trainer import (
     EnhancedPPOTrainer, 
     EnhancedPPOConfig
 )
 from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
 from janus.physics.data.generators import PhysicsTaskDistribution
+
 
 
 class ExplorationDemo:

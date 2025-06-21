@@ -15,8 +15,8 @@ from typing import Dict, Optional
 import numpy as np
 from abc import ABC, abstractmethod
 
-from janus.ml.networks.dynamics_ensemble import DynamicsEnsemble
-from janus.core.expressions import Expression
+from janus_ai.ml.networks.dynamics_ensemble import DynamicsEnsemble
+from janus_ai.core.expressions import Expression
 
 
 class BaseIntrinsicReward(ABC):

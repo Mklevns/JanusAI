@@ -18,9 +18,9 @@ import json
 
 from torch.utils.tensorboard import SummaryWriter
 
-from janus.ml.networks.attention_meta_policy import EnhancedMetaLearningPolicy
-from janus.physics.data.generators import PhysicsTask, PhysicsTaskDistribution
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.ml.networks.attention_meta_policy import EnhancedMetaLearningPolicy
+from janus_ai.physics.data.generators import PhysicsTask, PhysicsTaskDistribution
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
 
 
 @dataclass

@@ -13,12 +13,14 @@ from pathlib import Path
 import time
 import logging
 
+
 from janus.core.grammar import ProgressiveGrammar
 from janus.environments.base import SymbolicDiscoveryEnv
 from janus.ml.networks import HypothesisNet
 from janus.ml.training import PPOTrainer
 from janus.config.models import JanusConfig
 from janus.utils.logging import ExperimentLogger
+
 
 # Optional imports
 try:
@@ -256,7 +258,7 @@ class AdvancedJanusTrainer(JanusTrainer):
         # Setup curriculum learning if enabled
         if self.config.use_curriculum:
             try:
-                from janus.environments.enhanced import CurriculumManager
+                from janus_ai.environments.enhanced import CurriculumManager
                 self.curriculum_manager = CurriculumManager(
                     stages=self.config.curriculum_stages
                 )
@@ -268,7 +270,7 @@ class AdvancedJanusTrainer(JanusTrainer):
         
         # Try to use enhanced environment
         try:
-            from janus.environments.enhanced import EnhancedSymbolicDiscoveryEnv
+            from janus_ai.environments.enhanced import EnhancedSymbolicDiscoveryEnv
             
             reward_config = self.config.reward_config or {
                 'completion_bonus': 0.1,
@@ -387,7 +389,7 @@ class AdvancedJanusTrainer(JanusTrainer):
         
         # Import experiment runner
         try:
-            from janus.experiments.runner import ExperimentRunner
+            from janus_ai.experiments.runner import ExperimentRunner
             
             runner = ExperimentRunner(
                 base_dir=self.config.results_dir,
@@ -396,7 +398,7 @@ class AdvancedJanusTrainer(JanusTrainer):
             )
             
             # Run basic validation
-            from janus.experiments.configs import HarmonicOscillatorConfig
+            from janus_ai.experiments.configs import HarmonicOscillatorConfig
             config = HarmonicOscillatorConfig()
             
             results = runner.run_single_experiment(config)

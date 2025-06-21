@@ -25,7 +25,9 @@ import multiprocessing as mp
 import logging
 
 if TYPE_CHECKING:
+
     pass
+
 
 try:
     from tqdm import tqdm
@@ -68,8 +70,10 @@ def _evaluate_expression_fitness_worker(
         Fitness value
     """
     try:
+
         from janus.core.expressions.symbolic_math import (
             evaluate_expression_on_data
+
         )
         
         # Evaluate expression on data
@@ -89,6 +93,7 @@ def _evaluate_expression_fitness_worker(
             # This is a limitation of the parallel approach, but still better than pickling
             try:
                 from janus.core.expressions.symbolic_math import create_sympy_expression
+
                 sympy_expr = create_sympy_expression(expr_str, variable_names)
                 if sympy_expr is not None:
                     complexity = len(str(sympy_expr))  # Simple complexity measure
@@ -759,7 +764,7 @@ class SymbolicRegressor:
                 if self.fitness_cache:
                     try:
                         import sympy as sp
-                        from janus.core.expressions.symbolic_math import create_sympy_expression
+                        from janus_ai.core.expressions.symbolic_math import create_sympy_expression
                         
                         sympy_expr = create_sympy_expression(expr_str, variable_names)
                         if sympy_expr is not None:
@@ -879,7 +884,7 @@ def create_regressor_from_config(
     Returns:
         Configured SymbolicRegressor
     """
-    from janus.core.search.config import (
+    from janus_ai.core.search.config import (
         create_default_config, create_fast_config, 
         create_thorough_config, create_production_config
     )

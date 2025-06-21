@@ -235,6 +235,7 @@ if __name__ == "__main__":
         pass
         # from janus.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
         # from janus.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
+
     except ImportError:
         print("Using mock symbolic_math utilities for benchmarks.py test.")
         def evaluate_expression_on_data(expr_str: str, data_dict: Dict[str, np.ndarray]) -> np.ndarray:
@@ -252,7 +253,7 @@ if __name__ == "__main__":
 
     # Mock Expression and Variable classes if needed for `KnownLaw.is_equivalent` tests
     try:
-        from janus.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
+        from janus_ai.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
     except ImportError:
         print("Using mock Expression and Variable for benchmarks.py test.")
         @dataclass(eq=True, frozen=False)

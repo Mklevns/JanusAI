@@ -25,10 +25,10 @@ import time
 from collections import OrderedDict
 
 # --- Internal Janus Imports (adjusted for new structure) ---
-from janus.ml.networks.hypothesis_net import HypothesisNet
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv # Assuming this is the new path
-from janus.core.grammar.base_grammar import ProgressiveGrammar # Assuming this is the new path for grammar
-from janus.core.expressions.expression import Variable # Assuming this is the new path for Variable
+from janus_ai.ml.networks.hypothesis_net import HypothesisNet
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv # Assuming this is the new path
+from janus_ai.core.grammar.base_grammar import ProgressiveGrammar # Assuming this is the new path for grammar
+from janus_ai.core.expressions.expression import Variable # Assuming this is the new path for Variable
 
 
 class RLlibHypothesisNet(TorchModelV2, nn.Module):
@@ -118,9 +118,14 @@ class AsyncExpressionEvaluator:
 
             try:
                 # Parse expression
-                # Assuming create_expression takes type and args, and 'var' is a valid type
+                # create_expression will validate by default and return None if invalid
                 expr = self.grammar.create_expression('var', [expr_str]) 
                 
+                if expr is None:
+                    # Log the error for debugging (assuming logger is set up)
+                    # print(f"Validation failed for expression string: {expr_str}")
+                    raise ValueError(f"Expression validation failed for: {expr_str}")
+
                 # Evaluate on data
                 predictions = []
                 for i in range(len(data)):

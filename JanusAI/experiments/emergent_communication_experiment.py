@@ -40,7 +40,9 @@ from integration.improved_learned_comm import (
     CompositionalEmbeddings,
     plot_communication_analysis
 )
+
 from JanusAI.integration.schemas import AgentRole
+
 
 logger = logging.getLogger(__name__)
 

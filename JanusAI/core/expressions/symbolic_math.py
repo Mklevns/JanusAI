@@ -339,7 +339,7 @@ def evaluate_custom_expression_on_data(
     handle_errors: bool = True
 ) -> Optional[np.ndarray]:
     """
-    Evaluate custom Expression objects (from janus.core.expressions) on data.
+    Evaluate custom Expression objects (from janus_ai.core.expressions) on data.
     
     This function handles evaluation of custom Expression objects that may have
     different interfaces than string expressions.

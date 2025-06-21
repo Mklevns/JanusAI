@@ -369,8 +369,8 @@ def demonstrate_advanced_features():
     """Demonstrate the advanced features enabled by the refactored design."""
     
     # Create mock environment and policy for demonstration
-    from janus.core.grammar.base_grammar import ProgressiveGrammar
-    from janus.core.expressions.expression import Variable
+    from janus_ai.core.grammar.base_grammar import ProgressiveGrammar
+    from janus_ai.core.expressions.expression import Variable
     
     # Setup
     grammar = ProgressiveGrammar()

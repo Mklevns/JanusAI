@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 import logging
 
 if TYPE_CHECKING:
-    from janus.core.search.config import ExpressionConfig
+    from janus_ai.core.search.config import ExpressionConfig
 
 from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar as BaseGrammar # Updated import
 from janus_ai.core.expressions.expression import Expression, Variable
