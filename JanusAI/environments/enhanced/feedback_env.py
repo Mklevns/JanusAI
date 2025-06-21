@@ -208,10 +208,7 @@ class EnhancedObservationEncoder:
             np.array(reward_vec, dtype=np.float32)
         ])
 
-        # Combine with expression features
-        features = np.concatenate([numerical_history, expr_features])
-
-        return features
+        return np.concatenate([numerical_history, expr_features])
 
     def _extract_grammar_features(self, grammar: ProgressiveGrammar) -> np.ndarray:
         """Extract features about the current state of the grammar."""
