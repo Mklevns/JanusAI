@@ -122,7 +122,7 @@ class SymbolicDiscoveryEnv(gym.Env):
         action_space_size: Optional[int] = None,
         provide_tree_structure: bool = False,
         task_type: Optional[str] = None  # Added task_type
-    ):
+    
         """
         Initialize the symbolic discovery environment.
         
