@@ -55,6 +55,7 @@ dependencies = [
     "tqdm>=4.65.0",
     "rich>=13.0.0",
     "click>=8.1.0",
+    "transformers",  # Added for LLM integration
     "psutil>=5.9.0",
     
     # Logging and monitoring
