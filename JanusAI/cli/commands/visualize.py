@@ -4,15 +4,8 @@ from pathlib import Path
 import json # For loading summary files if needed to build up a DataFrame
 import logging # Added for more consistent logging
 
-# Attempt to import ExperimentVisualizer
-try:
-    from janus_ai.utils.visualization.plotting import ExperimentVisualizer
-    HAS_VISUALIZER = True
-except ImportError:
-    HAS_VISUALIZER = False
-    ExperimentVisualizer = None # Placeholder
-    # Using logging for warnings is more consistent than click.echo at import time
-    logging.warning("ExperimentVisualizer not found in JanusAI.utils.visualization.plotting. Visualization capabilities will be limited.")
+import os
+from janus.utils.visualization.plotting import ExperimentVisualizer
 
 # Helper function similar to one in 'evaluate.py' to load results
 def load_aggregated_results(results_path: Path) -> pd.DataFrame:

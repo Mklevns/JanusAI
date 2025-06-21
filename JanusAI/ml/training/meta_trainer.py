@@ -12,6 +12,7 @@ import copy
 import types
 import sympy as sp
 from pathlib import Path
+import tqdm # Added import
 
 # Updated imports based on the new structure
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv

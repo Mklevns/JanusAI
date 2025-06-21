@@ -6,11 +6,16 @@ Provides utilities for integrating training runs with Weights & Biases (W&B)
 for experiment tracking, visualization, and collaboration.
 """
 
+import torch # Added import
+import numpy as np # Added import
 # Use safe_import to make wandb an optional dependency
 from janus_ai.utils.general_utils import safe_import
 wandb = safe_import("wandb", "wandb")
 
 from typing import Any, Dict, Optional, Union, List
+from datetime import datetime # Added for example usage
+import time # Added for example usage
+import os # Added for example usage
 
 
 class WandbLogger:
@@ -151,4 +156,3 @@ if __name__ == "__main__":
         print("\nSkipping full W&B test as it's not enabled.")
 
     print("\nWandbLogger tests completed.")
-
