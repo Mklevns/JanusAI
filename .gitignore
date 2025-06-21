@@ -198,3 +198,7 @@ cython_debug/
 .vscode/
 # Windows Zone.Identifier sidecars
 *:Zone.Identifier
+
+# pip-tools generated files
+*requirements.txt
+*requirements-dev.txt

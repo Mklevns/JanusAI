@@ -1,3 +1,4 @@
+# JanusAI/core/grammar/ai_grammar.py
 """AI-specific Grammar components, extending Progressive Grammar."""
 
 import numpy as np
