@@ -551,7 +551,7 @@ def analyze_selection_pressure(
     Returns:
         Dictionary with selection pressure metrics
     """
-    from janus.core.expressions.expression import Expression, Variable
+    from janus_ai.core.expressions.expression import Expression, Variable
     
     # Create dummy population and fitnesses
     dummy_var = Variable("x", 0, {})

@@ -71,7 +71,7 @@ from janus_ai.core.search.operators import (
 )
 
 # Import main regressor from the parent module to maintain clean imports
-# This allows: from janus.core.search import SymbolicRegressor
+# This allows: from janus_ai.core.search import SymbolicRegressor
 from janus_ai.physics.algorithms.genetic import (
     SymbolicRegressor,
     FitnessCache,

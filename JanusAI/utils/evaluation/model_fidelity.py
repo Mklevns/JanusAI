@@ -19,7 +19,7 @@ from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data 
 
 # Placeholder for AI model classes, assuming they are nn.Module compatible
 try:
-    from janus.ml.networks.hypothesis_net import HypothesisNet, AIHypothesisNet
+    from janus_ai.ml.networks.hypothesis_net import HypothesisNet, AIHypothesisNet
 except ImportError:
     print("Warning: HypothesisNet or AIHypothesisNet not found for type hinting in fidelity.py. Using generic nn.Module.")
     HypothesisNet = nn.Module
@@ -142,8 +142,8 @@ class ModelFidelityEvaluator:
 if __name__ == "__main__":
     # Mock symbolic_math utilities and Expression/Variable if not fully available
     try:
-        from janus.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
-        from janus.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
+        from janus_ai.core.expressions.expression import Expression as RealExpression, Variable as RealVariable
+        from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
     except ImportError:
         print("Using mock Expression/Variable and evaluate_expression_on_data for fidelity.py test.")
         @dataclass(eq=True, frozen=False)

@@ -19,9 +19,9 @@ from typing import List, Dict, Any, Optional, Union
 import time # For timestamp in history
 
 # Import Expression and Variable for symbolic evaluation, from their new location
-from janus.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.expression import Expression, Variable
 # Import evaluation utility from symbolic_math
-from janus.core.expressions.symbolic_math import evaluate_expression_on_data
+from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data
 
 
 class ConservationBiasedReward: # Retaining original class name as per instruction
@@ -247,10 +247,10 @@ class ConservationBiasedReward: # Retaining original class name as per instructi
             return penalty * 0.1 # This penalty is typically negative or zero
         return 0.0
 
-    def check_conservation_with_evaluation(self, 
-                                           expr_str: str, 
-                                           trajectory_data: Dict[str, Any], 
-                                           variables: List[Variable], 
+    def check_conservation_with_evaluation(self,
+                                           expr_str: str,
+                                           trajectory_data: Dict[str, Any],
+                                           variables: List[Variable],
                                            conservation_type: str) -> bool:
         """
         A combined check method that evaluates the expression and then calls
@@ -284,7 +284,7 @@ if __name__ == '__main__':
 
     # Mock `evaluate_expression_on_data` and `Variable` if not fully available
     try:
-        from janus.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
+        from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
     except ImportError:
         print("Using mock evaluate_expression_on_data for testing ConservationBiasedReward. Please ensure real utility exists.")
         def evaluate_expression_on_data(expr_str: str, data_dict: Dict[str, np.ndarray]) -> np.ndarray:
@@ -300,7 +300,7 @@ if __name__ == '__main__':
             return np.array([0.0]) # Default mock return
 
     try:
-        from janus.core.expressions.expression import Variable as RealVariable
+        from janus_ai.core.expressions.expression import Variable as RealVariable
     except ImportError:
         print("Using mock Variable for ConservationBiasedReward test.")
         # Minimal mock for Variable needed for testing
@@ -423,4 +423,3 @@ if __name__ == '__main__':
 
 
     print("\nAll ConservationBiasedReward (as Law Detector) tests completed.")
-

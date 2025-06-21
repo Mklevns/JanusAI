@@ -221,7 +221,7 @@ def example_environment_integration():
     """Example of integrating RewardHandler with an environment."""
     print("=== Example 6: Environment Integration ===\n")
     
-    from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+    from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
     
     class RewardHandlerEnv(SymbolicDiscoveryEnv):
         """Environment that uses RewardHandler for reward calculation."""
@@ -325,7 +325,7 @@ def example_custom_component():
     """Example of creating a custom reward component."""
     print("=== Example 9: Custom Component ===\n")
     
-    from janus.ml.rewards.base_reward import BaseReward
+    from janus_ai.ml.rewards.base_reward import BaseReward
     
     class LengthPenaltyReward(BaseReward):
         """Penalizes expressions that are too long."""

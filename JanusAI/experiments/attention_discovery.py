@@ -19,11 +19,11 @@ import torch
 from transformers import GPT2Model, GPT2Tokenizer
 
 # Janus core imports (updated for new structure)
-from janus.core.grammar.enhanced_ai_grammar import EnhancedAIGrammar, AttentionVariable
-from janus.ml.rewards.interpretability_reward import InterpretabilityReward, patch_interpretability_reward_methods
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus.ml.training.ppo_trainer import PPOTrainer
-from janus.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
+from janus_ai.core.grammar.enhanced_ai_grammar import EnhancedAIGrammar, AttentionVariable
+from janus_ai.ml.rewards.interpretability_reward import InterpretabilityReward, patch_interpretability_reward_methods
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
+from janus_ai.ml.training.ppo_trainer import PPOTrainer
+from janus_ai.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

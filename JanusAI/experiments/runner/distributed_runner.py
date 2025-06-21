@@ -27,10 +27,10 @@ from pathlib import Path
 from collections import OrderedDict
 
 # --- Internal Janus Imports (adjusted for new structure) ---
-from janus.ml.networks.hypothesis_net import HypothesisNet
-from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv # Assuming this is the new path
-from janus.core.grammar.base_grammar import ProgressiveGrammar # Assuming this is the new path for grammar
-from janus.core.expressions.expression import Variable # Assuming this is the new path for Variable
+from janus_ai.ml.networks.hypothesis_net import HypothesisNet
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv # Assuming this is the new path
+from janus_ai.core.grammar.base_grammar import ProgressiveGrammar # Assuming this is the new path for grammar
+from janus_ai.core.expressions.expression import Variable # Assuming this is the new path for Variable
 
 
 class RLlibHypothesisNet(TorchModelV2, nn.Module):

@@ -477,7 +477,7 @@ if __name__ == "__main__":
 
     # Mock for symbolic_math utilities (get_variables_from_expression, evaluate_expression_on_data)
     try:
-        from janus.core.expressions.symbolic_math import (
+        from janus_ai.core.expressions.symbolic_math import (
             get_variables_from_expression as real_get_vars,
             evaluate_expression_on_data as real_eval_on_data
         )
@@ -493,7 +493,7 @@ if __name__ == "__main__":
 
     # Mock for math.operations utilities (calculate_symbolic_accuracy, calculate_expression_complexity)
     try:
-        from janus.utils.math.operations import (
+        from janus_ai.utils.math.operations import (
             calculate_symbolic_accuracy as real_calc_sym_acc,
             calculate_expression_complexity as real_calc_expr_comp
         )

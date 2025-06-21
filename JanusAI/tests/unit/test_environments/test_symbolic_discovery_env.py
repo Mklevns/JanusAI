@@ -820,7 +820,7 @@ def test_evaluate_expression_handles_invalid_predictions_and_exceptions(env_setu
     # The expression is x*2.0. Assume its complexity is 3.
     # The grammar and to_expression must correctly calculate complexity.
     # We need to ensure the expression object from to_expression has 'complexity'.
-    # The Expression class from janus.core.grammar should provide this.
+    # The Expression class from janus_ai.core.grammar should provide this.
 
     # Need to get the actual complexity value that ProgressiveGrammar would assign.
     # For testing, let's assume a fixed complexity for "x*2.0" if ProgressiveGrammar is complex.
