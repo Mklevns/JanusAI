@@ -4,7 +4,7 @@ Tests for core/grammar/base_grammar.py: CFGRule, ContextFreeGrammar, NoisyObserv
 import pytest
 import random
 from collections import defaultdict
-from JanusAI.core.grammar.base_grammar import CFGRule, ContextFreeGrammar
+from core.grammar.base_grammar import CFGRule, ContextFreeGrammar
 from JanusAI.core.expressions.expression import Variable # For TargetType in CFG
 
 # Tests for CFGRule
