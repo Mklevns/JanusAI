@@ -51,7 +51,7 @@ class ReportGenerator:
             f.write(f"# Experiment Summary Report: {experiment_results.get('experiment_name', 'Unnamed Experiment')}\n\n")
             f.write(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
             f.write("## Overview\n\n")
-            f.write(f"- **Total Timesteps Run:** {experiment_results.get('total_timesteps', 'N/A'):,}\n")
+            f.write(f"- **Total Timesteps Run:** {experiment_results.get('total_timesteps', 'N/A')}\n")
             f.write(f"- **Overall Average Fidelity:** {experiment_results.get('overall_average_fidelity', 'N/A'):.4f}\n")
             f.write(f"- **Overall Correct Discovery Rate:** {experiment_results.get('overall_correct_discovery_rate', 'N/A'):.2f}\n")
             f.write(f"- **Experiment Duration:** {experiment_results.get('total_elapsed_time_seconds', 'N/A'):.2f} seconds\n\n")

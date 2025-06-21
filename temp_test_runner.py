@@ -12,7 +12,6 @@ class Remapper:
         for new_var, orig_var in sorted_vars:
             # Use \b for word boundaries
             result = re.sub(r'\b' + re.escape(new_var) + r'\b', orig_var, result)
-
         return result
 
 def test_remap_expression_logic():
@@ -42,3 +41,7 @@ def test_remap_expression_logic():
     # Test with mapping to empty string
     assert remapper._remap_expression("remove x here", {"x": ""}) == "remove  here"
     assert remapper._remap_expression("x remove x here x", {"x": ""}) == " remove  here "
+
+if __name__ == "__main__":
+    test_remap_expression_logic()
+    print("test_remap_expression_logic passed successfully")
