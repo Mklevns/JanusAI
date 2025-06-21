@@ -1,7 +1,5 @@
 import torch
 import numpy as np
-import random
-from typing import List, Dict, Any, Callable
 
 # Environment and Grammar
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
@@ -12,7 +10,6 @@ from janus_ai.core.expressions.expression import Variable # For defining variabl
 # Assuming InterpretabilityReward is in one of these locations.
 # from janus_ai.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward
 # Or
-from janus_ai.ml.rewards.interpretability_reward import InterpretabilityReward
 
 # PPO Trainer and Components
 # These are placeholders, actual paths might differ.
@@ -24,7 +21,6 @@ from janus_ai.ml.training.ppo_config import PPOConfig # Assuming ppo_config.py f
 from janus_ai.utils.replay_buffer import ExperienceBuffer # Placeholder, might be utils.buffers or ml.buffers
 
 # Curriculum and Checkpoints
-from janus_ai.ml.training.curriculum import CurriculumManager # Assuming this path
 from janus_ai.utils.io.checkpoint_manager import CheckpointManager
 
 # Data Generator
@@ -284,4 +280,3 @@ if __name__ == '__main__':
     print("To run, uncomment the try-except block in __main__ and ensure all dependencies are met.")
 
 # Final check for typing after class/function definitions
-from typing import Optional # If used in type hints not covered by earlier imports

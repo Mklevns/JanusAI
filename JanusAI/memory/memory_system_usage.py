@@ -6,17 +6,16 @@ Provides adapters, hooks, and helper functions for seamless integration.
 
 import torch
 import numpy as np
-from typing import Dict, List, Optional, Any, Callable
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 import logging
 
 from janus_ai.dual_memory_system import (
 
     DualMemorySystem, Discovery, IntermediateResult, 
-    EmbeddingGenerator, SharedMemory
+    EmbeddingGenerator
 )
 from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
-from janus_ai.grammar.expression_tree import ExpressionTree
 
 
 class MemoryIntegratedEnv(SymbolicDiscoveryEnv):

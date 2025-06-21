@@ -1,7 +1,6 @@
 import click
 import pandas as pd
 from pathlib import Path
-import pickle # For loading ExperimentResult .pkl files
 import json # For loading summary .json files
 from typing import List, Dict, Any
 

@@ -6,15 +6,13 @@ Implements specialized agents with dual memory and judge-mediated refinement.
 
 import torch
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Any, Set
-from dataclasses import dataclass, field
-from collections import defaultdict, deque
+from typing import Dict, List, Tuple, Optional, Any
+from dataclasses import dataclass
+from collections import deque
 from abc import ABC, abstractmethod
 import json
 
-from janus_ai.grammar.expression_tree import ExpressionTree
 from janus_ai.grammar.ai_grammar import AIGrammar
-from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
 
 
 @dataclass

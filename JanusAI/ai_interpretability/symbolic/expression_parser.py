@@ -6,7 +6,7 @@ Uses Python AST for robust parsing instead of string matching.
 
 import ast
 import numpy as np
-from typing import List, Dict, Set, Optional
+from typing import List
 
 
 class ExpressionParser:

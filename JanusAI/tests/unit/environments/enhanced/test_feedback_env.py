@@ -8,7 +8,7 @@ from collections import deque
 from unittest.mock import MagicMock, patch
 
 from environments.enhanced.feedback_env import EnhancedObservationEncoder, EnhancedSymbolicDiscoveryEnv
-from environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode, NodeType
+from environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode
 from core.grammar.base_grammar import ProgressiveGrammar
 from core.expressions.expression import Variable
 from ml.rewards.intrinsic_rewards import IntrinsicRewardCalculator # For type hinting/mocking

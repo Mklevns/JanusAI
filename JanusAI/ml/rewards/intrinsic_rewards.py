@@ -9,15 +9,14 @@ like exploration, novelty, or adherence to physical principles.
 
 import numpy as np
 import sympy as sp
-from typing import Any, Dict, Optional, Tuple, List, Deque, Union
+from typing import Any, Dict, Optional, List, Deque
 from collections import deque
-import types # Needed for types.MethodType in add_intrinsic_rewards_to_env (if used externally)
 
 # Import BaseReward
 from janus_ai.ml.rewards.base_reward import BaseReward
 
 # Import utilities from new structure
-from janus_ai.core.expressions.expression import Expression, Variable
+from janus_ai.core.expressions.expression import Variable
 from janus_ai.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
 from janus_ai.utils.math.operations import calculate_symbolic_accuracy, calculate_expression_complexity
 
@@ -413,7 +412,6 @@ class IntrinsicRewardCalculator:
 
 
 if __name__ == "__main__":
-    import types # Needed for types.MethodType for environment wrapping
     # Using mock environment and dependent classes for testing
 
     class MockEnv(object): # Simplified mock env for testing intrinsic rewards
@@ -477,10 +475,13 @@ if __name__ == "__main__":
 
     # Mock for symbolic_math utilities (get_variables_from_expression, evaluate_expression_on_data)
     try:
-        from janus_ai.core.expressions.symbolic_math import (
-            get_variables_from_expression as real_get_vars,
-            evaluate_expression_on_data as real_eval_on_data
-        )
+
+        pass
+        # from janus.core.expressions.symbolic_math import (
+        #     get_variables_from_expression as real_get_vars,
+        #     evaluate_expression_on_data as real_eval_on_data
+        # )
+
     except ImportError:
         print("Using mock symbolic_math utilities for intrinsic_rewards.py test.")
         def get_variables_from_expression(expr_str: str, all_variables: List[Variable]) -> List[Variable]:
@@ -493,10 +494,13 @@ if __name__ == "__main__":
 
     # Mock for math.operations utilities (calculate_symbolic_accuracy, calculate_expression_complexity)
     try:
-        from janus_ai.utils.math.operations import (
-            calculate_symbolic_accuracy as real_calc_sym_acc,
-            calculate_expression_complexity as real_calc_expr_comp
-        )
+
+        pass
+        # from janus.utils.math.operations import (
+        #     calculate_symbolic_accuracy as real_calc_sym_acc,
+        #     calculate_expression_complexity as real_calc_expr_comp
+        # )
+
     except ImportError:
         print("Using mock math.operations utilities for intrinsic_rewards.py test.")
         def calculate_symbolic_accuracy(expr_str: str, ground_truth_dict: Dict[str, Any], var_symbols: List[str]) -> float:

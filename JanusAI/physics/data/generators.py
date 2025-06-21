@@ -8,7 +8,7 @@ These generators are used to create datasets for physics discovery tasks.
 """
 
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, Tuple, Optional, Any
 from abc import ABC, abstractmethod
 import scipy.integrate as integrate
 

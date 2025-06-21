@@ -199,6 +199,10 @@ cython_debug/
 # Windows Zone.Identifier sidecars
 *:Zone.Identifier
 
+# Ignore virtual environments in test directories
+JanusAI/tests/integration/.venv/
+JanusAI/tests/unit/.venv/
+
 # pip-tools generated files
 *requirements.txt
 *requirements-dev.txt

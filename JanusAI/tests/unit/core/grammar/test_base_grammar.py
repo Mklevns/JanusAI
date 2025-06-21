@@ -447,7 +447,6 @@ class TestNoisyObservationProcessor:
 
 
 from core.grammar.base_grammar import ProgressiveGrammar, Expression # Expression is needed
-from sklearn.decomposition import FastICA # For mocking
 import logging # For checking log messages from CFG generation
 
 # Mock FastICA for ProgressiveGrammar tests

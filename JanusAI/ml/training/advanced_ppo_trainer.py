@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from torch.distributions import Categorical
-from typing import Dict, List, Optional, Any, Callable, Tuple
+from typing import Dict, List, Optional, Any
 import logging
 from dataclasses import dataclass
 from collections import deque

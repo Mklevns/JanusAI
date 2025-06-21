@@ -9,7 +9,7 @@ to replace the placeholder methods with functional implementations.
 
 import numpy as np
 import torch.nn as nn
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from janus_ai.ml.rewards.base_reward import BaseReward
 from janus_ai.ai_interpretability.evaluation.fidelity import ModelFidelityEvaluator

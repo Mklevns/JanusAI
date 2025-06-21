@@ -8,7 +8,7 @@ known physical laws and data generators to provide quantitative metrics.
 """
 
 import numpy as np
-from typing import Dict, List, Any, Optional, Tuple, Callable
+from typing import Dict, List, Any, Optional, Callable
 
 # Import necessary components from other modules
 from janus_ai.physics.data.task_distribution import PhysicsTask, PhysicsTaskDistribution
@@ -232,8 +232,10 @@ if __name__ == "__main__":
     # Mock evaluate_expression_on_data and are_expressions_equivalent_sympy
     # if `janus.core.expressions.symbolic_math` is not ready.
     try:
-        from janus_ai.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
-        from janus_ai.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
+        pass
+        # from janus.core.expressions.symbolic_math import evaluate_expression_on_data as real_eval_expr_on_data
+        # from janus.core.expressions.symbolic_math import are_expressions_equivalent_sympy as real_are_eq_sympy
+
     except ImportError:
         print("Using mock symbolic_math utilities for benchmarks.py test.")
         def evaluate_expression_on_data(expr_str: str, data_dict: Dict[str, np.ndarray]) -> np.ndarray:

@@ -8,18 +8,19 @@ and interpretability pipelines.
 
 import numpy as np
 import torch
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Optional
 from pathlib import Path
 import time
 import logging
 
-from janus_ai.core.grammar import ProgressiveGrammar
-from janus_ai.core.expressions import Variable
-from janus_ai.environments.base import SymbolicDiscoveryEnv
-from janus_ai.ml.networks import HypothesisNet
-from janus_ai.ml.training import PPOTrainer
-from janus_ai.config.models import JanusConfig
-from janus_ai.utils.logging import ExperimentLogger
+
+from janus.core.grammar import ProgressiveGrammar
+from janus.environments.base import SymbolicDiscoveryEnv
+from janus.ml.networks import HypothesisNet
+from janus.ml.training import PPOTrainer
+from janus.config.models import JanusConfig
+from janus.utils.logging import ExperimentLogger
+
 
 # Optional imports
 try:

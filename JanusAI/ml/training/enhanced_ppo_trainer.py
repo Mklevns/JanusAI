@@ -11,7 +11,7 @@ Integrates:
 import torch
 import torch.nn as nn
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Any
 from pathlib import Path
 import json
 import time
@@ -33,8 +33,9 @@ from janus_ai.utils.ai.llm_exploration import (
     ExplorationContext,
     AdaptiveLLMExploration
 )
-from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
-from janus_ai.physics.data.generators import PhysicsTask
+
+from janus.environments.base.symbolic_env import SymbolicDiscoveryEnv
+
 
 
 @dataclass

@@ -10,11 +10,10 @@ policy training, and basic logging for a single experiment.
 import numpy as np
 import torch
 import time
-from typing import Any, Dict, List, Optional, Tuple, Type, Callable
+from typing import Any, Dict, Optional
 
 # Import core components
-from janus_ai.core.grammar.progressive_grammar import ProgressiveGrammar # Updated import
-from janus_ai.core.expressions.expression import Variable, Expression
+from janus_ai.core.expressions.expression import Variable
 
 # Import environment and policy (assuming specific types like SymbolicDiscoveryEnv and HypothesisNet)
 from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv

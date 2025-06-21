@@ -8,7 +8,7 @@ Specialized environment for interpreting transformer models.
 
 import numpy as np
 import torch
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 from janus_ai.environments.ai_interpretability.neural_net_env import (

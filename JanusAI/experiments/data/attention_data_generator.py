@@ -157,4 +157,3 @@ if __name__ == '__main__':
 
     print("\nNote: GPT-2 extraction and generate_for_level are currently placeholders.")
 
-from typing import Optional # Added here to resolve type hint for tokenizer_name

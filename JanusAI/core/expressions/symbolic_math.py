@@ -16,7 +16,7 @@ Key Features:
 
 import numpy as np
 import sympy as sp
-from typing import List, Union, Optional, Any, Dict, Tuple
+from typing import List, Union, Optional, Any, Tuple
 from functools import lru_cache
 import warnings
 from dataclasses import dataclass

@@ -7,9 +7,7 @@ This module provides a registry system for reward components, making it easy
 to create and configure reward components by name.
 """
 
-from typing import Dict, Type, Any, Optional, Callable
-import inspect
-from functools import partial
+from typing import Dict, Type, Any, Callable
 
 from janus_ai.ml.rewards.base_reward import BaseReward
 from janus_ai.ml.rewards.intrinsic_rewards import (

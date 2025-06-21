@@ -6,26 +6,21 @@ Provides complete working examples and utilities.
 
 import torch
 import numpy as np
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 from datetime import datetime
 import logging
 
 # Import Janus components
 from janus_ai.ml.multi_agent_system import (
 
-    DynamicAgentPool, PlannerAgent, AgentRole, AgentConfig,
-    BaseScientificAgent
+    DynamicAgentPool, PlannerAgent, AgentRole
 )
 from janus_ai.ml.iterative_refinement import (
 
-    IterativeRefinementLoop, JudgeAgent, FeedbackIncorporator
+    IterativeRefinementLoop, FeedbackIncorporator
 )
 from janus_ai.memory.dual_memory_system import DualMemorySystem
 
-from janus_ai.memory.memory_integration import (
-
-    MemoryIntegratedEnv, MemoryAugmentedAgent
-)
 from janus_ai.grammar.ai_grammar import AIGrammar
 
 from janus_ai.rewards.interpretability_reward import InterpretabilityReward
@@ -579,4 +574,4 @@ def run_attention_discovery_example():
     stats = framework.memory_system.get_memory_stats()
     print(f"\nMemory Statistics:")
     print(f"Episodic discoveries: {stats['episodic']['total_discoveries']}")
-    print(f"Average validation: {stats['episodic
+    print(f"Average validation: {stats['episodic']['average_validation']:.3f}")

@@ -11,7 +11,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import sympy as sp
-from typing import Any, Dict, List, Optional, Callable, Union
+from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass
 
 # Import base grammar

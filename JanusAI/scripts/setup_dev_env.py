@@ -8,7 +8,6 @@ Quick setup script for Janus development environment.
 Checks system requirements and sets up the development environment.
 """
 
-import os
 import sys
 import subprocess
 import platform

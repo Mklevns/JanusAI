@@ -11,16 +11,13 @@ to the `PhysicsTask`'s associated data generator.
 """
 
 import numpy as np
-import sympy as sp
-from typing import Any, Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
 
 # Import base symbolic environment
-from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv, TreeState, ExpressionNode
+from janus_ai.environments.base.symbolic_env import SymbolicDiscoveryEnv
 
 # Import core expression and symbolic math utilities
-from janus_ai.core.expressions.expression import Expression, Variable
-from janus_ai.core.expressions.symbolic_math import get_variables_from_expression, evaluate_expression_on_data
+from janus_ai.core.expressions.expression import Variable
 
 # Import physics-specific utilities
 from janus_ai.physics.laws.conservation import ConservationDetector # For potential use in reward

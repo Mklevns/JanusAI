@@ -8,7 +8,7 @@ comparing performance across different runs, or assessing significance.
 
 import numpy as np
 from scipy import stats
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Union
 
 
 class StatisticalAnalyzer:

@@ -4,7 +4,6 @@ Iterative refinement loop with convergence detection and feedback incorporation.
 Integrates with existing Janus components (PPO, InterpretabilityReward, AIGrammar).
 """
 
-import torch
 import numpy as np
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
@@ -14,8 +13,7 @@ from collections import deque
 
 from janus_ai.ml.multi_agent_system import (
 
-    BaseScientificAgent, DynamicAgentPool, PlannerAgent,
-    AgentRole, AgentConfig
+    BaseScientificAgent, DynamicAgentPool, PlannerAgent
 )
 from janus_ai.memory.dual_memory_system import (
 
@@ -25,9 +23,8 @@ from janus_ai.grammar.ai_grammar import AIGrammar
 
 from janus_ai.rewards.interpretability_reward import InterpretabilityReward
 
-from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer, PPOConfig
+from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer
 
-from janus_ai.environments.symbolic_discovery_env import SymbolicDiscoveryEnv
 
 
 

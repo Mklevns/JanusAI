@@ -1,4 +1,3 @@
-import pytest
 import re # Import re at the module level
 
 # Dummy class to hold the method for testing, as PhysicsDiscoveryExperiment is complex to instantiate

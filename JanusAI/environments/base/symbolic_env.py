@@ -9,7 +9,7 @@ The refactored version separates input features (X) and target values (y) for cl
 
 import gym
 import numpy as np
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
 import warnings
 from enum import Enum, auto
@@ -125,7 +125,7 @@ class SymbolicDiscoveryEnv(gym.Env):
         action_space_size: Optional[int] = None,
         provide_tree_structure: bool = False,
         task_type: Optional[str] = None  # Added task_type
-    
+    ): # Added closing parenthesis
         """
         Initialize the symbolic discovery environment.
         

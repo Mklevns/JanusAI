@@ -4,19 +4,16 @@ Dual Memory System for Janus scientific discovery platform.
 Implements both Episodic Memory (long-term) and Shared Memory (per-problem).
 """
 
-import json
 import pickle
 import sqlite3
 import numpy as np
-import torch
-from typing import Dict, List, Optional, Any, Tuple, Union
-from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Optional, Any, Tuple
+from dataclasses import dataclass, field
 from datetime import datetime
-from collections import deque, defaultdict
+from collections import defaultdict
 from pathlib import Path
 import threading
 import hashlib
-from abc import ABC, abstractmethod
 import faiss  # For efficient similarity search
 import logging
 

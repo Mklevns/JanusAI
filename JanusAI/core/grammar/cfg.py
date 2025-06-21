@@ -1,6 +1,6 @@
 """Context-Free Grammar (CFG) components."""
 
-from typing import Dict, List, Tuple, Optional, Set, Any, TypeVar, Generic, Union
+from typing import Dict, List, Optional, TypeVar, Generic, Union
 from dataclasses import dataclass
 from collections import defaultdict
 import random

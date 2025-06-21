@@ -8,7 +8,6 @@
 # """
 
 import json
-import time
 import logging
 
 import numpy as np
@@ -19,7 +18,6 @@ from typing import Dict, List, Any, Optional
 
 from janus_ai.experiments.registry import register_experiment
 from janus_ai.experiments.base import BaseExperiment
-from janus_ai.experiments.config import GPT2AttentionConfig as RegistryConfig
 from janus_ai.ai_interpretability.evaluation.fidelity import FidelityCalculator
 from janus_ai.core.grammar import EnhancedAIGrammar
 from janus_ai.ai_interpretability.rewards.interpretability_reward import InterpretabilityReward

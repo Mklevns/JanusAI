@@ -1,8 +1,7 @@
 import json
-import time
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 import numpy as np
 import torch
@@ -17,7 +16,7 @@ from janus_ai.ml.training.ppo_trainer import PPOTrainer
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-\@dataclass
+@dataclass
 class GPT2AttentionConfig:
     model_name: str = 'gpt2'
     layer_index: int = 0

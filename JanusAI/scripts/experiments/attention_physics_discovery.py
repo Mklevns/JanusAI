@@ -9,10 +9,9 @@ by focusing on relevant parts of the expression tree based on the task.
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from pathlib import Path
 
-from janus_ai.ml.networks.attention_meta_policy import EnhancedMetaLearningPolicy
-from janus_ai.ml.training.enhanced_meta_trainer import (
+from janus.ml.training.enhanced_meta_trainer import (
+
     EnhancedMAMLTrainer, 
     EnhancedMetaLearningConfig
 )

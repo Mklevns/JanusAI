@@ -7,13 +7,12 @@ Implements dynamic agent creation, role specialization, and lifecycle management
 import torch
 import torch.nn as nn
 import numpy as np
-from typing import Dict, List, Optional, Any, Tuple, Type, Callable
+from typing import Dict, List, Any, Tuple
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from datetime import datetime
 import logging
 from enum import Enum
-import json
 
 from janus_ai.memory.dual_memory_system import (
 
@@ -21,13 +20,9 @@ from janus_ai.memory.dual_memory_system import (
 )
 from janus_ai.grammar.ai_grammar import AIGrammar
 
-from janus_ai.environments.base.symbolic_env import TreeState
 
-from janus_ai.rewards.interpretability_reward import InterpretabilityReward
 
-from janus_ai.ml.training.advanced_ppo_trainer import AdvancedPPOTrainer
 
-from janus_ai.ml.networks.policy_networks import TransformerPolicy
 
 
 
@@ -512,4 +507,5 @@ class DynamicAgentPool:
             AgentRole.EXPERIMENTER: ExperimenterAgent,
             AgentRole.THEORIST: TheoristAgent,
             AgentRole.VALIDATOR: ValidatorAgent,
-            AgentRole.CRITIC: CriticAge
+            AgentRole.CRITIC: CriticAgent
+        }
